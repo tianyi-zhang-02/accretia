@@ -114,7 +114,7 @@ export default function LoginForm() {
   return (
     <form onSubmit={onVerifyOtp} className="flex flex-col gap-4" noValidate>
       <p className="text-sm text-zinc-400">
-        We sent a 6-digit code to <span className="text-zinc-100">{email}</span>. Check your inbox.
+        We sent an 8-digit code to <span className="text-zinc-100">{email}</span>. Check your inbox.
       </p>
       <label className="flex flex-col gap-2">
         <span className="text-xs tracking-wider text-zinc-400 uppercase">Code</span>
@@ -123,14 +123,17 @@ export default function LoginForm() {
           autoComplete="one-time-code"
           autoFocus
           inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={10}
-          className="rounded border border-zinc-700 bg-transparent px-3 py-2 text-base tracking-[0.4em] outline-none focus:border-zinc-400"
+          pattern="\d{8}"
+          maxLength={8}
+          minLength={8}
+          placeholder="••••••••"
+          aria-label="8-digit one-time code"
+          className="rounded border border-zinc-700 bg-transparent px-4 py-3 text-center font-mono text-2xl tracking-[0.5em] outline-none placeholder:text-zinc-700 focus:border-zinc-400"
           {...codeForm.register('token')}
         />
       </label>
       {codeForm.formState.errors.token ? (
-        <p className="text-xs text-red-400">Enter the 6-digit code from your email.</p>
+        <p className="text-xs text-red-400">Enter the 8-digit code from your email.</p>
       ) : null}
       {serverError ? <p className="text-xs text-red-400">{serverError}</p> : null}
       <button
