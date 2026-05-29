@@ -255,6 +255,7 @@ These are open issues from the Supabase Security Advisor / dev review. Don't fix
 - Step 6 ✅ — transactions CRUD (API routes, filterable list, add/edit/delete form, categories autocomplete)
 - Step 7 ✅ — snapshots (single + bulk month-end), /api/networth aggregator, 12-month Recharts line on dashboard, /accounts/:id drill-down with snapshot history
 - Step 8 ✅ — savings goals CRUD (cards with progress bar, % complete, projected completion date, linked-account auto-progress)
-- Step 9 ⏳ — holdings + Alpha Vantage proxy (next up — ⚠ security-sensitive, pause for review)
+- Step 9 ✅ — holdings CRUD + /api/quotes server-only proxy (auth-before-outbound, restricted to owned symbols, price_cache with TTL); approved after diff review
+- Step 10 ⏳ — wealth simulator (10.1 + 10.2 + 10.3 landed; PAUSED before UI per spec — engine has 18 passing unit tests for review)
 
 Update this section after every completed step.
