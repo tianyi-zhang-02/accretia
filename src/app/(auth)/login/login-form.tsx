@@ -7,9 +7,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
   sendOtpSchema,
-  verifyOtpSchema,
+  verifyOtpClientSchema,
   type SendOtpInput,
-  type VerifyOtpInput,
+  type VerifyOtpClientInput,
 } from '@/lib/validation/auth';
 
 type Stage = 'email' | 'code';
@@ -56,9 +56,11 @@ export default function LoginForm() {
   });
 
   // ---- Stage 2: code ----
-  const codeForm = useForm<VerifyOtpInput>({
-    resolver: zodResolver(verifyOtpSchema),
-    defaultValues: { email: '', token: '' },
+  // Client form validates only the token — the email comes from stage-1
+  // state, not a form field. Server still validates {email, token} together.
+  const codeForm = useForm<VerifyOtpClientInput>({
+    resolver: zodResolver(verifyOtpClientSchema),
+    defaultValues: { token: '' },
   });
 
   const onVerifyOtp = codeForm.handleSubmit(async (values) => {
@@ -66,7 +68,7 @@ export default function LoginForm() {
     const res = await fetch('/api/auth/verify-otp', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...values, email }),
+      body: JSON.stringify({ email, token: values.token }),
     });
     if (!res.ok) {
       setServerError(
