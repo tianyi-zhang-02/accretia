@@ -12,8 +12,8 @@ export default async function SettingsPage() {
       <header>
         <h1 className="serif-display text-3xl">Settings</h1>
         <p className="text-muted mt-2 text-sm">
-          Default currency, inflation assumption, data export, and account deletion will live here.
-          Most of it lands in Step 11.
+          Sections that don&apos;t live in the bottom nav, plus data export
+          and the sign-out control.
         </p>
       </header>
 
@@ -36,6 +36,15 @@ export default async function SettingsPage() {
               className="hover:bg-foreground/5 flex items-center justify-between px-3 py-2 text-sm"
             >
               <span>Wealth simulator</span>
+              <span className="text-muted text-xs">→</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/settings/export"
+              className="hover:bg-foreground/5 flex items-center justify-between px-3 py-2 text-sm"
+            >
+              <span>Export data</span>
               <span className="text-muted text-xs">→</span>
             </Link>
           </li>
