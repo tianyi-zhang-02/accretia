@@ -9,6 +9,7 @@ import type { Scenario } from '@/lib/types/scenario';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
 import AssumptionsForm from './assumptions-form';
+import CompareView from './compare-view';
 import { defaultAssumptions } from './default-assumptions';
 import YearTable from './year-table';
 
@@ -46,6 +47,7 @@ export default function SimulatorClient({
   );
   const [displayMode, setDisplayMode] = useState<'nominal' | 'real'>('nominal');
   const [showTable, setShowTable] = useState(false);
+  const [view, setView] = useState<'edit' | 'compare'>('edit');
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
@@ -232,6 +234,10 @@ export default function SimulatorClient({
     return set;
   }, [assumptions.people, assumptions.windfalls, assumptions.majorExpenses]);
 
+  if (view === 'compare') {
+    return <CompareView scenarios={scenarios} onExit={() => setView('edit')} />;
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Scenario selector + name + save controls */}
@@ -284,6 +290,16 @@ export default function SimulatorClient({
               className="text-muted hover:text-negative text-xs disabled:opacity-50"
             >
               Delete
+            </button>
+          ) : null}
+          {scenarios.length >= 1 ? (
+            <button
+              type="button"
+              onClick={() => setView('compare')}
+              disabled={saving}
+              className="text-muted hover:text-foreground text-xs disabled:opacity-50"
+            >
+              Compare →
             </button>
           ) : null}
           {statusMsg ? <span className="text-positive text-[11px]">{statusMsg}</span> : null}
