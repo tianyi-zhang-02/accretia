@@ -312,6 +312,8 @@ Each step is committable.
 13. **Security hardening pass** — CSP headers, rate limiting on auth, input length limits, README security notes
 14. **Deploy** — Vercel hookup, env vars, custom domain optional
 
+**Polish phase** (between Steps 12 and 13) — see `INTEGRATION_POLISH_SPEC.md`. Cohesion pass on a `polish/integration` branch, one PR, four commits (data integration → cross-links → interaction patterns → visual consolidation). Pause after data integration so the canonical net-worth refactor can be hand-verified.
+
 ---
 
 ## 8. Things to NOT Build (Scope Discipline)

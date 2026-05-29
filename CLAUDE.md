@@ -164,6 +164,8 @@ Work through these in order. Each step ends in a commit + push. Do not jump ahea
 13. **Security hardening pass** ⚠️ pause for user review
 14. **Deploy**
 
+**Polish phase** (between Steps 12 and 13) — see `INTEGRATION_POLISH_SPEC.md`. Runs on a branch `polish/integration` and lands as a single PR. Four sections (data integration, cross-feature navigation, unified interaction patterns, visual consolidation), one commit each. Pause after Section 1 so the canonical net-worth refactor can be hand-verified before the rest piles on. This is a cohesion pass, not new features.
+
 At the ⚠️ steps, finish the work, commit, push, then explicitly tell the user "Step N done — please review the diff before I continue."
 
 ---
