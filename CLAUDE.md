@@ -260,6 +260,7 @@ These are open issues from the Supabase Security Advisor / dev review. Don't fix
 - Step 9 ✅ — holdings CRUD + /api/quotes server-only proxy (auth-before-outbound, restricted to owned symbols, price_cache with TTL); approved after diff review
 - Step 10 ✅ — wealth simulator (10.1 schema + 10.2 CRUD + 10.3 engine + 10.4 form + 10.5 chart + 10.6 table + 10.7 save/load/duplicate/delete + 10.8 compare + 10.9 prefill). Engine: coherent end-of-year convention (T=i+1 nominal for everything in row i); same `expenseInflationFactor` variable feeds the real-net-worth deflation. 24 passing tests including 3 sanity cases + 2 coherence proofs. Cashflow derivation lives at `src/lib/derived/cashflow.ts` for polish-phase reuse.
 - Step 11 ✅ — export endpoints (CSV transactions, CSV holdings, full JSON backup); /settings/export page with three download cards
-- Step 12 ⏳ — PWA polish (next up)
+- Step 12 ✅ — PWA polish: manifest.ts + ImageResponse-generated icons (32/180/192/512) + hand-rolled service worker (no new deps); proxy allowlists the install endpoints; iOS apple-web-app meta + format-detection disabled
+- Polish phase ⏳ — see INTEGRATION_POLISH_SPEC.md, branch `polish/integration`
 
 Update this section after every completed step.
