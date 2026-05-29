@@ -258,7 +258,8 @@ These are open issues from the Supabase Security Advisor / dev review. Don't fix
 - Step 7 ✅ — snapshots (single + bulk month-end), /api/networth aggregator, 12-month Recharts line on dashboard, /accounts/:id drill-down with snapshot history
 - Step 8 ✅ — savings goals CRUD (cards with progress bar, % complete, projected completion date, linked-account auto-progress)
 - Step 9 ✅ — holdings CRUD + /api/quotes server-only proxy (auth-before-outbound, restricted to owned symbols, price_cache with TTL); approved after diff review
-- Step 10 ✅ — wealth simulator (10.1 schema + 10.2 CRUD + 10.3 engine + 10.4 form + 10.5 chart + 10.6 table + 10.7 save/load/duplicate/delete + 10.8 compare + 10.9 prefill). Engine fix: inflation off-by-one (asymmetric convention, see engine.ts comment block). 22 passing tests including 3 sanity cases. Cashflow derivation lives at `src/lib/derived/cashflow.ts` for polish-phase reuse.
-- Step 11 ⏳ — export endpoints (next up)
+- Step 10 ✅ — wealth simulator (10.1 schema + 10.2 CRUD + 10.3 engine + 10.4 form + 10.5 chart + 10.6 table + 10.7 save/load/duplicate/delete + 10.8 compare + 10.9 prefill). Engine: coherent end-of-year convention (T=i+1 nominal for everything in row i); same `expenseInflationFactor` variable feeds the real-net-worth deflation. 24 passing tests including 3 sanity cases + 2 coherence proofs. Cashflow derivation lives at `src/lib/derived/cashflow.ts` for polish-phase reuse.
+- Step 11 ✅ — export endpoints (CSV transactions, CSV holdings, full JSON backup); /settings/export page with three download cards
+- Step 12 ⏳ — PWA polish (next up)
 
 Update this section after every completed step.
