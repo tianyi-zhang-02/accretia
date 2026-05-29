@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import SimulatorChart, { type Marker } from '@/components/charts/simulator-chart';
 import { simulate } from '@/lib/simulator/engine';
@@ -29,15 +30,25 @@ export default function SimulatorClient({
 }: {
   initialScenarios: Scenario[];
 }) {
-  // Scenario state: which one we're editing (or undefined = New Scenario).
+  const router = useRouter();
+
+  // Local copy of the scenarios list so save/duplicate/delete update the
+  // selector without a full route refresh.
+  const [scenarios, setScenarios] = useState<Scenario[]>(initialScenarios);
   const [selectedId, setSelectedId] = useState<string | 'new'>(
     initialScenarios[0]?.id ?? 'new',
   );
   const [assumptions, setAssumptions] = useState<Assumptions>(
     initialScenarios[0]?.assumptions ?? defaultAssumptions(),
   );
+  const [name, setName] = useState<string>(
+    initialScenarios[0]?.name ?? 'Untitled scenario',
+  );
   const [displayMode, setDisplayMode] = useState<'nominal' | 'real'>('nominal');
   const [showTable, setShowTable] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
   // Result recomputes whenever assumptions change. Pure math, fine on
   // every render — no debounce needed for typical horizon sizes.
@@ -52,12 +63,116 @@ export default function SimulatorClient({
 
   function onScenarioChange(id: string) {
     setSelectedId(id);
+    setServerError(null);
+    setStatusMsg(null);
     if (id === 'new') {
       setAssumptions(defaultAssumptions());
+      setName('Untitled scenario');
       return;
     }
-    const found = initialScenarios.find((s) => s.id === id);
-    if (found) setAssumptions(found.assumptions);
+    const found = scenarios.find((s) => s.id === id);
+    if (found) {
+      setAssumptions(found.assumptions);
+      setName(found.name);
+    }
+  }
+
+  async function save() {
+    setServerError(null);
+    setStatusMsg(null);
+    setSaving(true);
+    try {
+      if (selectedId === 'new') {
+        const res = await fetch('/api/scenarios', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ name, assumptions }),
+        });
+        if (!res.ok) {
+          setServerError(res.status === 400 ? 'Invalid scenario — fix inputs.' : 'Save failed.');
+          return;
+        }
+        const json = (await res.json()) as { scenario: Scenario };
+        setScenarios((arr) => [json.scenario, ...arr]);
+        setSelectedId(json.scenario.id);
+        setStatusMsg('Saved.');
+      } else {
+        const res = await fetch(`/api/scenarios/${selectedId}`, {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ name, assumptions }),
+        });
+        if (!res.ok) {
+          setServerError(res.status === 400 ? 'Invalid scenario — fix inputs.' : 'Save failed.');
+          return;
+        }
+        const json = (await res.json()) as { scenario: Scenario };
+        setScenarios((arr) => arr.map((s) => (s.id === json.scenario.id ? json.scenario : s)));
+        setStatusMsg('Saved.');
+      }
+    } catch {
+      setServerError('Network error.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveAsNew() {
+    setServerError(null);
+    setStatusMsg(null);
+    setSaving(true);
+    try {
+      const copyName = `${name} (copy)`.slice(0, 80);
+      const res = await fetch('/api/scenarios', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: copyName, assumptions }),
+      });
+      if (!res.ok) {
+        setServerError(res.status === 400 ? 'Invalid scenario — fix inputs.' : 'Save failed.');
+        return;
+      }
+      const json = (await res.json()) as { scenario: Scenario };
+      setScenarios((arr) => [json.scenario, ...arr]);
+      setSelectedId(json.scenario.id);
+      setName(json.scenario.name);
+      setStatusMsg('Saved as new.');
+    } catch {
+      setServerError('Network error.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteCurrent() {
+    if (selectedId === 'new') return;
+    if (!confirm(`Delete scenario “${name}”? This can't be undone.`)) return;
+    setServerError(null);
+    setStatusMsg(null);
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/scenarios/${selectedId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        setServerError('Delete failed.');
+        return;
+      }
+      const remaining = scenarios.filter((s) => s.id !== selectedId);
+      setScenarios(remaining);
+      if (remaining[0]) {
+        setSelectedId(remaining[0].id);
+        setAssumptions(remaining[0].assumptions);
+        setName(remaining[0].name);
+      } else {
+        setSelectedId('new');
+        setAssumptions(defaultAssumptions());
+        setName('Untitled scenario');
+      }
+      router.refresh();
+    } catch {
+      setServerError('Network error.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   const lastNominal = result?.rows[result.rows.length - 1]?.netWorth ?? 0;
@@ -119,7 +234,7 @@ export default function SimulatorClient({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Scenario selector */}
+      {/* Scenario selector + name + save controls */}
       <div className="flex flex-col gap-2">
         <label className="text-muted text-[10px] tracking-[0.18em] uppercase">Scenario</label>
         <select
@@ -127,16 +242,53 @@ export default function SimulatorClient({
           value={selectedId}
           onChange={(e) => onScenarioChange(e.target.value)}
         >
-          <option value="new">New scenario</option>
-          {initialScenarios.map((s) => (
+          <option value="new">+ New scenario</option>
+          {scenarios.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
             </option>
           ))}
         </select>
-        <p className="text-muted text-[10px]">
-          Save / duplicate / compare arrive in the next sub-steps.
-        </p>
+
+        <label className="text-muted mt-1 text-[10px] tracking-[0.18em] uppercase">Name</label>
+        <input
+          type="text"
+          value={name}
+          maxLength={80}
+          onChange={(e) => setName(e.target.value)}
+          className="border-border focus:border-foreground rounded border bg-transparent px-3 py-2 text-sm outline-none"
+        />
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving || name.trim().length === 0}
+            className="bg-foreground text-background rounded px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+          >
+            {saving ? 'Saving…' : selectedId === 'new' ? 'Save' : 'Save changes'}
+          </button>
+          <button
+            type="button"
+            onClick={saveAsNew}
+            disabled={saving}
+            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs disabled:opacity-50"
+          >
+            Save as new
+          </button>
+          {selectedId !== 'new' ? (
+            <button
+              type="button"
+              onClick={deleteCurrent}
+              disabled={saving}
+              className="text-muted hover:text-negative text-xs disabled:opacity-50"
+            >
+              Delete
+            </button>
+          ) : null}
+          {statusMsg ? <span className="text-positive text-[11px]">{statusMsg}</span> : null}
+          {serverError ? <span className="text-negative text-[11px]">{serverError}</span> : null}
+        </div>
       </div>
 
       {/* Live summary at the top so the form edits feel responsive. */}
