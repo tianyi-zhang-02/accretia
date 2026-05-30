@@ -3,6 +3,8 @@
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { useToast } from '@/components/ui/toast';
+import { formatCurrency, formatDate } from '@/lib/format/money';
 import type { Account } from '@/lib/types/account';
 import type { TransactionWithAccount } from '@/lib/types/transaction';
 import { TRANSACTION_KINDS, type TransactionKind } from '@/lib/validation/transactions';
@@ -31,29 +33,7 @@ const SIGN_BY_KIND: Record<
 
 function formatAmount(amount: string, currency: string): string {
   const n = Number(amount);
-  if (!Number.isFinite(n)) return amount;
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      currencyDisplay: 'narrowSymbol',
-      maximumFractionDigits: 2,
-    }).format(n);
-  } catch {
-    return `${currency} ${n.toFixed(2)}`;
-  }
-}
-
-function formatDate(iso: string): string {
-  // YYYY-MM-DD → e.g. "May 27" / "Jan 3, 2024" if year differs.
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  const sameYear = d.getFullYear() === new Date().getFullYear();
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: sameYear ? undefined : 'numeric',
-  }).format(d);
+  return formatCurrency(n, { currency, withCents: true });
 }
 
 export default function TransactionsClient({
@@ -64,10 +44,10 @@ export default function TransactionsClient({
   accounts: Account[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [mode, setMode] = useState<FormMode>({ kind: 'closed' });
   const [filters, setFilters] = useState<Filters>({ account: 'all', kind: 'all' });
   const [showFilters, setShowFilters] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
   const [pendingDelete, startDelete] = useTransition();
 
   function refresh() {
@@ -90,9 +70,10 @@ export default function TransactionsClient({
     startDelete(async () => {
       const res = await fetch(`/api/transactions/${tx.id}`, { method: 'DELETE' });
       if (!res.ok) {
-        setServerError('Could not delete. Try again.');
+        toast.error('Could not delete. Try again.');
         return;
       }
+      toast.success('Transaction deleted.');
       refresh();
     });
   }
@@ -113,10 +94,7 @@ export default function TransactionsClient({
         {mode.kind === 'closed' ? (
           <button
             type="button"
-            onClick={() => {
-              setServerError(null);
-              setMode({ kind: 'create' });
-            }}
+            onClick={() => setMode({ kind: 'create' })}
             className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
           >
             + Add
@@ -166,15 +144,14 @@ export default function TransactionsClient({
           accounts={accounts}
           editing={mode.kind === 'edit' ? mode.transaction : undefined}
           onCancel={() => setMode({ kind: 'closed' })}
-          onSaved={() => {
+          onSaved={(isEdit) => {
             setMode({ kind: 'closed' });
+            toast.success(isEdit ? 'Transaction saved.' : 'Transaction added.');
             refresh();
           }}
-          onError={setServerError}
+          onError={toast.error}
         />
       ) : null}
-
-      {serverError ? <p className="text-negative text-xs">{serverError}</p> : null}
 
       {visible.length === 0 ? (
         <div className="border-border text-muted rounded border border-dashed p-6 text-center text-sm">
@@ -216,10 +193,7 @@ export default function TransactionsClient({
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        setServerError(null);
-                        setMode({ kind: 'edit', transaction: tx });
-                      }}
+                      onClick={() => setMode({ kind: 'edit', transaction: tx })}
                       className="text-muted hover:text-foreground text-[11px]"
                     >
                       Edit

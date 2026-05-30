@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { useToast } from '@/components/ui/toast';
+import { formatCurrency, formatDate } from '@/lib/format/money';
 import type { Account } from '@/lib/types/account';
 import type { Snapshot } from '@/lib/types/snapshot';
 import type { TransactionKind } from '@/lib/validation/transactions';
@@ -26,30 +28,15 @@ const TONE: Record<TransactionKind, string> = {
   savings_withdrawal: 'text-muted',
 };
 
+function fmtMoneyHelper(n: number, currency: string): string {
+  return formatCurrency(n, { currency, withCents: true });
+}
+
 function todayIso(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function fmtMoney(n: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    currencyDisplay: 'narrowSymbol',
-    maximumFractionDigits: 2,
-  }).format(n);
-}
-
-function fmtDate(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  const sameYear = d.getFullYear() === new Date().getFullYear();
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: sameYear ? undefined : 'numeric',
-  }).format(d);
-}
 
 export default function AccountDetailClient({
   account,
@@ -67,21 +54,20 @@ export default function AccountDetailClient({
   }>;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [showAdd, setShowAdd] = useState(false);
   const [date, setDate] = useState(todayIso());
   const [balance, setBalance] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [pendingDelete, startDelete] = useTransition();
 
   const latest = initialSnapshots[0];
 
   async function onAdd(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     const n = Number(balance);
     if (!Number.isFinite(n)) {
-      setError('Enter a valid number.');
+      toast.error('Enter a valid number.');
       return;
     }
     setSubmitting(true);
@@ -92,9 +78,10 @@ export default function AccountDetailClient({
     });
     setSubmitting(false);
     if (!res.ok) {
-      setError('Save failed. Try again.');
+      toast.error('Could not save snapshot. Try again.');
       return;
     }
+    toast.success('Snapshot saved.');
     setBalance('');
     setShowAdd(false);
     router.refresh();
@@ -105,9 +92,10 @@ export default function AccountDetailClient({
     startDelete(async () => {
       const res = await fetch(`/api/snapshots/${snapshotId}`, { method: 'DELETE' });
       if (!res.ok) {
-        setError('Delete failed. Try again.');
+        toast.error('Could not delete snapshot. Try again.');
         return;
       }
+      toast.success('Snapshot deleted.');
       router.refresh();
     });
   }
@@ -120,19 +108,16 @@ export default function AccountDetailClient({
         {latest ? (
           <>
             <p className="serif-display nums mt-2 text-4xl">
-              {fmtMoney(Number(latest.balance), account.currency)}
+              {fmtMoneyHelper(Number(latest.balance), account.currency)}
             </p>
-            <p className="text-muted nums mt-1 text-xs">As of {fmtDate(latest.snapshot_date)}</p>
+            <p className="text-muted nums mt-1 text-xs">As of {formatDate(latest.snapshot_date)}</p>
           </>
         ) : (
           <p className="text-muted mt-2 text-sm">No snapshots yet.</p>
         )}
         <button
           type="button"
-          onClick={() => {
-            setError(null);
-            setShowAdd((v) => !v);
-          }}
+          onClick={() => setShowAdd((v) => !v)}
           className="border-border hover:bg-foreground/5 mt-3 rounded border px-3 py-1.5 text-xs"
         >
           {showAdd ? 'Cancel' : '+ Add snapshot'}
@@ -163,7 +148,6 @@ export default function AccountDetailClient({
               className="border-border focus:border-foreground nums rounded border bg-transparent px-3 py-2 text-base outline-none"
             />
           </label>
-          {error ? <p className="text-negative text-xs">{error}</p> : null}
           <button
             type="submit"
             disabled={submitting}
@@ -192,15 +176,15 @@ export default function AccountDetailClient({
                 !prev || delta === 0 ? 'text-muted' : delta > 0 ? 'text-positive' : 'text-negative';
               const deltaStr = !prev
                 ? ''
-                : `${delta > 0 ? '+' : delta < 0 ? '−' : ''}${fmtMoney(Math.abs(delta), account.currency)}`;
+                : `${delta > 0 ? '+' : delta < 0 ? '−' : ''}${fmtMoneyHelper(Math.abs(delta), account.currency)}`;
               return (
                 <li
                   key={s.id}
                   className="border-border flex items-center justify-between gap-3 rounded border p-3"
                 >
                   <div className="min-w-0">
-                    <p className="nums text-sm">{fmtMoney(Number(s.balance), account.currency)}</p>
-                    <p className="text-muted nums mt-0.5 text-[11px]">{fmtDate(s.snapshot_date)}</p>
+                    <p className="nums text-sm">{fmtMoneyHelper(Number(s.balance), account.currency)}</p>
+                    <p className="text-muted nums mt-0.5 text-[11px]">{formatDate(s.snapshot_date)}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     {deltaStr ? (
@@ -240,7 +224,7 @@ export default function AccountDetailClient({
               >
                 <div className="min-w-0">
                   <p className={`nums text-sm font-medium ${TONE[tx.kind]}`}>
-                    {SIGN[tx.kind]} {fmtMoney(Number(tx.amount), account.currency)}
+                    {SIGN[tx.kind]} {fmtMoneyHelper(Number(tx.amount), account.currency)}
                   </p>
                   <p className="text-muted mt-0.5 truncate text-[10px] tracking-wide uppercase">
                     {KIND_LABELS[tx.kind]}
@@ -248,7 +232,7 @@ export default function AccountDetailClient({
                   </p>
                 </div>
                 <span className="text-muted nums shrink-0 text-[11px]">
-                  {fmtDate(tx.occurred_on)}
+                  {formatDate(tx.occurred_on)}
                 </span>
               </li>
             ))}

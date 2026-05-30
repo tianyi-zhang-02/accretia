@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { useToast } from '@/components/ui/toast';
+import { formatCurrency } from '@/lib/format/money';
 import type { Account } from '@/lib/types/account';
 
 type Row = {
@@ -23,22 +25,15 @@ function fmtPrev(s: Row['latest'], currency: string): string {
   if (!s) return 'No prior snapshot';
   const n = Number(s.balance);
   if (!Number.isFinite(n)) return s.balance;
-  const formatted = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    currencyDisplay: 'narrowSymbol',
-    maximumFractionDigits: 2,
-  }).format(n);
-  return `Prev ${formatted} · ${s.snapshot_date}`;
+  return `Prev ${formatCurrency(n, { currency, withCents: true })} · ${s.snapshot_date}`;
 }
 
 export default function UpdateClient({ seeded }: { seeded: Row[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [date, setDate] = useState<string>(defaultSnapshotDate());
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [savedCount, setSavedCount] = useState<number | null>(null);
 
   if (seeded.length === 0) {
     return (
@@ -50,8 +45,6 @@ export default function UpdateClient({ seeded }: { seeded: Row[] }) {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setSavedCount(null);
 
     const entries: Array<{ account_id: string; balance: number }> = [];
     for (const row of seeded) {
@@ -59,14 +52,14 @@ export default function UpdateClient({ seeded }: { seeded: Row[] }) {
       if (raw === '') continue;
       const n = Number(raw);
       if (!Number.isFinite(n)) {
-        setError(`Invalid number for ${row.account.name}.`);
+        toast.error(`Invalid number for ${row.account.name}.`);
         return;
       }
       entries.push({ account_id: row.account.id, balance: n });
     }
 
     if (entries.length === 0) {
-      setError('Enter at least one balance.');
+      toast.error('Enter at least one balance.');
       return;
     }
 
@@ -79,12 +72,13 @@ export default function UpdateClient({ seeded }: { seeded: Row[] }) {
     setSubmitting(false);
 
     if (!res.ok) {
-      setError('Save failed. Try again.');
+      toast.error('Save failed. Try again.');
       return;
     }
 
     const json = (await res.json()) as { count: number };
-    setSavedCount(json.count ?? entries.length);
+    const n = json.count ?? entries.length;
+    toast.success(`Saved ${n} snapshot${n === 1 ? '' : 's'}.`);
     setValues({});
     router.refresh();
   }
@@ -126,13 +120,6 @@ export default function UpdateClient({ seeded }: { seeded: Row[] }) {
           </li>
         ))}
       </ul>
-
-      {error ? <p className="text-negative text-xs">{error}</p> : null}
-      {savedCount !== null ? (
-        <p className="text-positive text-xs">
-          Saved {savedCount} snapshot{savedCount === 1 ? '' : 's'}.
-        </p>
-      ) : null}
 
       <div className="flex justify-between gap-2">
         <Link href="/accounts" className="text-muted hover:text-foreground self-center text-xs">

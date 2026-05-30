@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import { useToast } from '@/components/ui/toast';
+import { formatCurrency } from '@/lib/format/money';
 import {
   ACCOUNT_TYPES,
   createAccountSchema,
@@ -24,11 +26,36 @@ const TYPE_LABELS: Record<(typeof ACCOUNT_TYPES)[number], string> = {
 
 type FormMode = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; account: Account };
 
-export default function AccountsClient({ initialAccounts }: { initialAccounts: Account[] }) {
+export type AccountBalanceMap = Record<
+  string,
+  { value: number; source: 'snapshot' | 'holdings' | 'none'; as_of: string | null }
+>;
+
+type Totals = { total: number; liquid: number; invested: number };
+
+export default function AccountsClient({
+  initialAccounts,
+  balanceMap,
+  totals,
+}: {
+  initialAccounts: Account[];
+  balanceMap: AccountBalanceMap;
+  totals: Totals;
+}) {
   const router = useRouter();
-  const [mode, setMode] = useState<FormMode>({ kind: 'closed' });
-  const [serverError, setServerError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const toast = useToast();
+  // Bottom-nav "+" sheet jumps here with ?add=1 to deep-link "Add account."
+  // Initialise the form state from the URL on first render, then the effect
+  // below strips the param so a refresh doesn't keep re-popping the form.
+  const [mode, setMode] = useState<FormMode>(() =>
+    searchParams.get('add') === '1' ? { kind: 'create' } : { kind: 'closed' },
+  );
   const [pendingArchive, startArchive] = useTransition();
+
+  useEffect(() => {
+    if (searchParams.get('add') === '1') router.replace('/accounts');
+  }, [searchParams, router]);
 
   function refresh() {
     router.refresh();
@@ -39,15 +66,30 @@ export default function AccountsClient({ initialAccounts }: { initialAccounts: A
     startArchive(async () => {
       const res = await fetch(`/api/accounts/${account.id}`, { method: 'DELETE' });
       if (!res.ok) {
-        setServerError('Could not archive account. Try again.');
+        toast.error('Could not archive account. Try again.');
         return;
       }
+      toast.success(`Archived ${account.name}.`);
       refresh();
     });
   }
 
+  const hasAnyValue = Object.values(balanceMap).some((b) => b.source !== 'none');
+
   return (
     <div className="flex flex-col gap-4">
+      {/* Total row at the top — sourced from the same canonical helper as
+          the dashboard hero, so the two numbers always agree. */}
+      {hasAnyValue ? (
+        <section className="border-border rounded border p-4">
+          <p className="text-muted text-[10px] tracking-[0.18em] uppercase">Total</p>
+          <p className="serif-display nums mt-1 text-2xl">{formatCurrency(totals.total)}</p>
+          <p className="text-muted nums mt-1 text-[11px]">
+            Liquid {formatCurrency(totals.liquid)} · Invested {formatCurrency(totals.invested)}
+          </p>
+        </section>
+      ) : null}
+
       <div className="flex items-center justify-between gap-2">
         <p className="text-muted text-xs">
           {initialAccounts.length} account{initialAccounts.length === 1 ? '' : 's'}
@@ -64,10 +106,7 @@ export default function AccountsClient({ initialAccounts }: { initialAccounts: A
           {mode.kind === 'closed' ? (
             <button
               type="button"
-              onClick={() => {
-                setServerError(null);
-                setMode({ kind: 'create' });
-              }}
+              onClick={() => setMode({ kind: 'create' })}
               className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
             >
               + Add
@@ -80,15 +119,14 @@ export default function AccountsClient({ initialAccounts }: { initialAccounts: A
         <AccountForm
           mode={mode}
           onCancel={() => setMode({ kind: 'closed' })}
-          onSaved={() => {
+          onSaved={(name, isEdit) => {
             setMode({ kind: 'closed' });
+            toast.success(isEdit ? `Updated ${name}.` : `Added ${name}.`);
             refresh();
           }}
-          onError={setServerError}
+          onError={toast.error}
         />
       ) : null}
-
-      {serverError ? <p className="text-negative text-xs">{serverError}</p> : null}
 
       {initialAccounts.length === 0 ? (
         <div className="border-border text-muted rounded border border-dashed p-6 text-center text-sm">
@@ -96,41 +134,49 @@ export default function AccountsClient({ initialAccounts }: { initialAccounts: A
         </div>
       ) : (
         <ul className="flex flex-col gap-2">
-          {initialAccounts.map((account) => (
-            <li
-              key={account.id}
-              className="border-border flex items-center justify-between rounded border p-4"
-            >
-              <Link href={`/accounts/${account.id}`} className="min-w-0 flex-1">
-                <p className="truncate text-base underline-offset-4 hover:underline">
-                  {account.name}
-                </p>
-                <p className="text-muted mt-0.5 text-[11px] tracking-wide uppercase">
-                  {TYPE_LABELS[account.type]} · {account.currency}
-                </p>
-              </Link>
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setServerError(null);
-                    setMode({ kind: 'edit', account });
-                  }}
-                  className="text-muted hover:text-foreground text-xs"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  disabled={pendingArchive}
-                  onClick={() => onArchive(account)}
-                  className="text-muted hover:text-negative text-xs disabled:opacity-50"
-                >
-                  Archive
-                </button>
-              </div>
-            </li>
-          ))}
+          {initialAccounts.map((account) => {
+            const bal = balanceMap[account.id];
+            return (
+              <li
+                key={account.id}
+                className="border-border flex items-center justify-between gap-3 rounded border p-4"
+              >
+                <Link href={`/accounts/${account.id}`} className="min-w-0 flex-1">
+                  <p className="truncate text-base underline-offset-4 hover:underline">
+                    {account.name}
+                  </p>
+                  <p className="text-muted mt-0.5 text-[11px] tracking-wide uppercase">
+                    {TYPE_LABELS[account.type]} · {account.currency}
+                    {bal?.source === 'holdings' ? ' · live holdings' : null}
+                  </p>
+                </Link>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <p className="nums text-sm">
+                    {bal && bal.source !== 'none'
+                      ? formatCurrency(bal.value, { currency: account.currency })
+                      : '—'}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMode({ kind: 'edit', account })}
+                      className="text-muted hover:text-foreground text-xs"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      disabled={pendingArchive}
+                      onClick={() => onArchive(account)}
+                      className="text-muted hover:text-negative text-xs disabled:opacity-50"
+                    >
+                      Archive
+                    </button>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
@@ -145,8 +191,8 @@ function AccountForm({
 }: {
   mode: Exclude<FormMode, { kind: 'closed' }>;
   onCancel: () => void;
-  onSaved: () => void;
-  onError: (msg: string | null) => void;
+  onSaved: (name: string, isEdit: boolean) => void;
+  onError: (msg: string) => void;
 }) {
   const editing = mode.kind === 'edit' ? mode.account : null;
   const form = useForm<CreateAccountInput>({
@@ -159,8 +205,6 @@ function AccountForm({
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
-    onError(null);
-
     if (editing) {
       // Edit only updates name for now — type/currency stay locked to keep
       // historical snapshots consistent.
@@ -173,6 +217,7 @@ function AccountForm({
         onError('Could not save changes. Try again.');
         return;
       }
+      onSaved(values.name, true);
     } else {
       const res = await fetch('/api/accounts', {
         method: 'POST',
@@ -183,8 +228,8 @@ function AccountForm({
         onError('Could not create account. Try again.');
         return;
       }
+      onSaved(values.name, false);
     }
-    onSaved();
   });
 
   return (

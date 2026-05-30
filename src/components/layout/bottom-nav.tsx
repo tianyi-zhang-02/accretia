@@ -2,23 +2,24 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ChartLine, House, Settings, Wallet, type LucideIcon } from 'lucide-react';
 
-import { ChartIcon, GearIcon, HomeIcon, PlusIcon, WalletIcon } from './nav-icons';
+import PlusMenu from './plus-menu';
 
 type NavItem = {
   href: string;
   label: string;
-  icon: (props: { className?: string }) => React.ReactNode;
+  Icon: LucideIcon;
 };
 
 const LEFT: readonly NavItem[] = [
-  { href: '/', label: 'Dashboard', icon: HomeIcon },
-  { href: '/accounts', label: 'Accounts', icon: WalletIcon },
+  { href: '/', label: 'Dashboard', Icon: House },
+  { href: '/accounts', label: 'Accounts', Icon: Wallet },
 ];
 
 const RIGHT: readonly NavItem[] = [
-  { href: '/portfolio', label: 'Portfolio', icon: ChartIcon },
-  { href: '/settings', label: 'Settings', icon: GearIcon },
+  { href: '/portfolio', label: 'Portfolio', Icon: ChartLine },
+  { href: '/settings', label: 'Settings', Icon: Settings },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -39,15 +40,10 @@ export default function BottomNav() {
           <NavTab key={item.href} item={item} active={isActive(pathname, item.href)} />
         ))}
 
-        {/* Raised center "+" — Step 6 will turn this into a modal trigger. */}
+        {/* Raised center "+" opens a sheet with four shortcuts so any "add"
+            surface is reachable from anywhere — see plus-menu.tsx. */}
         <li className="relative flex justify-center">
-          <Link
-            href="/transactions/new"
-            aria-label="Add transaction"
-            className="bg-accent text-background absolute -top-7 flex h-14 w-14 items-center justify-center rounded-full shadow-lg ring-1 shadow-black/40 ring-black/20 transition hover:brightness-110 active:scale-95"
-          >
-            <PlusIcon />
-          </Link>
+          <PlusMenu />
         </li>
 
         {RIGHT.map((item) => (
@@ -59,17 +55,17 @@ export default function BottomNav() {
 }
 
 function NavTab({ item, active }: { item: NavItem; active: boolean }) {
-  const Icon = item.icon;
+  const { Icon } = item;
   return (
     <li className="flex">
       <Link
         href={item.href}
         aria-current={active ? 'page' : undefined}
         className={`flex flex-1 flex-col items-center gap-1 py-2 text-[10px] tracking-wide uppercase transition-colors ${
-          active ? 'text-foreground' : 'text-muted hover:text-foreground'
+          active ? 'text-accent' : 'text-muted hover:text-foreground'
         }`}
       >
-        <Icon className="h-[22px] w-[22px]" />
+        <Icon size={22} strokeWidth={1.6} aria-hidden="true" />
         <span>{item.label}</span>
       </Link>
     </li>

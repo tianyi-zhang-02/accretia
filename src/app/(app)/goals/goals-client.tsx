@@ -1,32 +1,23 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import { useToast } from '@/components/ui/toast';
+import { formatCurrency, formatMonthYear } from '@/lib/format/money';
 import type { Account } from '@/lib/types/account';
 import type { Goal } from '@/lib/types/goal';
 import { createGoalSchema, type CreateGoalInput } from '@/lib/validation/goals';
 
-type LatestMap = Record<string, { balance: string; snapshot_date: string }>;
+export type AccountBalanceMap = Record<
+  string,
+  { value: number; source: 'snapshot' | 'holdings' | 'none'; as_of: string | null }
+>;
 
 type FormMode = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; goal: Goal };
-
-function fmtMoney(n: number, currency: string, withCents = false): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    currencyDisplay: 'narrowSymbol',
-    maximumFractionDigits: withCents ? 2 : 0,
-  }).format(n);
-}
-
-function fmtDateLong(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' }).format(d);
-}
 
 function addMonthsIso(months: number): string {
   // Today + N months, returned as YYYY-MM-DD.
@@ -54,15 +45,15 @@ function project(goal: Goal, currentBalance: number | null): Projection {
 export default function GoalsClient({
   initialGoals,
   accounts,
-  latestByAccount,
+  balanceMap,
 }: {
   initialGoals: Goal[];
   accounts: Account[];
-  latestByAccount: LatestMap;
+  balanceMap: AccountBalanceMap;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [mode, setMode] = useState<FormMode>({ kind: 'closed' });
-  const [serverError, setServerError] = useState<string | null>(null);
   const [pendingDelete, startDelete] = useTransition();
 
   const accountById = new Map(accounts.map((a) => [a.id, a]));
@@ -76,9 +67,10 @@ export default function GoalsClient({
     startDelete(async () => {
       const res = await fetch(`/api/goals/${goal.id}`, { method: 'DELETE' });
       if (!res.ok) {
-        setServerError('Could not delete. Try again.');
+        toast.error('Could not delete. Try again.');
         return;
       }
+      toast.success(`Deleted ${goal.name}.`);
       refresh();
     });
   }
@@ -92,10 +84,7 @@ export default function GoalsClient({
         {mode.kind === 'closed' ? (
           <button
             type="button"
-            onClick={() => {
-              setServerError(null);
-              setMode({ kind: 'create' });
-            }}
+            onClick={() => setMode({ kind: 'create' })}
             className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
           >
             + Add goal
@@ -108,15 +97,14 @@ export default function GoalsClient({
           mode={mode}
           accounts={accounts}
           onCancel={() => setMode({ kind: 'closed' })}
-          onSaved={() => {
+          onSaved={(isEdit) => {
             setMode({ kind: 'closed' });
+            toast.success(isEdit ? 'Goal saved.' : 'Goal added.');
             refresh();
           }}
-          onError={setServerError}
+          onError={toast.error}
         />
       ) : null}
-
-      {serverError ? <p className="text-negative text-xs">{serverError}</p> : null}
 
       {initialGoals.length === 0 ? (
         <div className="border-border text-muted rounded border border-dashed p-6 text-center text-sm">
@@ -129,10 +117,10 @@ export default function GoalsClient({
             const currency = account?.currency ?? 'USD';
             const target = Number(goal.target_amount);
             const monthly = Number(goal.monthly_contribution);
-            const latest = goal.linked_account_id
-              ? latestByAccount[goal.linked_account_id]
-              : undefined;
-            const current = latest ? Number(latest.balance) : null;
+            // Live per-account balance pulled from the canonical helper —
+            // identical to what the accounts list and dashboard show.
+            const bal = goal.linked_account_id ? balanceMap[goal.linked_account_id] : undefined;
+            const current = bal && bal.source !== 'none' ? bal.value : null;
             const pct =
               current !== null && target > 0
                 ? Math.max(0, Math.min(100, (current / target) * 100))
@@ -145,17 +133,23 @@ export default function GoalsClient({
                   <div className="min-w-0">
                     <p className="serif-display text-xl">{goal.name}</p>
                     <p className="text-muted mt-1 text-[11px] tracking-wide uppercase">
-                      {account ? `Linked · ${account.name}` : 'No linked account'}
-                      {goal.target_date ? ` · target ${fmtDateLong(goal.target_date)}` : ''}
+                      {account ? (
+                        <Link
+                          href={`/accounts/${account.id}`}
+                          className="hover:text-foreground"
+                        >
+                          Linked · {account.name} ↗
+                        </Link>
+                      ) : (
+                        'No linked account'
+                      )}
+                      {goal.target_date ? ` · target ${formatMonthYear(goal.target_date)}` : ''}
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        setServerError(null);
-                        setMode({ kind: 'edit', goal });
-                      }}
+                      onClick={() => setMode({ kind: 'edit', goal })}
                       className="text-muted hover:text-foreground text-xs"
                     >
                       Edit
@@ -175,9 +169,9 @@ export default function GoalsClient({
                 {current !== null ? (
                   <div className="mt-4">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="serif-display nums text-2xl">{fmtMoney(current, currency)}</p>
+                      <p className="serif-display nums text-2xl">{formatCurrency(current, { currency })}</p>
                       <p className="text-muted nums text-xs">
-                        of {fmtMoney(target, currency)} · {pct.toFixed(0)}%
+                        of {formatCurrency(target, { currency })} · {pct.toFixed(0)}%
                       </p>
                     </div>
                     <div className="border-border bg-border/30 mt-2 h-1.5 overflow-hidden rounded-full">
@@ -190,7 +184,7 @@ export default function GoalsClient({
                   </div>
                 ) : (
                   <p className="text-muted nums mt-3 text-sm">
-                    Target {fmtMoney(target, currency)}
+                    Target {formatCurrency(target, { currency })}
                   </p>
                 )}
 
@@ -198,7 +192,7 @@ export default function GoalsClient({
                 <p className="text-muted mt-3 text-xs">
                   {monthly > 0 ? (
                     <>
-                      <span className="nums">{fmtMoney(monthly, currency)}</span>/mo
+                      <span className="nums">{formatCurrency(monthly, { currency })}</span>/mo
                     </>
                   ) : (
                     'No monthly contribution set'
@@ -227,7 +221,7 @@ function ProjectionLabel({ projection, currency }: { projection: Projection; cur
     case 'months':
       return (
         <span>
-          {projection.months} mo · ~{fmtDateLong(projection.iso)}
+          {projection.months} mo · ~{formatMonthYear(projection.iso)}
         </span>
       );
   }
@@ -243,8 +237,8 @@ function GoalForm({
   mode: Exclude<FormMode, { kind: 'closed' }>;
   accounts: Account[];
   onCancel: () => void;
-  onSaved: () => void;
-  onError: (msg: string | null) => void;
+  onSaved: (isEdit: boolean) => void;
+  onError: (msg: string) => void;
 }) {
   const editing = mode.kind === 'edit' ? mode.goal : null;
   const isEdit = !!editing;
@@ -261,8 +255,6 @@ function GoalForm({
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
-    onError(null);
-
     // Send empty strings (not omit) for optional clear-able fields so the
     // PATCH endpoint knows the user intends to clear them on edit.
     const body = {
@@ -282,7 +274,7 @@ function GoalForm({
       onError(isEdit ? 'Could not save changes. Try again.' : 'Could not create goal. Try again.');
       return;
     }
-    onSaved();
+    onSaved(isEdit);
   });
 
   return (

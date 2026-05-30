@@ -34,10 +34,10 @@ type Props = {
   /** When provided, the form is in edit mode. */
   editing?: TransactionWithAccount;
   onCancel?: () => void;
-  /** Called after a successful save. */
-  onSaved: () => void;
+  /** Called after a successful save. `isEdit` lets the caller toast differently. */
+  onSaved: (isEdit: boolean) => void;
   /** Surfaces server-side or network errors to the caller. */
-  onError?: (msg: string | null) => void;
+  onError?: (msg: string) => void;
 };
 
 export default function TransactionForm({ accounts, editing, onCancel, onSaved, onError }: Props) {
@@ -75,8 +75,6 @@ export default function TransactionForm({ accounts, editing, onCancel, onSaved, 
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
-    onError?.(null);
-
     const endpoint = isEdit ? `/api/transactions/${editing.id}` : '/api/transactions';
     const method = isEdit ? 'PATCH' : 'POST';
     const res = await fetch(endpoint, {
@@ -96,7 +94,7 @@ export default function TransactionForm({ accounts, editing, onCancel, onSaved, 
       );
       return;
     }
-    onSaved();
+    onSaved(isEdit);
   });
 
   if (accounts.length === 0) {
