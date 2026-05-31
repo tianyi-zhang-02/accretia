@@ -11,7 +11,7 @@
 **Name:** tracker
 **Owner:** tianyi-zhang-02
 **Repo:** https://github.com/tianyi-zhang-02/tracker (PUBLIC)
-**Live URL:** (Vercel — TBD)
+**Live URL:** https://tracker-gamma-eight-14.vercel.app
 **Spec:** see `WEALTH_TRACKER_SPEC.md` in repo root — this is the authoritative source of truth for features. If something in this file conflicts with the spec, ask the user which wins.
 
 A personal mobile-first PWA to track savings, income, net worth over time, and a manually-entered investment portfolio with live market prices. Single-user per account. No bank linking, no third-party account access.
@@ -263,6 +263,6 @@ Open items from the Supabase Security Advisor / dev review and their disposition
 - Step 12 ✅ — PWA polish: manifest.ts + ImageResponse-generated icons (32/180/192/512) + hand-rolled service worker (no new deps); proxy allowlists the install endpoints; iOS apple-web-app meta + format-detection disabled
 - Polish phase ✅ — merged to main via PR #1 (`--no-ff`, merge SHA `1dd518a`). §1 canonical net-worth helper (`src/lib/derived/networth.ts`, snapshot-authoritative + live-holdings-fill); §2 cross-feature navigation (plus-menu bottom sheet, deep-link `?add=1` entry points); §3 unified interaction patterns (`src/components/ui/toast.tsx`, `src/lib/format/money.ts`); §4 visual consolidation (lucide-react icons, accent active tab). Post-merge security re-audit grep clean; dashboard net-worth unchanged from hand-verified figure.
 - Step 13 ✅ — security hardening pass merged via PR #3. Per-request CSP nonce in `src/proxy.ts` (script-src strict-dynamic + nonce, no unsafe-inline / unsafe-eval; style-src 'self' nonce; `style-src-attr 'unsafe-inline'` accepted as narrow escape hatch for Recharts SVG and dynamic `style={...}` JSX props, documented in code). Static security headers in `next.config.ts` (HSTS prod-only, X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy same-origin, Permissions-Policy lockdown). SECURITY DEFINER migration `0002_revoke_rls_auto_enable_grants.sql` applied — Advisor #1 + #2 cleared. `npm audit` now 0/0/0 via postcss override. Origin checks (16/16 mutating routes) and zod length limits (every `z.string()` bounded) audited clean — no edits needed. Visual click-through under CSP confirmed by user across dashboard/portfolio/simulator/goals/transactions with no console violations.
-- Step 14 ⏳ — deploy (Vercel).
+- Step 14 ✅ — deployed 2026-05-31 to https://tracker-gamma-eight-14.vercel.app (Vercel project `zhangtianyi975-9087s-projects/tracker`). Zero-config Next 16 build (no `vercel.json`). One-project Supabase setup (Option A from `STEP_14_DEPLOY.md` §3) — migration 0002 was applied during Step 13 review and is therefore already live in prod. Per-PR preview deploys confirmed working on `feat/simulator-v2` ahead of merge.
 
 Update this section after every completed step.
