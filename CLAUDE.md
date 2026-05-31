@@ -237,13 +237,13 @@ Don't make assumptions on any of these. Stop and ask the user:
 
 ---
 
-## Known security debt — address in Step 13
+## Known security debt
 
-These are open issues from the Supabase Security Advisor / dev review. Don't fix in passing; bundle them in the hardening pass so they get the attention they deserve.
+Open items from the Supabase Security Advisor / dev review and their disposition.
 
-1. **`public.rls_auto_enable()` — Public Can Execute SECURITY DEFINER Functions.** A SECURITY DEFINER function exposed to the `anon`/`public` role is a privilege-escalation surface. Either drop it, restrict its grants (`REVOKE EXECUTE ... FROM PUBLIC, anon, authenticated; GRANT EXECUTE ... TO service_role;`), or rewrite without SECURITY DEFINER.
-2. **`public.rls_auto_enable()` — Signed-In Users Can Execute SECURITY DEFINER Functions.** Same root cause as #1; the fix above also closes this.
-3. **Leaked Password Protection Disabled.** Only relevant if we ever introduce password auth (currently magic-link only). If we do, enable it under Authentication → Providers → Email → "Leaked password protection".
+1. ✅ **`public.rls_auto_enable()` — Public Can Execute SECURITY DEFINER Functions.** Closed in Step 13 via `supabase/migrations/0002_revoke_rls_auto_enable_grants.sql`. EXECUTE revoked from `PUBLIC`, `anon`, and `authenticated`; granted only to `service_role`. Wrapped in a `DO` block so it no-ops on fresh projects where the helper was never auto-created. Advisor warning confirmed cleared after migration was applied to the project.
+2. ✅ **`public.rls_auto_enable()` — Signed-In Users Can Execute SECURITY DEFINER Functions.** Same root cause as #1; closed by the same migration.
+3. **Leaked Password Protection Disabled — formally deferred.** Only relevant if password auth is ever introduced. The project is magic-link only and has no roadmap item to change that. If/when password auth is added, enable this toggle under Authentication → Providers → Email → "Leaked password protection" in the same change. Not a release blocker for the current build.
 
 ---
 
@@ -262,6 +262,7 @@ These are open issues from the Supabase Security Advisor / dev review. Don't fix
 - Step 11 ✅ — export endpoints (CSV transactions, CSV holdings, full JSON backup); /settings/export page with three download cards
 - Step 12 ✅ — PWA polish: manifest.ts + ImageResponse-generated icons (32/180/192/512) + hand-rolled service worker (no new deps); proxy allowlists the install endpoints; iOS apple-web-app meta + format-detection disabled
 - Polish phase ✅ — merged to main via PR #1 (`--no-ff`, merge SHA `1dd518a`). §1 canonical net-worth helper (`src/lib/derived/networth.ts`, snapshot-authoritative + live-holdings-fill); §2 cross-feature navigation (plus-menu bottom sheet, deep-link `?add=1` entry points); §3 unified interaction patterns (`src/components/ui/toast.tsx`, `src/lib/format/money.ts`); §4 visual consolidation (lucide-react icons, accent active tab). Post-merge security re-audit grep clean; dashboard net-worth unchanged from hand-verified figure.
-- Step 13 ⏳ — security hardening pass. ⚠️ pause for user review. Three known-debt items live in the "Known security debt" section above.
+- Step 13 ✅ — security hardening pass merged via PR #3. Per-request CSP nonce in `src/proxy.ts` (script-src strict-dynamic + nonce, no unsafe-inline / unsafe-eval; style-src 'self' nonce; `style-src-attr 'unsafe-inline'` accepted as narrow escape hatch for Recharts SVG and dynamic `style={...}` JSX props, documented in code). Static security headers in `next.config.ts` (HSTS prod-only, X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy same-origin, Permissions-Policy lockdown). SECURITY DEFINER migration `0002_revoke_rls_auto_enable_grants.sql` applied — Advisor #1 + #2 cleared. `npm audit` now 0/0/0 via postcss override. Origin checks (16/16 mutating routes) and zod length limits (every `z.string()` bounded) audited clean — no edits needed. Visual click-through under CSP confirmed by user across dashboard/portfolio/simulator/goals/transactions with no console violations.
+- Step 14 ⏳ — deploy (Vercel).
 
 Update this section after every completed step.
