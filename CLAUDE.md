@@ -181,6 +181,25 @@ At the ⚠️ steps, finish the work, commit, push, then explicitly tell the use
 
 ---
 
+## Every PR Updates Its Own Docs
+
+Phase 3 (docs + self-hosting) established this rule and it now applies to every subsequent PR. **A PR that changes behavior MUST update the documentation that describes that behavior, in the same PR.** Not as a follow-up. Not "we'll backfill later." The same PR.
+
+Required checks before opening any PR:
+
+- **`CHANGELOG.md`** — add an entry under `[Unreleased]` (or under the milestone the PR is part of). One bullet per user-visible change. Include the PR number once it's open. Group entries by **Added / Changed / Fixed / Security / Removed**.
+- **`README.md`** — if the PR adds, removes, or visibly changes a feature, update the **Features** section. If it changes architecture, update the **Architecture** section. If it changes env vars, update the env-var table.
+- **`.env.example`** — if the PR introduces a new env var, add it with a comment explaining what it's for and where the value comes from. If it renames or removes one, do the same. Self-hosters use this file as ground truth.
+- **`SELF_HOSTING_GUIDE.md`** — if the PR changes any of: setup steps, Supabase schema, required migrations, required env vars, Auth configuration, or troubleshooting-worthy failure modes — update it.
+- **`supabase/migrations/`** — if the PR adds a migration, also update `supabase/migrations/README.md` (apply order + what the migration does) AND fold the same SQL into `supabase/schema.sql` so a fresh setup gets the new state in one run.
+- **Spec files** (`*_SPEC.md`) — if the PR completes or amends a spec, mark the relevant section ✅ or note the deviation. Don't let specs drift from reality.
+
+For security-sensitive PRs (the ⚠️ ones in the build order): also update the **Known security debt** section of CLAUDE.md if a debt item closes or a new one is discovered.
+
+**Verification before pushing:** before `git push`, glance at the diff. If you touched `src/` and didn't touch any of the docs above, ask yourself whether you should have. The answer is almost always yes.
+
+---
+
 ## Testing Before "Done"
 
 A feature is not done until:
@@ -244,6 +263,7 @@ Open items from the Supabase Security Advisor / dev review and their disposition
 1. ✅ **`public.rls_auto_enable()` — Public Can Execute SECURITY DEFINER Functions.** Closed in Step 13 via `supabase/migrations/0002_revoke_rls_auto_enable_grants.sql`. EXECUTE revoked from `PUBLIC`, `anon`, and `authenticated`; granted only to `service_role`. Wrapped in a `DO` block so it no-ops on fresh projects where the helper was never auto-created. Advisor warning confirmed cleared after migration was applied to the project.
 2. ✅ **`public.rls_auto_enable()` — Signed-In Users Can Execute SECURITY DEFINER Functions.** Same root cause as #1; closed by the same migration.
 3. **Leaked Password Protection Disabled — formally deferred.** Only relevant if password auth is ever introduced. The project is magic-link only and has no roadmap item to change that. If/when password auth is added, enable this toggle under Authentication → Providers → Email → "Leaked password protection" in the same change. Not a release blocker for the current build.
+4. **`vitest` GHSA-5xrq-8626-4rwp (`< 4.1.0`) — not exploitable in this codebase, deferred.** The advisory affects the `vitest --ui` dev server (arbitrary file read/exec when the UI server is listening). This project's `package.json` scripts run `vitest run` (one-shot) and `vitest` (CLI watch); neither starts the UI server. The vulnerability requires `--ui` to be passed and the resulting WebSocket endpoint to be reachable, which never happens in our setup. Discovered during Phase 3 docs work. Re-evaluate if a future PR ever introduces `vitest --ui` (it shouldn't) or if vitest 4 stabilizes for our deps (the original Step-10 reason for staying on 3.2.4 was Apple Silicon rolldown issues). `npm audit` will continue to flag this until then; documented here so the noise has a known disposition.
 
 ---
 
