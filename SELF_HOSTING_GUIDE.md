@@ -104,15 +104,54 @@ Authentication is magic-link only — no passwords.
 2. **Authentication → URL Configuration**:
    - **Site URL** → `http://localhost:3000` for local dev (you'll add the production URL later in Step 8).
    - **Redirect URLs** → add `http://localhost:3000/auth/confirm`.
-3. **Authentication → Email Templates → Magic Link** → the template body **must** use `{{ .Token }}` (the OTP code), not `{{ .ConfirmationURL }}`. The sign-in form expects an 8-digit code, not a link. Default Supabase template uses `{{ .ConfirmationURL }}` — change it. Example minimal body:
+3. **Authentication → Email Templates → Magic Link** → the template body needs **two things**:
+   - The 8-digit code (`{{ .Token }}`) for users who want to type it into the sign-in form.
+   - A clickable link to `/auth/confirm?token_hash={{ .TokenHash }}&type=email` for users who'd rather click.
+
+   The `?type=email` parameter is **required** — `src/app/auth/confirm/route.ts` reads `searchParams.get('type')` and rejects (`/login?error=invalid_link`) if it's missing. Default Supabase templates omit it for the magic-link flow; you have to put it in by hand.
+
+   Example minimal body covering both paths:
    ```html
    <h2>Your sign-in code</h2>
    <p>Enter this 8-digit code in the sign-in form:</p>
    <p style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">{{ .Token }}</p>
-   <p>Code expires in 60 minutes.</p>
+
+   <p>Or click this link to sign in directly:</p>
+   <p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">
+     Sign in to tracker
+   </a></p>
+
+   <p style="color: #999; font-size: 12px;">Code expires in 60 minutes. If you didn't request this, ignore the email.</p>
    ```
 
+   > **Sanity check:** the default Supabase template uses `{{ .ConfirmationURL }}` instead of a hand-built `?type=email` URL. `{{ .ConfirmationURL }}` works for the email-change flow but **not** for the magic-link flow on this project's `/auth/confirm` route. Replace it with the form above or links will silently fail with `?error=invalid_link`.
+
 > **Optional but recommended:** flip **Leaked password protection** under Authentication → Providers → Email. The project is magic-link only so this is purely defensive, but it's free.
+
+### 4a. Use Resend for SMTP (strongly recommended for production)
+
+Supabase's default email sender is intended for development. Free-tier deliverability is rough — codes routinely land in spam, and there's a per-hour cap (~4 emails/hour by default) that's easy to hit if you sign in a few times in a row. Plug in a real SMTP provider.
+
+[Resend](https://resend.com) is the simplest fit: free tier covers 3,000 emails/month, instant setup, no card. Other SMTP providers (Postmark, Mailgun, AWS SES) work the same way.
+
+1. Sign up at [resend.com](https://resend.com).
+2. **Add a domain** under Domains → Add Domain (e.g. `mail.yourdomain.com`). Resend gives you 3 DNS records (SPF, DKIM, MX) — add them in your DNS host's panel. Verification takes a few minutes.
+   - If you don't own a domain yet, you can skip ahead and use Resend's test address (`onboarding@resend.dev`) — but emails will only deliver to the address you signed up with. Fine for a first sign-in, not viable long-term.
+3. **API Keys → Create API Key.** Permission scope: "Sending access" to the domain you added. Copy the key.
+4. In **Supabase → Authentication → Settings → SMTP Settings**:
+   - **Enable Custom SMTP** → on
+   - **Sender email** → `noreply@mail.yourdomain.com` (must be on the verified domain)
+   - **Sender name** → `tracker` (or whatever)
+   - **Host** → `smtp.resend.com`
+   - **Port** → `465` (TLS) or `587` (STARTTLS) — either works
+   - **Username** → `resend` (literal string)
+   - **Password** → the API key from step 3
+   - **Save**.
+5. **Test it.** Try a sign-in. The email should arrive in seconds and skip spam.
+
+If Resend rejects sends with `403`, your domain isn't fully verified yet — DNS records can take up to 24 hours to propagate.
+
+> **Why not use Supabase's free email sender?** It's rate-limited to a few sends per hour per project, and deliverability to Gmail/iCloud/Outlook is unreliable. Both problems silently break sign-in. Resend (or any real SMTP) makes the auth flow trustworthy.
 
 ---
 

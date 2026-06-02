@@ -6,8 +6,35 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
-_Phase 3: documentation + self-hosting. README rewrite, SELF_HOSTING_GUIDE,_
-_CHANGELOG, migration apply-order README, "every PR updates its docs" rule._
+### Phase 3 — documentation + self-hosting (PR #8)
+
+- **Added** `SELF_HOSTING_GUIDE.md` — dogfooded fork-and-deploy walkthrough,
+  including the `?type=email` magic-link URL fix (`/auth/confirm` rejects
+  links without it) and a Resend SMTP setup section (Supabase's default
+  sender is dev-only and silently breaks deliverability in production).
+- **Added** `CHANGELOG.md` (this file) — milestone-grouped, backfilled.
+- **Added** `supabase/migrations/README.md` — apply-order + rules.
+- **Added** `README.md` Architecture section documenting
+  `src/lib/derived/networth.ts` as the single source of truth for every
+  net-worth surface.
+- **Added** `CLAUDE.md` "Every PR Updates Its Own Docs" rule — every
+  behavior-changing PR must update CHANGELOG, README, .env.example,
+  SELF_HOSTING_GUIDE, migrations docs, and spec files in the same PR.
+- **Added** `husky` + `.husky/pre-commit` running `gitleaks` against
+  staged changes. Prints a friendly install hint and exits 0 if
+  gitleaks isn't installed locally (opinionated trade-off — don't
+  block unrelated commits just because a dev hasn't set up the tool
+  yet). Bypass for legitimate edge cases: `git commit --no-verify`.
+- **Added** `package.json` `engines.node = ">=20.19"` — enforces the
+  Node version `prettier-plugin-tailwindcss` already requires.
+- **Removed** false claim in the previous README that gitleaks
+  pre-commit was already wired up. As of this PR, it actually is.
+- **Security note (not a code change in this PR):** vitest advisory
+  [GHSA-5xrq-8626-4rwp](https://github.com/advisories/GHSA-5xrq-8626-4rwp)
+  affects `vitest < 4.1.0` only when the `vitest --ui` server is
+  listening. This project runs `vitest run` (one-shot) and never starts
+  the UI server — not exploitable in this codebase. Logged in CLAUDE.md
+  Known security debt #4 with the assessment for future re-evaluation.
 
 ## Public Wealth Simulator — 2026-06-02 _(PR #7, merge `02542b7`)_
 

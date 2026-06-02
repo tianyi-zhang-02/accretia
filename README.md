@@ -42,6 +42,7 @@ A personal, mobile-first PWA for tracking net worth, income, savings goals, and 
 - **zod validation** on every input. Every `z.string()` bounded by `.max() / .length() / .uuid() / .email() / .regex()`.
 - **`npm audit` 0/0/0** as of Step 13. Maintained via the `postcss` override in `package.json`.
 - **No third-party scripts, no client-side analytics, no telemetry.** Ever.
+- **Pre-commit secret scanning** via `gitleaks` (run on every commit via a husky-managed hook in `.husky/pre-commit`). Requires `gitleaks` to be installed locally; the hook prints an install hint if not.
 
 See `CLAUDE.md` for the full hard-rule list. Known security debt is tracked in the same file.
 
@@ -84,10 +85,14 @@ Per-request CSP nonce generation, public-path allowlist, Supabase session refres
 Looking to **run your own copy**? Follow **[SELF_HOSTING_GUIDE.md](./SELF_HOSTING_GUIDE.md)** for the end-to-end walkthrough. The TL;DR version below is for someone already familiar with the stack.
 
 ```bash
-# 1. Clone & install (Node ≥ 20.19 recommended)
+# 1. Clone & install (Node ≥ 20.19 enforced by package.json `engines.node`)
 git clone https://github.com/<you>/tracker.git
 cd tracker
 npm install
+# `npm install` triggers the `prepare` script, which sets up the husky
+# pre-commit hook. Install gitleaks separately (`brew install gitleaks`
+# on macOS) so the hook can actually scan; without it the hook prints
+# a hint and lets the commit through.
 
 # 2. Configure environment
 cp .env.example .env.local
