@@ -47,7 +47,37 @@ All four cloud services have free tiers sized comfortably for one or two persona
    npm install
    ```
 
-Expect ~580 packages, ~30 seconds. Engine warnings about Node `20.19` vs your `20.x.y` are fine if you're on a recent 20.x; they're a soft warning from `prettier-plugin-tailwindcss`.
+Expect ~580 packages, ~30 seconds. `npm install` triggers the `prepare` script, which sets up the husky-managed pre-commit hook at `.husky/pre-commit`.
+
+### Recommended: install `gitleaks` locally so the pre-commit hook actually scans
+
+The pre-commit hook runs `gitleaks` against your staged diff every time you commit, blocking accidentally-staged secrets (API keys, JWTs, etc.) before they reach GitHub. **You need to install `gitleaks` separately** — it's not an npm package, and the hook is a no-op without it. The hook will still let your commits through, but it will only print "gitleaks not installed — skipping" instead of catching real leaks.
+
+This repo is **public**. If you self-host, you almost certainly want the scan.
+
+```bash
+# macOS
+brew install gitleaks
+
+# Linux (binary download or your package manager)
+# https://github.com/gitleaks/gitleaks#installing
+
+# Cross-platform via Go (if you have a Go toolchain)
+go install github.com/gitleaks/gitleaks/v8@latest
+```
+
+Sanity-check by faking a leak in an untracked file and trying to stage + commit it:
+
+```bash
+echo 'TEST="ghp_SOMETOKENVALUE1234567890abcdef1234567890"' > /tmp/leak-test.env
+git add -f /tmp/leak-test.env
+git commit -m "test gitleaks"
+# → expected: gitleaks blocks the commit with a finding. Run:
+#     git reset HEAD /tmp/leak-test.env && rm /tmp/leak-test.env
+# to clean up.
+```
+
+To bypass the hook for a single legitimate commit (rare — be sure first): `git commit --no-verify`.
 
 ---
 
