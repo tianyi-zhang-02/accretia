@@ -69,6 +69,12 @@ exists` / `drop policy if exists`), so re-running is safe.
 - Update `schema.sql` in the same PR so a fresh setup gets the new
   state in one run. The migration file is for upgrade paths; `schema.sql`
   is for fresh.
+- **If the migration ships a transactional safety check** (a `do $$`
+  block that raises on a precondition violation, like `0003`'s lot-sum
+  verification), include a sibling `NNNN_xxx.rollback-test.mjs` that
+  exercises the check against pglite with at least one GOOD case and
+  one BAD case. Extend the `test:migrations` npm script to invoke it.
+  The pattern is set by `0003_holding_lots.rollback-test.mjs`.
 
 ## How to apply
 

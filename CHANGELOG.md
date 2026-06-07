@@ -6,7 +6,12 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
-### Phase 4 part 2 — tax lots UI + classification + tax estimates
+### Phase 4 part 2 — tax lots UI + classification + tax estimates _(parked, PR #11)_
+
+> Built and reviewed but intentionally unmerged. The owner has no
+> holdings to validate the feature against yet; will merge when
+> actual tax-lot tracking starts. **Migration 0004 has NOT been
+> applied to the prod DB.** See CLAUDE.md § Parked / unmerged work.
 
 - **Added** migration `0004_user_settings_tax_rates.sql` — additive
   columns `effective_lt_tax_rate_pct` and `effective_st_tax_rate_pct` on
@@ -61,6 +66,22 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 - **Added** `apiError.conflict(message)` for the multi-lot-holding
   case. Joins the standing pattern of generic, hostile-reader-safe
   error responses in `src/lib/api-error.ts`.
+
+### Migration test harness — pglite (PR #10, merged)
+
+- **Added** `@electric-sql/pglite` as a devDep — Postgres compiled to WASM,
+  ~3MB. Lets us run migration safety checks against real Postgres
+  semantics in CI / locally without needing a Postgres daemon or Docker.
+- **Added** `supabase/migrations/0003_holding_lots.rollback-test.mjs` —
+  pins the four rollback verification cases that were run by hand during
+  PR #9 review (GOOD case + three BAD cases including the 1e-8 precision
+  boundary). Run with `npm run test:migrations`. Exits non-zero if any
+  case behaves unexpectedly.
+- **Added** `npm run test:migrations` script.
+- **Convention**: future migrations that ship a safety check should
+  include a sibling `NNNN_xxx.rollback-test.mjs` and extend the
+  `test:migrations` script (or chain via `&&`) to invoke it. Documented
+  in `supabase/migrations/README.md`.
 
 ### Phase 4 — tax lots (data model only)
 
