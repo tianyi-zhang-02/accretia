@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChartLine, House, Settings, Wallet, type LucideIcon } from 'lucide-react';
+import { ChartLine, GitCompareArrows, House, Settings, type LucideIcon } from 'lucide-react';
 
 import PlusMenu from './plus-menu';
 
@@ -10,21 +10,34 @@ type NavItem = {
   href: string;
   label: string;
   Icon: LucideIcon;
+  /**
+   * When false, this tab is never rendered in the active/highlighted state.
+   * Used for the Compare shortcut, which links into a *view* of the home
+   * page (`/?view=compare`) rather than a distinct pathname — `usePathname`
+   * can't see the query string, so we opt it out of highlighting rather
+   * than have it always light up alongside Projection on `/`.
+   */
+  highlight?: boolean;
 };
 
+// Projection-first navigation. The wealth simulator is the home screen;
+// the manual tracking features (accounts, portfolio, transactions,
+// snapshots, goals) still exist but live under Settings now that a real
+// brokerage handles day-to-day tracking.
 const LEFT: readonly NavItem[] = [
-  { href: '/', label: 'Dashboard', Icon: House },
-  { href: '/accounts', label: 'Accounts', Icon: Wallet },
+  { href: '/', label: 'Projection', Icon: ChartLine },
+  { href: '/dashboard', label: 'Dashboard', Icon: House },
 ];
 
 const RIGHT: readonly NavItem[] = [
-  { href: '/portfolio', label: 'Portfolio', Icon: ChartLine },
+  { href: '/?view=compare', label: 'Compare', Icon: GitCompareArrows, highlight: false },
   { href: '/settings', label: 'Settings', Icon: Settings },
 ];
 
-function isActive(pathname: string, href: string): boolean {
-  if (href === '/') return pathname === '/';
-  return pathname === href || pathname.startsWith(`${href}/`);
+function isActive(pathname: string, item: NavItem): boolean {
+  if (item.highlight === false) return false;
+  if (item.href === '/') return pathname === '/';
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
 export default function BottomNav() {
@@ -37,17 +50,17 @@ export default function BottomNav() {
     >
       <ul className="mx-auto grid max-w-md grid-cols-5 items-end px-2 pt-2">
         {LEFT.map((item) => (
-          <NavTab key={item.href} item={item} active={isActive(pathname, item.href)} />
+          <NavTab key={item.href} item={item} active={isActive(pathname, item)} />
         ))}
 
-        {/* Raised center "+" opens a sheet with four shortcuts so any "add"
-            surface is reachable from anywhere — see plus-menu.tsx. */}
+        {/* Raised center "+" opens a sheet whose primary action is a new
+            projection scenario; tracking shortcuts sit below — see plus-menu.tsx. */}
         <li className="relative flex justify-center">
           <PlusMenu />
         </li>
 
         {RIGHT.map((item) => (
-          <NavTab key={item.href} item={item} active={isActive(pathname, item.href)} />
+          <NavTab key={item.href} item={item} active={isActive(pathname, item)} />
         ))}
       </ul>
     </nav>

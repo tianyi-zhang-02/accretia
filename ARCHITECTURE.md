@@ -155,8 +155,10 @@ src/
   app/
     (auth)/login/           magic-link sign in
     (app)/                  authed pages (bottom nav, session refresh)
-      page.tsx              dashboard
-      accounts/, transactions/, holdings/, goals/, simulator/, ...
+      page.tsx              HOME = wealth projection simulator
+      dashboard/            net-worth dashboard (was home; now secondary)
+      simulator/            redirects to / (kept for old links)
+      accounts/, transactions/, portfolio/, goals/, ...  (tracking, via Settings)
       api/                  authed JSON API
     sim/                    PUBLIC simulator, walled off from data
     auth/confirm/           magic-link click target

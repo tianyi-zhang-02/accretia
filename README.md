@@ -1,6 +1,6 @@
 # Tracker
 
-A personal, mobile-first PWA for tracking net worth, income, savings goals, and a manually-entered investment portfolio with live market prices. Built for one user — no sharing, no bank linking, no analytics. Just numbers and charts that feel like a private banking app.
+A personal, mobile-first PWA. **Projection-first**: the home screen is a household wealth-projection simulator. Manual net-worth / portfolio tracking is still included but secondary — most people let a real brokerage handle day-to-day tracking and use this to answer "where does this go over the next 30 years?". Built for one user — no sharing, no bank linking, no analytics.
 
 > Stack: Next.js 16 (App Router) · TypeScript · Supabase (Postgres + Auth) · Tailwind v4 · Recharts · Alpha Vantage (free tier) · Deployed on Vercel.
 
@@ -11,15 +11,19 @@ A personal, mobile-first PWA for tracking net worth, income, savings goals, and 
 
 ## Features
 
-### Private (signed-in)
+### Wealth projection (the main event)
 
-- **Dashboard.** Single hero net-worth figure, liquid vs. invested split, month-over-month delta, 12-month sparkline. All numbers come from one canonical helper — see [Architecture](#architecture) below.
+- **Home = the simulator (`/`).** Year-by-year household projection from your own assumptions. Multi-person careers with a searchable role library (legal + SWE/MLE), windfalls, major one-time + recurring expenses, lifestyle creep (flat or income-scaled), and goal-seek mode that solves four levers ("$X by age Y, what am I missing?"). Save / load / duplicate / compare scenarios. "Use my actual data" prefill can seed a scenario from any tracking data you keep. The bottom nav is projection-first: **Projection · Dashboard · [＋ new scenario] · Compare · Settings**.
+- **Public simulator (`/sim`).** The same engine with all data wiring stripped — no login, nothing saved, JSON export only. Shareable with anyone.
+
+### Tracking (optional, secondary — reachable via Settings)
+
+- **Net-worth dashboard (`/dashboard`).** Hero net-worth figure, liquid vs. invested split, month-over-month delta, 12-month sparkline. All numbers come from one canonical helper — see [Architecture](#architecture) below.
 - **Accounts.** CRUD for cash / savings / brokerage / retirement / crypto / other. Currency per account. Per-account balance shown with provenance tag (snapshot vs. live-holdings fill).
 - **Transactions.** Income / expense / savings deposit / savings withdrawal. Filterable list, category autocomplete from prior entries.
-- **Snapshots.** Per-account month-end balances. Single-account form + bulk month-end form ("here's everything as of last month"). Drives the historical chart.
-- **Savings goals.** Target amount, monthly contribution, optional target date, optional linked account. Progress bars + projected completion date + auto-progress from linked-account snapshots.
+- **Snapshots.** Per-account month-end balances. Single-account form + bulk month-end form. Drives the historical chart.
+- **Savings goals.** Target amount, monthly contribution, optional target date, optional linked account. Progress bars + projected completion date.
 - **Portfolio.** Holdings CRUD at the brokerage/retirement/crypto level. Tap "refresh prices" to fetch live Alpha Vantage quotes (server-side, rate-limited, cached). Unrealized gain/loss vs. cost basis.
-- **Wealth simulator (`/simulator`).** Year-by-year household projection from your own assumptions. Multi-person careers with searchable role library (legal + SWE/MLE), windfalls, major one-time + recurring expenses, lifestyle creep (flat or income-scaled), goal-seek mode that solves four levers ("$X by age Y, what am I missing?"). Save / load / duplicate / compare scenarios. "Use my actual data" prefill seeds the scenario from your real net worth + cashflow.
 - **Export.** Transactions CSV, holdings CSV, full JSON backup. The JSON backup supports optional **client-side AES-GCM encryption** with a passphrase that never leaves the browser (PBKDF2-SHA-256, 600k iterations).
 - **PWA.** Installable on iOS + Android via "Add to Home Screen". Custom icons, offline shell, hand-rolled service worker (no third-party PWA libs).
 

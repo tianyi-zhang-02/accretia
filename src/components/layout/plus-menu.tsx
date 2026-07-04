@@ -5,17 +5,18 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 
 /**
- * Context-aware "+" button. Replaces the raised center nav anchor — instead
- * of always jumping to /transactions/new, taps a bottom sheet with four
- * shortcuts so any "add" surface is reachable from anywhere.
- *
- * Targets:
- *   Add transaction → /transactions/new (existing standalone form)
- *   Add holding     → /portfolio?add=1  (portfolio-client opens the form on mount)
- *   Add account     → /accounts?add=1   (accounts-client opens the form on mount)
- *   Update balances → /accounts/update  (existing bulk page)
+ * Raised center "+" button → bottom sheet. Projection-first: the primary
+ * action is a new wealth-projection scenario. The manual tracking
+ * shortcuts still live here, grouped under a muted "Tracking (optional)"
+ * subheader, since a real brokerage now handles day-to-day tracking.
  */
-const ITEMS: Array<{ href: string; label: string; hint: string }> = [
+const PRIMARY = {
+  href: '/?new=1',
+  label: 'New projection scenario',
+  hint: 'Start a fresh wealth-projection scenario',
+};
+
+const TRACKING_ITEMS: Array<{ href: string; label: string; hint: string }> = [
   { href: '/transactions/new', label: 'Add transaction', hint: 'Income, expense, savings flow' },
   { href: '/portfolio?add=1', label: 'Add holding', hint: 'Stock, ETF, or crypto position' },
   { href: '/accounts?add=1', label: 'Add account', hint: 'New cash, savings, brokerage, etc.' },
@@ -70,7 +71,7 @@ export default function PlusMenu() {
           {/* Sheet */}
           <div className="border-border bg-background relative mx-3 mb-3 w-full max-w-md rounded-2xl border p-3 shadow-2xl pb-[max(env(safe-area-inset-bottom),0.75rem)]">
             <div className="mb-2 flex items-center justify-between px-2 pt-1">
-              <p className="text-muted text-[10px] tracking-[0.18em] uppercase">Add</p>
+              <p className="text-muted text-[10px] tracking-[0.18em] uppercase">Create</p>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -79,8 +80,25 @@ export default function PlusMenu() {
                 Close
               </button>
             </div>
+
+            {/* Primary action — new projection scenario. */}
+            <Link
+              href={PRIMARY.href}
+              onClick={() => setOpen(false)}
+              className="bg-accent/10 hover:bg-accent/15 mb-2 flex items-center justify-between gap-3 rounded-lg px-3 py-3"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{PRIMARY.label}</p>
+                <p className="text-muted mt-0.5 text-[11px]">{PRIMARY.hint}</p>
+              </div>
+              <span className="text-accent text-xs">→</span>
+            </Link>
+
+            <p className="text-muted px-2 pt-1 pb-1 text-[10px] tracking-[0.18em] uppercase">
+              Tracking (optional)
+            </p>
             <ul className="divide-border divide-y">
-              {ITEMS.map((item) => (
+              {TRACKING_ITEMS.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}

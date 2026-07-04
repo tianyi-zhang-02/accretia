@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import SimulatorChart, { type Marker } from '@/components/charts/simulator-chart';
 import { simulate } from '@/lib/simulator/engine';
@@ -33,22 +33,38 @@ export default function SimulatorClient({
   initialScenarios: Scenario[];
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Deep-link entry points from the projection-first bottom nav:
+  //   /?new=1          → start on a fresh scenario (the "+" button)
+  //   /?view=compare   → open straight into the compare view
+  // Lazy-initialised so we don't fight React 19's set-state-in-effect lint;
+  // the effect below only strips the params from the URL after mount.
+  const startNew = searchParams.get('new') === '1';
+  const startCompare = searchParams.get('view') === 'compare';
 
   // Local copy of the scenarios list so save/duplicate/delete update the
   // selector without a full route refresh.
   const [scenarios, setScenarios] = useState<Scenario[]>(initialScenarios);
   const [selectedId, setSelectedId] = useState<string | 'new'>(
-    initialScenarios[0]?.id ?? 'new',
+    startNew ? 'new' : (initialScenarios[0]?.id ?? 'new'),
   );
   const [assumptions, setAssumptions] = useState<Assumptions>(
-    initialScenarios[0]?.assumptions ?? defaultAssumptions(),
+    startNew ? defaultAssumptions() : (initialScenarios[0]?.assumptions ?? defaultAssumptions()),
   );
   const [name, setName] = useState<string>(
-    initialScenarios[0]?.name ?? 'Untitled scenario',
+    startNew ? 'Untitled scenario' : (initialScenarios[0]?.name ?? 'Untitled scenario'),
   );
   const [displayMode, setDisplayMode] = useState<'nominal' | 'real'>('nominal');
   const [showTable, setShowTable] = useState(false);
-  const [view, setView] = useState<'edit' | 'compare'>('edit');
+  const [view, setView] = useState<'edit' | 'compare'>(startCompare ? 'compare' : 'edit');
+
+  // Strip the one-shot deep-link params so a refresh doesn't re-trigger them.
+  useEffect(() => {
+    if (startNew || startCompare) router.replace('/');
+    // Only needs to run once on mount for the initial params.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);

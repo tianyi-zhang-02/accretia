@@ -6,6 +6,34 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Projection-first re-focus
+
+The app is now projection-first: the wealth simulator is the home screen,
+and manual tracking (accounts, portfolio, transactions, snapshots, goals)
+is secondary — reachable via Settings but no longer in the primary nav —
+now that a real brokerage handles day-to-day tracking. **Nothing was
+deleted and there are no DB changes; this is a reversible re-focus.**
+
+- **Changed** Home `/` now renders the wealth-projection simulator (was
+  the net-worth dashboard).
+- **Changed** The net-worth dashboard moved to `/dashboard` (unchanged
+  otherwise, still fully working).
+- **Changed** `/simulator` now permanently redirects to `/` so old
+  bookmarks / links keep working.
+- **Changed** Bottom nav is projection-first:
+  **Projection (`/`) · Dashboard (`/dashboard`) · [＋ new scenario] ·
+  Compare (`/?view=compare`) · Settings**.
+- **Added** Deep-link entry points on the simulator: `/?new=1` starts a
+  fresh scenario (the "+" button), `/?view=compare` opens directly into
+  the compare view.
+- **Changed** The "+" sheet's primary action is now "New projection
+  scenario"; the tracking shortcuts (add transaction / holding / account,
+  update balances) remain under a muted "Tracking (optional)" subheader.
+- **Changed** Settings gained a "Tracking (optional)" section linking the
+  dashboard, accounts, portfolio, transactions, goals, and bulk-balance
+  update — so nothing is orphaned by leaving the primary nav.
+- **Changed** README Features reframed projection-first.
+
 ### Migration test harness — pglite
 
 - **Added** `@electric-sql/pglite` as a devDep — Postgres compiled to WASM,
