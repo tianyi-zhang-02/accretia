@@ -8,9 +8,9 @@ import type { MetadataRoute } from 'next';
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Wealth Projection Simulator',
-    short_name: 'Wealth Sim',
-    description: 'Project net worth over time from your own assumptions. Client-side, nothing stored.',
+    name: 'Accretia',
+    short_name: 'Accretia',
+    description: 'Project net worth over time from your own assumptions — watch it compound. Client-side, nothing stored.',
     start_url: '/',
     scope: '/',
     display: 'standalone',

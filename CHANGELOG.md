@@ -1,19 +1,21 @@
 # Changelog
 
-Notable changes to **wealth-simulator**. Loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Notable changes to **Accretia**. Loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 The project doesn't ship a versioned package — entries are grouped by milestone and dated. The "Live" line at the top of each section names the production URL after that milestone shipped.
 
 ## [Unreleased]
 
-### Renamed to wealth-simulator
+### Renamed to Accretia
 
-- **Changed** the project/repo name from `tracker` to `wealth-simulator`
-  to match what it actually is. GitHub repo renamed (old URL auto-
-  redirects); `package.json` was already `wealth-simulator`. PWA manifest
-  `name`/`short_name` updated ("Wealth Projection Simulator" / "Wealth
-  Sim"); README clone URL and this file's compare link updated. The
-  Vercel project + live URL keep their existing names.
+- **Changed** the project/repo name to **Accretia** — from _accretion_,
+  growth by gradual accumulation (the essence of compounding), and picked
+  to be distinctive rather than collide with the many "wealth trackers" /
+  "wealth simulators" out there. GitHub repo renamed `tracker` →
+  `accretia` (old URLs auto-redirect); updated `package.json` name, the
+  PWA manifest (`name`/`short_name` → "Accretia"), the page + browser-tab
+  titles, the visible `<h1>`, README, CLAUDE.md, and this file's compare
+  link. The Vercel project + live URL keep their existing names.
 
 ### Comp model: equity, derived savings, tax presets
 
@@ -363,4 +365,4 @@ deleted and there are no DB changes; this is a reversible re-focus.**
 
 - Next.js 16 App Router scaffold, TypeScript strict, Tailwind v4, npm.
 
-[Unreleased]: https://github.com/tianyi-zhang-02/wealth-simulator/compare/02542b7...HEAD
+[Unreleased]: https://github.com/tianyi-zhang-02/accretia/compare/02542b7...HEAD

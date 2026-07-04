@@ -246,10 +246,11 @@ export default function SimulatorClient() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h1 className="serif-display text-2xl">Wealth projection simulator</h1>
+        <h1 className="serif-display text-2xl">Accretia</h1>
         <p className="text-muted text-xs">
-          Project net worth year by year from your own assumptions. Runs entirely in your browser —
-          nothing is saved or sent anywhere. Use Export / Import to keep a scenario as a file.
+          Project net worth year by year from your own assumptions and watch it compound. Runs
+          entirely in your browser — nothing is saved or sent anywhere. Use Export / Import to keep a
+          scenario as a file.
         </p>
       </header>
 

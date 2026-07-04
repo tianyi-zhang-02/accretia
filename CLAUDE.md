@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# CLAUDE.md — Project Memory for the Wealth Projection Simulator
+# CLAUDE.md — Project Memory for Accretia
 
 > Read this at the start of every session. It encodes the rules and guardrails for this project. Follow it strictly. When in doubt, ask before acting.
 
@@ -8,7 +8,7 @@
 
 ## What this is
 
-A **purely client-side** wealth-projection simulator. One page. Runs entirely in the browser.
+**Accretia** is a **purely client-side** wealth-projection simulator. One page. Runs entirely in the browser. (The name is from _accretion_ — growth by gradual accumulation, i.e. compounding.)
 
 **There is no backend, no database, no authentication, and nothing is stored or cached anywhere** — not on a server, not in `localStorage`, not in cookies. Scenarios live in React state; a refresh resets to a blank scenario. The only persistence is manual **Export / Import** of a scenario as a JSON file.
 

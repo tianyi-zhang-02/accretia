@@ -1,6 +1,6 @@
-# Wealth Projection Simulator
+# Accretia
 
-A single-page, **client-side** wealth-projection simulator. Project household net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
+_Watch your wealth accrete._ A single-page, **client-side** wealth-projection simulator. Project household net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
 
 Everything runs in the browser. **There is no backend, no database, no account, and nothing is stored or sent anywhere.** Refresh and you start clean; use Export / Import to keep a scenario as a JSON file.
 
@@ -44,8 +44,8 @@ Because the app has no backend, the security model is trivial:
 No accounts, no database, no keys — just clone and go.
 
 ```bash
-git clone https://github.com/tianyi-zhang-02/wealth-simulator.git
-cd wealth-simulator
+git clone https://github.com/tianyi-zhang-02/accretia.git
+cd accretia
 npm install
 npm run dev     # → http://localhost:3000
 ```
