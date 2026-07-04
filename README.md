@@ -42,8 +42,8 @@ Because the app has no backend, the security model is trivial:
 No accounts, no database, no keys — just clone and go.
 
 ```bash
-git clone https://github.com/tianyi-zhang-02/tracker.git
-cd tracker
+git clone https://github.com/tianyi-zhang-02/wealth-simulator.git
+cd wealth-simulator
 npm install
 npm run dev     # → http://localhost:3000
 ```

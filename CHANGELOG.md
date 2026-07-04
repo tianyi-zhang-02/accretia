@@ -6,6 +6,15 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Renamed to wealth-simulator
+
+- **Changed** the project/repo name from `tracker` to `wealth-simulator`
+  to match what it actually is. GitHub repo renamed (old URL auto-
+  redirects); `package.json` was already `wealth-simulator`. PWA manifest
+  `name`/`short_name` updated ("Wealth Projection Simulator" / "Wealth
+  Sim"); README clone URL and this file's compare link updated. The
+  Vercel project + live URL keep their existing names.
+
 ### Live side-by-side editor
 
 - **Changed** the simulator from a three-tab layout to a **live side-by-side
@@ -328,4 +337,4 @@ deleted and there are no DB changes; this is a reversible re-focus.**
 
 - Next.js 16 App Router scaffold, TypeScript strict, Tailwind v4, npm.
 
-[Unreleased]: https://github.com/tianyi-zhang-02/tracker/compare/02542b7...HEAD
+[Unreleased]: https://github.com/tianyi-zhang-02/wealth-simulator/compare/02542b7...HEAD
