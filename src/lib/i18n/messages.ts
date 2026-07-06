@@ -220,6 +220,27 @@ const en = {
     nominal: 'nominal',
     inflationGap: 'Lost to inflation',
   },
+  fire: {
+    heading: 'FIRE — financial independence',
+    intro: 'The year your investments could cover your spending — work becomes optional.',
+    swr: 'Safe withdrawal rate',
+    healthInsurance: 'Annual health-insurance reserve',
+    essential: 'Essential annual spend (Lean FIRE)',
+    fullLabel: 'Full FIRE',
+    leanLabel: 'Lean FIRE',
+    coastLabel: 'Coast FIRE',
+    covers: (spend: string) => `covers ${spend}/yr`,
+    reachedAtAge: (year: number, ageN: number) => `reached ${year} · age ${ageN}`,
+    reachedAt: (year: number) => `reached ${year}`,
+    notReached: 'not within your horizon',
+    coastLine: (year: number, ageN: number, retireAge: number) =>
+      `stop saving ${year} (age ${ageN}) → coasts to Full FIRE by ${retireAge}`,
+    coastNotReached: 'not yet — keep contributing',
+    coastNeedsPerson: 'add a person under “People & careers” to compute Coast FIRE',
+    needExpenses: 'enter your annual expenses to compute FIRE',
+    disclaimer:
+      'FIRE number = annual spend ÷ withdrawal rate (25× at 4%), vs real (today’s-dollar) net worth. Assumes your whole net worth is investable — a planning estimate, not advice.',
+  },
   presets: {
     // Career-track headers in the role picker.
     track: {
@@ -440,6 +461,27 @@ const zh: Messages = {
     todaysDollars: '今日购买力',
     nominal: '名义',
     inflationGap: '被通胀侵蚀',
+  },
+  fire: {
+    heading: 'FIRE · 财务自由',
+    intro: '当投资收益足以覆盖开支的那一年——工作从此变成可选项。',
+    swr: '安全提取率',
+    healthInsurance: '每年医保预留',
+    essential: '每年必要开支（Lean FIRE）',
+    fullLabel: '完全 FIRE',
+    leanLabel: '精简 FIRE',
+    coastLabel: 'Coast FIRE',
+    covers: (spend: string) => `覆盖每年 ${spend} 开支`,
+    reachedAtAge: (year: number, ageN: number) => `${year} 年达成 · ${ageN} 岁`,
+    reachedAt: (year: number) => `${year} 年达成`,
+    notReached: '推算区间内尚未达成',
+    coastLine: (year: number, ageN: number, retireAge: number) =>
+      `${year} 年（${ageN} 岁）起即可停止存钱 → 靠复利在 ${retireAge} 岁前到达完全 FIRE`,
+    coastNotReached: '尚未达成——继续存钱',
+    coastNeedsPerson: '请在「成员与职业」中添加一位成员以计算 Coast FIRE',
+    needExpenses: '请先填写每年开支以计算 FIRE',
+    disclaimer:
+      'FIRE 数字 = 每年开支 ÷ 提取率（4% 即 25×），与实际（今日购买力）净资产比较。假设净资产全部可投资——仅为规划估算，非投资建议。',
   },
   presets: {
     track: {

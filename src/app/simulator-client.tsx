@@ -7,6 +7,7 @@ import LangSwitch from '@/components/i18n/lang-switch';
 import AssumptionsForm from '@/components/simulator/assumptions-form';
 import CompareView, { type ComparableScenario } from '@/components/simulator/compare-view';
 import { defaultAssumptions, newId } from '@/components/simulator/default-assumptions';
+import FirePanel from '@/components/simulator/fire-panel';
 import GoalSeekPanel from '@/components/simulator/goal-seek-panel';
 import YearTable from '@/components/simulator/year-table';
 import { LocaleProvider, useI18n } from '@/lib/i18n/locale';
@@ -406,6 +407,11 @@ function SimulatorInner() {
 
               {/* Goal-seek. */}
               <GoalSeekPanel assumptions={assumptions} onChange={patchCurrent} />
+
+              {/* FIRE — the year work becomes optional. */}
+              {result ? (
+                <FirePanel assumptions={assumptions} rows={result.rows} onChange={patchCurrent} />
+              ) : null}
             </div>
           </div>
 

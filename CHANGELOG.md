@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### FIRE panel — the year work becomes optional
+
+- **Added** a bilingual (EN / 中文) FIRE panel in the projection column. It
+  **derives** — from the existing projection, no engine change — the first
+  year your real (today's-dollar) net worth reaches your FIRE number
+  (annual spend ÷ withdrawal rate; 25× at 4%). Shows **Full FIRE**, **Lean
+  FIRE** (via a separate essential-spend input, for needs-vs-wants), and
+  **Coast FIRE** (the year you can stop saving and let compounding reach Full
+  FIRE by 65).
+- **Added** inputs: safe-withdrawal-rate (default 4%), an annual
+  health-insurance reserve (added to spend — matters pre-Medicare), and
+  essential annual spend. New optional `fire` block in the scenario schema
+  (rides along in export/import). Pure helper `src/lib/simulator/fire.ts`
+  with unit tests (60 total).
+
 ### Chart: nominal vs real comparison view
 
 - **Added** a third projection mode, **对比 / Both**: the chart draws the

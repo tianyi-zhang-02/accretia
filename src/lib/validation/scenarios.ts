@@ -109,6 +109,23 @@ const targetSchema = z.object({
 });
 export type SimTarget = z.infer<typeof targetSchema>;
 
+/**
+ * FIRE (financial-independence) settings. Optional — when absent the FIRE
+ * panel uses sensible defaults (4% withdrawal, no health-insurance reserve,
+ * essential spend = full recurring expenses). All figures are in
+ * horizon-start ("today's") dollars, matching `recurringAnnualExpenses` and
+ * the engine's `netWorthRealTodayDollars`.
+ */
+const fireSchema = z.object({
+  /** Safe withdrawal rate, %. FIRE number = annual spend ÷ (rate/100). */
+  safeWithdrawalRatePct: z.number().min(0.5).max(20),
+  /** Annual health-insurance reserve, added to spending (pre-Medicare in the US). */
+  annualHealthInsurance: positiveMoney,
+  /** Bare-minimum annual spend used for the Lean-FIRE number. */
+  essentialAnnualExpenses: positiveMoney,
+});
+export type FireConfig = z.infer<typeof fireSchema>;
+
 // ---------- Top-level assumptions ----------
 
 export const assumptionsSchema = z
@@ -137,6 +154,8 @@ export const assumptionsSchema = z
     // derived savings. Used as the goal-seek "save $X/mo more" lever;
     // defaults to 0 if absent.
     extraAnnualContribution: positiveMoney.optional(),
+    // FIRE panel settings. Optional — the panel falls back to defaults.
+    fire: fireSchema.optional(),
   })
   .refine((v) => v.horizonEndYear >= v.horizonStartYear, {
     message: 'horizonEndYear must be ≥ horizonStartYear',
