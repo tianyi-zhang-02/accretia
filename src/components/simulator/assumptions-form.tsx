@@ -119,7 +119,7 @@ function NumField({
  * surrounding chrome is localized.
  */
 function RoleSearchBox({ onPick }: { onPick: (preset: RolePreset) => void }) {
-  const { t, fmt } = useI18n();
+  const { t, fmt, locale } = useI18n();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
 
@@ -173,7 +173,9 @@ function RoleSearchBox({ onPick }: { onPick: (preset: RolePreset) => void }) {
                         }}
                         className="hover:bg-foreground/5 flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left"
                       >
-                        <span className="text-foreground text-xs">{r.title}</span>
+                        <span className="text-foreground text-xs">
+                          {locale === 'zh' ? r.titleZh : r.title}
+                        </span>
                         <span className="text-muted nums text-[10px]">
                           {fmt.currency0(r.baseSalary)} {t.form.role.base} · +{r.annualRaisePct}% ·{' '}
                           {r.bonusPct}% {t.form.role.bonus}
@@ -181,8 +183,10 @@ function RoleSearchBox({ onPick }: { onPick: (preset: RolePreset) => void }) {
                             ? ` · ${fmt.currency0(r.annualEquity)} ${t.form.role.equity}`
                             : ''}
                         </span>
-                        {r.notes ? (
-                          <span className="text-muted text-[10px] italic">{r.notes}</span>
+                        {(locale === 'zh' ? r.notesZh : r.notes) ? (
+                          <span className="text-muted text-[10px] italic">
+                            {locale === 'zh' ? r.notesZh : r.notes}
+                          </span>
                         ) : null}
                       </button>
                     </li>

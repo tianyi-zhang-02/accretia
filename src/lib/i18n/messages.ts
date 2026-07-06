@@ -217,7 +217,12 @@ const en = {
   },
   presets: {
     // Career-track headers in the role picker.
-    track: { legal: 'Legal', swe: 'Software / ML' },
+    track: {
+      legal: 'Legal',
+      swe: 'Software / ML',
+      medicine: 'Medicine',
+      finance: 'Finance / Consulting',
+    },
   },
   footer: {
     disclaimer:
@@ -428,7 +433,12 @@ const zh: Messages = {
     nominal: '名义',
   },
   presets: {
-    track: { legal: '法律', swe: '软件 / 机器学习' },
+    track: {
+      legal: '法律',
+      swe: '软件 / 机器学习',
+      medicine: '医疗',
+      finance: '金融 / 咨询',
+    },
   },
   footer: {
     disclaimer:

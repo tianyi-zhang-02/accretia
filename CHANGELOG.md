@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Role library — bilingual + medicine & finance tracks
+
+- **Added** Chinese titles + notes to **every** role (the picker shows them
+  in `?lang=zh`, and search matches EN + 中文), plus two new tracks:
+  **医疗 / Medicine** (13 roles: resident → NP/PA → primary care →
+  specialists incl. anesthesiology, radiology, surgery, orthopedics,
+  cardiology; base + productivity bonus, no equity) and **金融 / 咨询
+  (Finance / Consulting)** (IB analyst/associate/VP, PE associate, hedge-fund
+  analyst, quant, MBB consultant; cash-bonus-heavy, PE carry noted as not
+  modeled). Also added Product Manager and Data Scientist (mid/senior) to the
+  tech track.
+- **Note** these are hand-curated **static** illustrative figures
+  (levels.fyi / Medscape-style aggregates), not fetched live — the app makes
+  no network calls. Every number stays editable; "last reviewed 2026-07".
+
 ### Native bilingual — English / 简体中文
 
 - **Added** full native Chinese (简体中文) support, built bilingual from the
