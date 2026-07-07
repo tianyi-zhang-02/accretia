@@ -6,6 +6,14 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Simple by default — advanced tools collapsed
+
+- **Changed** the projection to progressive disclosure: by default it shows
+  just the essentials (inputs + chart + final balance). A **Show advanced
+  tools** toggle reveals goal-seek, FIRE, the stress test, and the asset-mix
+  calculator. Keeps first use simple without hiding the power. Bilingual
+  (EN / 中文); the choice is in-memory (resets on refresh).
+
 ### Asset-mix return calculator
 
 - **Added** a bilingual (EN / 中文) asset-allocation calculator in the

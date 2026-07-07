@@ -23,6 +23,11 @@ const en = {
     tagline:
       'Project net worth year by year from your own assumptions and watch it compound. Runs entirely in your browser — nothing is saved or sent anywhere. Use Export / Import to keep a scenario as a file.',
   },
+  advanced: {
+    show: 'Show advanced tools',
+    hide: 'Hide advanced tools',
+    hint: 'goal-seek · FIRE · stress test · asset mix',
+  },
   scenarioBar: {
     scenarioAria: 'Scenario',
     newScenario: '+ New',
@@ -306,6 +311,11 @@ const zh: Messages = {
     title: 'Accretia',
     tagline:
       '根据你自己的假设逐年推算净资产，见证复利的力量。全部运算都在本地浏览器完成——不保存、也不上传任何数据。用「导出／导入」把方案存成文件。',
+  },
+  advanced: {
+    show: '显示高级工具',
+    hide: '收起高级工具',
+    hint: '目标求解 · FIRE · 压力测试 · 资产配比',
   },
   scenarioBar: {
     scenarioAria: '方案',

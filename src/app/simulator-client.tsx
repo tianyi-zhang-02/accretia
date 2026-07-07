@@ -83,6 +83,9 @@ function SimulatorInner() {
   const [displayMode, setDisplayMode] = useState<DisplayMode>('nominal');
   const [showTable, setShowTable] = useState(false);
   const [comparing, setComparing] = useState(false);
+  // Progressive disclosure: keep the default view simple; reveal the analysis
+  // panels (goal-seek, FIRE, stress) + the asset-mix calculator on demand.
+  const [advanced, setAdvanced] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -354,7 +357,7 @@ function SimulatorInner() {
               <p className="text-muted mb-2 text-[10px] tracking-[0.18em] uppercase">
                 {t.projection.assumptionsLabel}
               </p>
-              <AssumptionsForm value={assumptions} onChange={patchCurrent} />
+              <AssumptionsForm value={assumptions} onChange={patchCurrent} advanced={advanced} />
             </div>
 
             {/* Projection — pinned on desktop. */}
@@ -406,17 +409,37 @@ function SimulatorInner() {
                 </p>
               </section>
 
-              {/* Goal-seek. */}
-              <GoalSeekPanel assumptions={assumptions} onChange={patchCurrent} />
+              {/* Advanced tools — collapsed by default (progressive disclosure). */}
+              <button
+                type="button"
+                onClick={() => setAdvanced((v) => !v)}
+                className="border-border hover:bg-foreground/5 flex items-center justify-between rounded border px-3 py-2 text-left text-xs"
+              >
+                <span>{advanced ? t.advanced.hide : t.advanced.show}</span>
+                <span className="text-muted text-[10px]">
+                  {advanced ? '−' : `+ ${t.advanced.hint}`}
+                </span>
+              </button>
 
-              {/* FIRE — the year work becomes optional. */}
-              {result ? (
-                <FirePanel assumptions={assumptions} rows={result.rows} onChange={patchCurrent} />
-              ) : null}
+              {advanced ? (
+                <>
+                  {/* Goal-seek. */}
+                  <GoalSeekPanel assumptions={assumptions} onChange={patchCurrent} />
 
-              {/* Stress test — job loss + market crash what-ifs. */}
-              {result ? (
-                <StressPanel assumptions={assumptions} rows={result.rows} onChange={patchCurrent} />
+                  {/* FIRE — the year work becomes optional. */}
+                  {result ? (
+                    <FirePanel assumptions={assumptions} rows={result.rows} onChange={patchCurrent} />
+                  ) : null}
+
+                  {/* Stress test — job loss + market crash what-ifs. */}
+                  {result ? (
+                    <StressPanel
+                      assumptions={assumptions}
+                      rows={result.rows}
+                      onChange={patchCurrent}
+                    />
+                  ) : null}
+                </>
               ) : null}
             </div>
           </div>

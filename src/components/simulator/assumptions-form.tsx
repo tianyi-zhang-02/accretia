@@ -475,7 +475,16 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
   );
 }
 
-export default function AssumptionsForm({ value, onChange }: { value: Assumptions; onChange: Setter }) {
+export default function AssumptionsForm({
+  value,
+  onChange,
+  advanced = false,
+}: {
+  value: Assumptions;
+  onChange: Setter;
+  /** When false (default), hide the advanced asset-mix calculator. */
+  advanced?: boolean;
+}) {
   const { t } = useI18n();
 
   function update(patch: Partial<Assumptions>) {
@@ -638,18 +647,20 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
             onChange={(n) => update({ inflationPct: n })}
             suffix="%"
           />
-          <AllocationEstimator
-            onApply={(blended) => {
-              const base = Math.max(-50, Math.min(100, blended));
-              update({
-                investment: {
-                  returnPct: base,
-                  returnPctLow: Math.max(-50, Math.min(base, Number((base - 2).toFixed(2)))),
-                  returnPctHigh: Math.min(100, Math.max(base, Number((base + 2).toFixed(2)))),
-                },
-              });
-            }}
-          />
+          {advanced ? (
+            <AllocationEstimator
+              onApply={(blended) => {
+                const base = Math.max(-50, Math.min(100, blended));
+                update({
+                  investment: {
+                    returnPct: base,
+                    returnPctLow: Math.max(-50, Math.min(base, Number((base - 2).toFixed(2)))),
+                    returnPctHigh: Math.min(100, Math.max(base, Number((base + 2).toFixed(2)))),
+                  },
+                });
+              }}
+            />
+          ) : null}
           <div className="grid grid-cols-3 gap-3">
             <NumField
               label={t.form.investment.returnLow}
