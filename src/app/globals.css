@@ -10,6 +10,18 @@
   --negative: #e08884;
 }
 
+/* Light theme — opt-in via <html data-theme="light">. Warm off-white with
+   darker accent/positive/negative for readable contrast on a light surface. */
+:root[data-theme='light'] {
+  --background: #faf9f6;
+  --foreground: #1c1917;
+  --muted: #6b6b74;
+  --border: #e5e2db;
+  --accent: #a06a2c;
+  --positive: #2f7d64;
+  --negative: #b8443e;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import MonteCarloChart from '@/components/charts/montecarlo-chart';
 import SimulatorChart, { type DisplayMode, type Marker } from '@/components/charts/simulator-chart';
@@ -86,6 +86,18 @@ function SimulatorInner() {
   // Deterministic band vs probabilistic Monte-Carlo fan (a chart-level switch).
   const [chartEngine, setChartEngine] = useState<'deterministic' | 'probabilistic'>('deterministic');
   const [volatilityPct, setVolatilityPct] = useState(15);
+
+  // Display preferences — in-memory (reset on refresh, per the no-storage rule).
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [fontScale, setFontScale] = useState(1);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
+  useEffect(() => {
+    // `zoom` scales the whole page like browser zoom — reliable given the
+    // mix of rem and px text sizes in the UI.
+    document.documentElement.style.zoom = String(fontScale);
+  }, [fontScale]);
   const [showTable, setShowTable] = useState(false);
   const [comparing, setComparing] = useState(false);
   // Progressive disclosure: keep the default view simple; reveal the analysis
@@ -268,7 +280,37 @@ function SimulatorInner() {
       <header className="flex flex-col gap-1">
         <div className="flex items-start justify-between gap-3">
           <h1 className="serif-display text-2xl">{t.app.title}</h1>
-          <LangSwitch />
+          <div className="flex items-center gap-2">
+            {/* Font size */}
+            <div className="border-border flex rounded border text-[11px]">
+              <button
+                type="button"
+                aria-label={t.controls.smaller}
+                onClick={() => setFontScale((s) => Math.max(0.8, Math.round((s - 0.1) * 10) / 10))}
+                className="text-muted hover:text-foreground px-2 py-0.5"
+              >
+                A−
+              </button>
+              <button
+                type="button"
+                aria-label={t.controls.larger}
+                onClick={() => setFontScale((s) => Math.min(1.4, Math.round((s + 0.1) * 10) / 10))}
+                className="text-muted hover:text-foreground px-2 py-0.5 text-sm"
+              >
+                A+
+              </button>
+            </div>
+            {/* Theme */}
+            <button
+              type="button"
+              aria-label={theme === 'dark' ? t.controls.lightTheme : t.controls.darkTheme}
+              onClick={() => setTheme((v) => (v === 'dark' ? 'light' : 'dark'))}
+              className="border-border text-muted hover:text-foreground rounded border px-2 py-0.5 text-[11px]"
+            >
+              {theme === 'dark' ? '☀' : '☾'}
+            </button>
+            <LangSwitch />
+          </div>
         </div>
         <p className="text-muted text-xs">{t.app.tagline}</p>
       </header>

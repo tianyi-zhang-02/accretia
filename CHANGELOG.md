@@ -6,6 +6,14 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Display preferences — font size + light theme
+
+- **Added** header controls: **A− / A+** to zoom the whole page, and a
+  **☀ / ☾** toggle for a **light theme** (warm off-white with darker
+  accent/positive/negative for contrast). Both are in-memory preferences
+  (reset on refresh, per the no-storage rule) — theme via
+  `<html data-theme>`, zoom via the page `zoom`. Bilingual labels.
+
 ### Less clutter — collapse set-once form sections
 
 - **Changed** the Horizon and Taxes sections to collapsed by default (they're

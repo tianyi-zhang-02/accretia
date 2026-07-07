@@ -28,6 +28,12 @@ const en = {
     hide: 'Hide advanced tools',
     hint: 'goal-seek · FIRE · stress test · asset mix',
   },
+  controls: {
+    smaller: 'Smaller text',
+    larger: 'Larger text',
+    lightTheme: 'Switch to light theme',
+    darkTheme: 'Switch to dark theme',
+  },
   scenarioBar: {
     scenarioAria: 'Scenario',
     newScenario: '+ New',
@@ -324,6 +330,12 @@ const zh: Messages = {
     show: '显示高级工具',
     hide: '收起高级工具',
     hint: '目标求解 · FIRE · 压力测试 · 资产配比',
+  },
+  controls: {
+    smaller: '缩小字体',
+    larger: '放大字体',
+    lightTheme: '切换到浅色主题',
+    darkTheme: '切换到深色主题',
   },
   scenarioBar: {
     scenarioAria: '方案',
