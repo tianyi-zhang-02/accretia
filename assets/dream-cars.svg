@@ -1,0 +1,30 @@
+<svg viewBox="0 0 860 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="911 Turbo S and 911 GT3 Touring silhouettes">
+  <!-- Original hand-drawn 911 silhouettes (no copyrighted imagery). -->
+  <!-- Turbo S -->
+  <g transform="translate(40,25)">
+    <ellipse cx="190" cy="126" rx="150" ry="7" fill="#565c66" opacity="0.16"/>
+    <g fill="#565c66">
+      <path d="M30,96 C16,92 16,66 34,56 C60,44 95,40 120,37 Q175,14 235,38 C270,48 305,60 345,73 C359,79 362,91 351,97 L30,97 Z"/>
+      <circle cx="82" cy="97" r="21"/>
+      <circle cx="300" cy="97" r="21"/>
+    </g>
+    <path d="M126,40 Q175,20 226,40 L214,52 L134,52 Z" fill="#ffffff" opacity="0.16"/>
+    <circle cx="82" cy="97" r="7" fill="#ffffff" opacity="0.22"/>
+    <circle cx="300" cy="97" r="7" fill="#ffffff" opacity="0.22"/>
+  </g>
+  <text x="230" y="182" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,sans-serif" font-size="15" font-weight="600" fill="#7d8590">911 Turbo S</text>
+
+  <!-- GT3 Touring -->
+  <g transform="translate(460,25)">
+    <ellipse cx="190" cy="126" rx="150" ry="7" fill="#868d97" opacity="0.16"/>
+    <g fill="#868d97">
+      <path d="M30,96 C16,92 16,66 34,56 C60,44 95,40 120,37 Q175,14 235,38 C270,48 305,60 345,73 C359,79 362,91 351,97 L30,97 Z"/>
+      <circle cx="82" cy="97" r="21"/>
+      <circle cx="300" cy="97" r="21"/>
+    </g>
+    <path d="M126,40 Q175,20 226,40 L214,52 L134,52 Z" fill="#ffffff" opacity="0.18"/>
+    <circle cx="82" cy="97" r="7" fill="#ffffff" opacity="0.22"/>
+    <circle cx="300" cy="97" r="7" fill="#ffffff" opacity="0.22"/>
+  </g>
+  <text x="650" y="182" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,sans-serif" font-size="15" font-weight="600" fill="#7d8590">911 GT3 Touring</text>
+</svg>
