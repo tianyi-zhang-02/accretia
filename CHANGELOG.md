@@ -6,6 +6,13 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### More conservative default returns
+
+- **Changed** the default return assumption from 7% (band 4–10) to a more
+  cautious **6% nominal (band 3–9)** — ≈ 3% real at 3% inflation — after
+  feedback that the projection looked over-optimistic. Only the seed default
+  changed; existing/imported scenarios and the engine are untouched.
+
 ### Home & mortgage what-if
 
 - **Added** a bilingual (EN / 中文) **Home & mortgage** section. When enabled,

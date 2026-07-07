@@ -31,7 +31,9 @@ export function defaultAssumptions(): Assumptions {
     startingNetWorth: 50_000,
     startingInvested: 50_000,
     effectiveTaxRatePct: 32,
-    investment: { returnPct: 7, returnPctLow: 4, returnPctHigh: 10 },
+    // Conservative default returns (nominal). 6% ≈ ~3% real at 3% inflation —
+    // deliberately on the cautious side so the projection doesn't over-promise.
+    investment: { returnPct: 6, returnPctLow: 3, returnPctHigh: 9 },
     inflationPct: 3,
     windfalls: [],
     majorExpenses: [],
