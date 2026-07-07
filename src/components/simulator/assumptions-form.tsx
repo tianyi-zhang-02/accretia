@@ -16,6 +16,7 @@ import type {
   CareerStage,
   Lifestyle,
   MajorExpense,
+  MortgageConfig,
   Person,
   Windfall,
 } from '@/lib/validation/scenarios';
@@ -471,6 +472,137 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
         </button>
       </div>
       <p className="text-muted text-[10px] italic">{t.form.allocation.note}</p>
+    </div>
+  );
+}
+
+/** Home + mortgage editor. When enabled, the engine adds a home asset and a
+ * mortgage liability to net worth; shows the monthly P&I payment. */
+function MortgageEditor({
+  value,
+  defaultYear,
+  onChange,
+}: {
+  value: MortgageConfig | undefined;
+  defaultYear: number;
+  onChange: (next: MortgageConfig | undefined) => void;
+}) {
+  const { t, fmt } = useI18n();
+  function patch(p: Partial<MortgageConfig>) {
+    if (!value) return;
+    onChange({ ...value, ...p });
+  }
+  const loan = value ? value.homePrice * (1 - value.downPaymentPct / 100) : 0;
+  const r = value ? value.mortgageRatePct / 100 : 0;
+  const term = value?.termYears ?? 0;
+  const annual =
+    !value || loan <= 0 || term <= 0
+      ? 0
+      : r === 0
+        ? loan / term
+        : (loan * r) / (1 - Math.pow(1 + r, -term));
+
+  return (
+    <div className="flex flex-col gap-3">
+      <label className="flex items-center gap-2 text-xs">
+        <input
+          type="checkbox"
+          checked={!!value}
+          onChange={(e) =>
+            onChange(
+              e.target.checked
+                ? {
+                    purchaseYear: defaultYear,
+                    homePrice: 500_000,
+                    downPaymentPct: 20,
+                    mortgageRatePct: 6.5,
+                    termYears: 30,
+                    propertyTaxPct: 1.1,
+                    maintenancePct: 1,
+                    homeAppreciationPct: 3,
+                  }
+                : undefined,
+            )
+          }
+        />
+        <span className="text-foreground">{t.form.mortgage.enable}</span>
+      </label>
+      {value ? (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <NumField
+              label={t.form.mortgage.purchaseYear}
+              value={value.purchaseYear}
+              min={1900}
+              max={2200}
+              onChange={(n) => patch({ purchaseYear: Math.round(n) })}
+            />
+            <NumField
+              label={t.form.mortgage.homePrice}
+              value={value.homePrice}
+              step={10000}
+              min={0}
+              suffix="$"
+              onChange={(n) => patch({ homePrice: Math.max(0, n) })}
+            />
+            <NumField
+              label={t.form.mortgage.downPayment}
+              value={value.downPaymentPct}
+              step={5}
+              min={0}
+              max={100}
+              suffix="%"
+              onChange={(n) => patch({ downPaymentPct: Math.min(100, Math.max(0, n)) })}
+            />
+            <NumField
+              label={t.form.mortgage.rate}
+              value={value.mortgageRatePct}
+              step={0.25}
+              min={0}
+              max={30}
+              suffix="%"
+              onChange={(n) => patch({ mortgageRatePct: Math.max(0, n) })}
+            />
+            <NumField
+              label={t.form.mortgage.term}
+              value={value.termYears}
+              step={1}
+              min={1}
+              max={50}
+              onChange={(n) => patch({ termYears: Math.max(1, Math.round(n)) })}
+            />
+            <NumField
+              label={t.form.mortgage.propertyTax}
+              value={value.propertyTaxPct}
+              step={0.1}
+              min={0}
+              max={10}
+              suffix="%"
+              onChange={(n) => patch({ propertyTaxPct: Math.max(0, n) })}
+            />
+            <NumField
+              label={t.form.mortgage.maintenance}
+              value={value.maintenancePct ?? 0}
+              step={0.25}
+              min={0}
+              max={10}
+              suffix="%"
+              onChange={(n) => patch({ maintenancePct: Math.max(0, n) })}
+            />
+            <NumField
+              label={t.form.mortgage.appreciation}
+              value={value.homeAppreciationPct ?? 0}
+              step={0.5}
+              suffix="%"
+              onChange={(n) => patch({ homeAppreciationPct: n })}
+            />
+          </div>
+          <p className="text-muted nums text-[11px]">
+            {t.form.mortgage.monthlyPayment(fmt.currency0(annual / 12))}
+          </p>
+        </>
+      ) : null}
+      <p className="text-muted text-[10px] italic">{t.form.mortgage.note}</p>
     </div>
   );
 }
@@ -1051,6 +1183,14 @@ export default function AssumptionsForm({
             </button>
           </div>
         </div>
+      </Section>
+
+      <Section title={t.form.section.mortgage} defaultOpen={false}>
+        <MortgageEditor
+          value={value.mortgage}
+          defaultYear={value.horizonStartYear + 1}
+          onChange={(next) => update({ mortgage: next })}
+        />
       </Section>
     </div>
   );

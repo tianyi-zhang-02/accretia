@@ -6,6 +6,20 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Home & mortgage what-if
+
+- **Added** a bilingual (EN / 中文) **Home & mortgage** section. When enabled,
+  net worth becomes **investable balance + (home value − mortgage balance)**:
+  the down payment converts cash to equity; each year the mortgage payment
+  splits into **interest** (a real cost) and **principal** (net-worth-neutral,
+  cash → equity); **property tax** + maintenance are costs; the home
+  **appreciates**. Inputs: purchase year, price, down %, rate, term, property
+  tax %, maintenance %, appreciation %; shows the **monthly P&I** payment.
+- **Engine**: the model is part of the main projection, so the chart, FIRE,
+  Monte Carlo, and stress test all account for it. Additive — with no
+  mortgage, net worth is **exactly** as before (regression-tested). 75 tests
+  total.
+
 ### Display preferences — font size + light theme
 
 - **Added** header controls: **A− / A+** to zoom the whole page, and a
