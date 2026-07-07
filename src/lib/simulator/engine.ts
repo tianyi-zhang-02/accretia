@@ -4,6 +4,7 @@ import type {
   Lifestyle,
   MajorExpense,
   Person,
+  StressConfig,
 } from '@/lib/validation/scenarios';
 
 /**
@@ -120,11 +121,11 @@ export type SimulationResult = {
   high: YearRow[];
 };
 
-export function simulate(assumptions: Assumptions): SimulationResult {
+export function simulate(assumptions: Assumptions, stress?: StressConfig): SimulationResult {
   return {
-    rows: simulateScenario(assumptions, assumptions.investment.returnPct),
-    low: simulateScenario(assumptions, assumptions.investment.returnPctLow),
-    high: simulateScenario(assumptions, assumptions.investment.returnPctHigh),
+    rows: simulateScenario(assumptions, assumptions.investment.returnPct, stress),
+    low: simulateScenario(assumptions, assumptions.investment.returnPctLow, stress),
+    high: simulateScenario(assumptions, assumptions.investment.returnPctHigh, stress),
   };
 }
 
@@ -142,7 +143,7 @@ function resolveLifestyle(a: Assumptions): Lifestyle {
   );
 }
 
-function simulateScenario(a: Assumptions, returnPct: number): YearRow[] {
+function simulateScenario(a: Assumptions, returnPct: number, stress?: StressConfig): YearRow[] {
   const rows: YearRow[] = [];
   let balance = a.startingNetWorth;
 
@@ -168,7 +169,19 @@ function simulateScenario(a: Assumptions, returnPct: number): YearRow[] {
     let grossIncome = 0;
     for (const p of a.people) {
       ages[p.id] = year - p.birthYear;
-      grossIncome += personSalaryForYear(p, year);
+      let salary = personSalaryForYear(p, year);
+      // Stress: job-loss income interruption. During the window, the affected
+      // person's pay scales to incomeReplacementPct (0 = full loss).
+      const jl = stress?.jobLoss;
+      if (
+        jl &&
+        (jl.personId === undefined || jl.personId === p.id) &&
+        year >= jl.startYear &&
+        year < jl.startYear + jl.years
+      ) {
+        salary *= jl.incomeReplacementPct / 100;
+      }
+      grossIncome += salary;
     }
     const afterTaxIncome = grossIncome * (1 - a.effectiveTaxRatePct / 100);
 
@@ -210,8 +223,13 @@ function simulateScenario(a: Assumptions, returnPct: number): YearRow[] {
     // additive and defaults to 0.
     const saved = afterTaxIncome - expenses + extraContribution;
 
-    // 5. Start-of-year growth, then end-of-year adjustments.
-    const investmentGrowth = balance * (returnPct / 100);
+    // 5. Start-of-year growth, then end-of-year adjustments. A market-shock
+    // stress overrides the return for that single year (e.g. −37% crash).
+    const yearReturnPct =
+      stress?.marketShock && stress.marketShock.year === year
+        ? stress.marketShock.returnPct
+        : returnPct;
+    const investmentGrowth = balance * (yearReturnPct / 100);
     balance = balance + investmentGrowth + saved + windfalls;
 
     const netWorth = balance;

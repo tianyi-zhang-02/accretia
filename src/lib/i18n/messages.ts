@@ -241,6 +241,27 @@ const en = {
     disclaimer:
       'FIRE number = annual spend ÷ withdrawal rate (25× at 4%), vs real (today’s-dollar) net worth. Assumes your whole net worth is investable — a planning estimate, not advice.',
   },
+  stress: {
+    heading: 'Stress test — what if it goes wrong?',
+    intro: 'See how a job loss or a market crash would dent this plan.',
+    jobLossEnable: 'Model a job loss',
+    who: 'Who',
+    everyone: 'Everyone',
+    startYear: 'Start year',
+    years: 'Years',
+    incomeKept: 'Income kept during it (%)',
+    marketEnable: 'Model a market crash',
+    crashYear: 'Year',
+    crashReturn: 'Return that year (%)',
+    presetJobLoss: 'Lose your job for 1 year',
+    presetCrash: '2008-style crash (−37%) next year',
+    none: 'Turn on a shock above to see its impact.',
+    baselineFinal: (v: string) => `Baseline final: ${v}`,
+    stressedFinal: (v: string, delta: string, pct: string) => `Stressed: ${v} (${delta} · ${pct})`,
+    trough: (v: string, year: number) => `Lowest point: ${v} in ${year}`,
+    disclaimer:
+      'A deterministic what-if layered on top of your plan — the main projection is unchanged. Not advice.',
+  },
   presets: {
     // Career-track headers in the role picker.
     track: {
@@ -482,6 +503,26 @@ const zh: Messages = {
     needExpenses: '请先填写每年开支以计算 FIRE',
     disclaimer:
       'FIRE 数字 = 每年开支 ÷ 提取率（4% 即 25×），与实际（今日购买力）净资产比较。假设净资产全部可投资——仅为规划估算，非投资建议。',
+  },
+  stress: {
+    heading: '压力测试 · 万一出事呢？',
+    intro: '看看失业或股灾会把这个计划砸出多大的坑。',
+    jobLossEnable: '模拟失业',
+    who: '谁',
+    everyone: '所有人',
+    startYear: '起始年份',
+    years: '持续年数',
+    incomeKept: '期间保留收入（%）',
+    marketEnable: '模拟股灾',
+    crashYear: '年份',
+    crashReturn: '当年收益率（%）',
+    presetJobLoss: '失业 1 年',
+    presetCrash: '明年来一次 2008 式股灾（−37%）',
+    none: '打开上面任一冲击即可看到影响。',
+    baselineFinal: (v: string) => `原计划期末：${v}`,
+    stressedFinal: (v: string, delta: string, pct: string) => `受冲击后：${v}（${delta} · ${pct}）`,
+    trough: (v: string, year: number) => `最低点：${v}（${year} 年）`,
+    disclaimer: '这是叠加在你计划之上的确定性「假如」——主推算不受影响。非投资建议。',
   },
   presets: {
     track: {

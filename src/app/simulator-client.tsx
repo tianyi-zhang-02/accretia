@@ -9,6 +9,7 @@ import CompareView, { type ComparableScenario } from '@/components/simulator/com
 import { defaultAssumptions, newId } from '@/components/simulator/default-assumptions';
 import FirePanel from '@/components/simulator/fire-panel';
 import GoalSeekPanel from '@/components/simulator/goal-seek-panel';
+import StressPanel from '@/components/simulator/stress-panel';
 import YearTable from '@/components/simulator/year-table';
 import { LocaleProvider, useI18n } from '@/lib/i18n/locale';
 import { simulate } from '@/lib/simulator/engine';
@@ -411,6 +412,11 @@ function SimulatorInner() {
               {/* FIRE — the year work becomes optional. */}
               {result ? (
                 <FirePanel assumptions={assumptions} rows={result.rows} onChange={patchCurrent} />
+              ) : null}
+
+              {/* Stress test — job loss + market crash what-ifs. */}
+              {result ? (
+                <StressPanel assumptions={assumptions} rows={result.rows} onChange={patchCurrent} />
               ) : null}
             </div>
           </div>

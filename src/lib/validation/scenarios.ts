@@ -126,6 +126,34 @@ const fireSchema = z.object({
 });
 export type FireConfig = z.infer<typeof fireSchema>;
 
+/**
+ * Stress-test settings. Optional — a "what-if a bad thing happens" overlay
+ * the engine applies ONLY when explicitly passed `stress` (the normal
+ * projection ignores it). Two independent shocks:
+ *   - `jobLoss`: an income interruption — the affected person's pay scales to
+ *     `incomeReplacementPct` (0 = full loss) for `years` starting `startYear`.
+ *     `personId` absent = applies to everyone.
+ *   - `marketShock`: a one-year crash — the portfolio's return that single
+ *     `year` is overridden to `returnPct` (e.g. −37 for a 2008-style year).
+ */
+const stressSchema = z.object({
+  jobLoss: z
+    .object({
+      personId: z.string().min(1).max(40).optional(),
+      startYear: year,
+      years: z.number().int().min(1).max(50),
+      incomeReplacementPct: z.number().min(0).max(100),
+    })
+    .optional(),
+  marketShock: z
+    .object({
+      year,
+      returnPct: z.number().min(-90).max(100),
+    })
+    .optional(),
+});
+export type StressConfig = z.infer<typeof stressSchema>;
+
 // ---------- Top-level assumptions ----------
 
 export const assumptionsSchema = z
@@ -156,6 +184,9 @@ export const assumptionsSchema = z
     extraAnnualContribution: positiveMoney.optional(),
     // FIRE panel settings. Optional — the panel falls back to defaults.
     fire: fireSchema.optional(),
+    // Stress-test overlay. Optional — the normal projection ignores it; only
+    // the stress panel runs the engine with it applied.
+    stress: stressSchema.optional(),
   })
   .refine((v) => v.horizonEndYear >= v.horizonStartYear, {
     message: 'horizonEndYear must be ≥ horizonStartYear',

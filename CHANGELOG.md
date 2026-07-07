@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Stress test — job loss + market crash what-ifs
+
+- **Added** a bilingual (EN / 中文) Stress-test panel — a deterministic
+  "what if it goes wrong" overlay. Model a **job loss** (a person's, or
+  everyone's, income scales to a kept-% for N years) and/or a **market
+  crash** (one year's return overridden, e.g. −37% for a 2008-style year),
+  with one-click presets. Shows baseline-vs-stressed final net worth (delta
+  + %) and the trough (lowest point + year). The main projection is
+  unchanged — the engine applies the shocks only for this panel.
+- **Engine**: `simulate(assumptions, stress?)` gains an optional stress
+  overlay; existing `simulate(a)` calls are unaffected. New optional
+  `stress` block in the scenario schema (rides in export/import). Covered by
+  unit tests (66 total). First of the risk-modeling features (Monte-Carlo
+  probabilistic version and mortgage what-if to follow).
+
 ### Removed Vercel Web Analytics
 
 - **Removed** the `@vercel/analytics` package and the `<Analytics />` tracker
