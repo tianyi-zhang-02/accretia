@@ -154,6 +154,31 @@ const stressSchema = z.object({
 });
 export type StressConfig = z.infer<typeof stressSchema>;
 
+/**
+ * Home + mortgage. Optional — when present the engine adds a home ASSET and a
+ * mortgage LIABILITY to net worth, and routes the carrying costs as cash out:
+ *   - at `purchaseYear`, the down payment converts cash → home equity;
+ *   - each year, the mortgage payment splits into interest (a real cost) and
+ *     principal (net-worth-neutral, cash → equity); property tax + maintenance
+ *     are costs; the home appreciates.
+ * Net worth = investable balance + (home value − mortgage balance). All in
+ * nominal dollars, consistent with the rest of the engine.
+ */
+const mortgageSchema = z.object({
+  purchaseYear: year,
+  homePrice: positiveMoney,
+  downPaymentPct: z.number().min(0).max(100),
+  mortgageRatePct: z.number().min(0).max(30),
+  termYears: z.number().int().min(1).max(50),
+  /** Annual property tax, % of home value. */
+  propertyTaxPct: z.number().min(0).max(10),
+  /** Annual upkeep, % of home value. Optional (defaults to 0). */
+  maintenancePct: z.number().min(0).max(10).optional(),
+  /** Annual home appreciation, %. Optional (defaults to 0). */
+  homeAppreciationPct: z.number().min(-20).max(30).optional(),
+});
+export type MortgageConfig = z.infer<typeof mortgageSchema>;
+
 // ---------- Top-level assumptions ----------
 
 export const assumptionsSchema = z
@@ -187,6 +212,9 @@ export const assumptionsSchema = z
     // Stress-test overlay. Optional — the normal projection ignores it; only
     // the stress panel runs the engine with it applied.
     stress: stressSchema.optional(),
+    // Home + mortgage. Optional — when present it's part of the main
+    // projection (home asset + mortgage liability + carrying costs).
+    mortgage: mortgageSchema.optional(),
   })
   .refine((v) => v.horizonEndYear >= v.horizonStartYear, {
     message: 'horizonEndYear must be ≥ horizonStartYear',

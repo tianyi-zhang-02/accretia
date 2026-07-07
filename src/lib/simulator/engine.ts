@@ -164,6 +164,14 @@ export function simulateScenario(
   const creepShare = lifestyle.creepShareOfRaisePct / 100;
   const extraContribution = a.extraAnnualContribution ?? 0;
 
+  // Home + mortgage state, carried across years. Zero when no mortgage — in
+  // that case every housing term below is 0 and net worth is unchanged.
+  const m = a.mortgage;
+  const loanAmount = m ? m.homePrice * (1 - m.downPaymentPct / 100) : 0;
+  const mortgagePayment = m ? annualMortgagePayment(loanAmount, m.mortgageRatePct, m.termYears) : 0;
+  let homeValue = 0;
+  let mortgageBalance = 0;
+
   // For `incomeScaled` mode we need to walk year-to-year carrying the
   // previous baseline and the previous after-tax income so we can add
   // creepShare × ΔafterTax to next year's baseline.
@@ -246,7 +254,34 @@ export function simulateScenario(
     const investmentGrowth = balance * (yearReturnPct / 100);
     balance = balance + investmentGrowth + saved + windfalls;
 
-    const netWorth = balance;
+    // 6. Home + mortgage (assumption: net worth = investable balance + home
+    // equity). Only active when `a.mortgage` is set; otherwise all zero.
+    if (m && year >= m.purchaseYear) {
+      if (year === m.purchaseYear) {
+        // Down payment: cash out of the pool, into home equity.
+        balance -= m.homePrice * (m.downPaymentPct / 100);
+        homeValue = m.homePrice;
+        mortgageBalance = loanAmount;
+      }
+      const propertyTax = homeValue * (m.propertyTaxPct / 100);
+      const maintenance = homeValue * ((m.maintenancePct ?? 0) / 100);
+      let payment = 0;
+      if (mortgageBalance > 0) {
+        const interest = mortgageBalance * (m.mortgageRatePct / 100);
+        // Principal builds equity (net-worth-neutral); capped by the last
+        // payment. Interest + property tax + maintenance are real costs.
+        const principal = Math.min(Math.max(0, mortgagePayment - interest), mortgageBalance);
+        mortgageBalance -= principal;
+        payment = interest + principal;
+      }
+      // Housing cash leaves the investable pool; principal reappears as equity.
+      balance -= payment + propertyTax + maintenance;
+      // Appreciate the home at year end.
+      homeValue *= 1 + (m.homeAppreciationPct ?? 0) / 100;
+    }
+    const homeEquity = homeValue - mortgageBalance;
+
+    const netWorth = balance + homeEquity;
     // Same factor as expenseInflationFactor above — coherence by
     // construction. Row i values are all in T=i+1 nominal.
     const netWorthRealTodayDollars = netWorth / expenseInflationFactor;
@@ -278,6 +313,14 @@ export function simulateScenario(
  * stage whose `startAge` is ≤ the person's age that year. Returns 0 when
  * no stage is active (still in school, retired, between jobs).
  */
+/** Fixed annual mortgage payment (P&I) for a `loan` amortized over `years`. */
+function annualMortgagePayment(loan: number, ratePct: number, years: number): number {
+  if (loan <= 0 || years <= 0) return 0;
+  const r = ratePct / 100;
+  if (r === 0) return loan / years;
+  return (loan * r) / (1 - Math.pow(1 + r, -years));
+}
+
 function personSalaryForYear(person: Person, year: number): number {
   const age = year - person.birthYear;
   let active: CareerStage | null = null;
