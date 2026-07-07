@@ -6,6 +6,16 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Removed Vercel Web Analytics
+
+- **Removed** the `@vercel/analytics` package and the `<Analytics />` tracker
+  that a Vercel "Enable Analytics" flow had auto-added (PR #26). It was the
+  only tracking script in the project and it conflicts with the app's
+  no-tracking / nothing-sent privacy stance. Runtime deps are back to just
+  `next` / `react` / `react-dom` / `recharts` / `zod`; `npm audit` clean.
+  (Analytics should also be turned off in the Vercel dashboard so it isn't
+  re-added.)
+
 ### FIRE panel — the year work becomes optional
 
 - **Added** a bilingual (EN / 中文) FIRE panel in the projection column. It
