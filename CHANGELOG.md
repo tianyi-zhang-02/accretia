@@ -6,6 +6,13 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-07-07
+
+First tagged release of **Accretia** — a complete, bilingual, fully
+client-side wealth-projection simulator.
+
+_Live: https://tracker-gamma-eight-14.vercel.app_
+
 ### More conservative default returns
 
 - **Changed** the default return assumption from 7% (band 4–10) to a more
@@ -517,4 +524,5 @@ deleted and there are no DB changes; this is a reversible re-focus.**
 
 - Next.js 16 App Router scaffold, TypeScript strict, Tailwind v4, npm.
 
-[Unreleased]: https://github.com/tianyi-zhang-02/accretia/compare/02542b7...HEAD
+[Unreleased]: https://github.com/tianyi-zhang-02/accretia/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/tianyi-zhang-02/accretia/compare/02542b7...v1.0.0
