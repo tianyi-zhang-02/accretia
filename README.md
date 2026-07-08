@@ -2,6 +2,8 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
+[![release](https://img.shields.io/github/v/release/tianyi-zhang-02/accretia)](https://github.com/tianyi-zhang-02/accretia/releases) [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 _Watch your wealth accrete._ A single-page, **client-side** wealth-projection simulator. Project household net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
 
 Everything runs in the browser. **There is no backend, no database, no account, and nothing is stored or sent anywhere.** Refresh and you start clean; use Export / Import to keep a scenario as a JSON file.
@@ -14,20 +16,31 @@ Everything runs in the browser. **There is no backend, no database, no account, 
 
 ## Features
 
-- **Year-by-year projection** from a pure, deterministic engine (documented inflation convention, low/mid/high return bands).
-- **Careers with equity** — multiple people and career stages, each with base salary, bonus, and **annual equity / RSU comp** (which dominates total pay for big-tech and AI-lab roles). A browsable, grouped, searchable **role library** (Legal · Software/ML) provides illustrative starting numbers.
-- **Derived savings** — no savings-rate knob: each year you save whatever's left of after-tax income after spending. The implied savings rate is shown as an output.
-- **Tax presets** — a rough state + federal effective-rate estimate (all 50 states + DC) seeds the single tax rate, fully editable. Illustrative, not tax advice; carries a "last reviewed" date.
-- **Windfalls & major expenses** — one-time or recurring, plotted as markers on the chart.
-- **Lifestyle creep** — model spending rising over time (flat drift above inflation, or absorbing a share of each raise).
-- **Goal-seek** — set a target ("$5M by 50") and the simulator solves four levers (save more, higher return, spend less, more time) by bisection over the engine.
-- **Compare** scenarios side by side.
-- **Nominal / real** toggle, and a year-by-year table.
-- **Export / Import** a scenario as JSON — the only form of persistence (nothing is stored automatically).
-- **Installable PWA**, works offline (it's just static assets + client JS).
-- **Bilingual — English / 简体中文** — native Chinese throughout (not machine-translated), including the role picker and goal-seek. Switch with the header `EN · 中文` toggle or a `?lang=zh` URL; the choice lives in the URL, so nothing is stored.
+**Model your situation**
 
-The layout is a **live side-by-side editor**: assumptions on the left, the projection (final balance + chart + goal-seek) pinned on the right, so editing an assumption updates the chart in real time. **Compare** is a toggle in the scenario bar. On mobile it stacks (projection on top).
+- **Year-by-year projection** from a pure, deterministic, unit-tested engine (documented inflation convention, low/mid/high return bands).
+- **Careers with equity** — multiple people and career stages, each with base salary, bonus, and **annual equity / RSU comp**. A browsable, searchable, bilingual **role library** — tech (L3–L7), medicine, law, finance — provides illustrative starting numbers.
+- **Derived savings** — no savings-rate knob: each year you save whatever's left of after-tax income after spending; the implied rate is shown as an output.
+- **Tax presets** — a rough state + federal effective-rate estimate (all 50 states + DC), fully editable.
+- **Home & mortgage what-if** — adds the home as an asset and the mortgage as a liability: down payment → equity, interest / property tax / maintenance as costs, principal builds equity, the home appreciates. Shows the monthly P&I.
+- **Asset-mix return calculator** — blend a return from stocks, high-yield savings, bonds, and real estate (net of carrying costs like property tax), and apply it to the return band.
+- **Windfalls, major expenses, lifestyle creep.**
+
+**Answer questions**
+
+- **FIRE** — the year work becomes optional: **Full / Lean / Coast**, with a health-insurance reserve.
+- **Goal-seek** — set "$5M by 50" and it solves four levers (save more, higher return, spend less, more time) by bisection over the engine.
+- **Monte Carlo** — a **Deterministic ⇄ Probabilistic** switch: 1,000 seeded market paths → a p10 / p50 / p90 fan and your **success probability**.
+- **Stress test** — job-loss and market-crash what-ifs (the dent, the trough, whether you recover).
+- **Nominal vs. real** (inflation-adjusted), including a shaded "gap" view; **Compare** scenarios; year-by-year table.
+
+**Use it your way**
+
+- **100% client-side** — nothing stored or sent. **Export / Import** a scenario as JSON is the only persistence.
+- **Bilingual** (English / 简体中文, native — not machine-translated), **light/dark theme**, **font zoom**, and **simple by default** with an "advanced tools" toggle.
+- **Installable PWA**, works offline.
+
+The layout is a **live side-by-side editor**: assumptions on the left, the projection (final balance + chart + advanced tools) pinned on the right, so editing an assumption updates the chart in real time. On mobile it stacks (projection on top).
 
 ---
 
@@ -62,7 +75,7 @@ Deploy anywhere that runs Next.js (Vercel: import the repo, deploy — no env va
 | `npm run dev`                        | Dev server on `localhost:3000`         |
 | `npm run build` / `npm run start`    | Production build / serve               |
 | `npm run lint` / `npm run typecheck` | ESLint / TypeScript check              |
-| `npm test`                           | Vitest (engine + goal-seek unit tests) |
+| `npm test`                           | Vitest — engine, FIRE, Monte Carlo, mortgage, stress, goal-seek |
 | `npm run format`                     | Prettier                               |
 
 ---
@@ -80,18 +93,18 @@ src/
     manifest.ts, icon*.tsx, apple-icon.tsx   PWA assets
   proxy.ts                per-request CSP nonce (the only "server" code)
   components/
-    simulator/            assumptions form, compare, goal-seek panel, year table
-    charts/simulator-chart.tsx
+    simulator/            assumptions form, compare, goal-seek, FIRE, stress, year table
+    charts/               projection chart + Monte-Carlo fan
     i18n/lang-switch.tsx  EN · 中文 toggle
     pwa/sw-register.tsx
   lib/
-    simulator/            pure engine + goal-seek solver + presets (+ tests)
+    simulator/            engine + goal-seek + Monte-Carlo + FIRE + presets (+ tests)
     i18n/                 EN/中文 message catalog + locale provider
     validation/scenarios.ts   the Zod schema the engine reads
     format/money.ts
 ```
 
-The **engine** (`src/lib/simulator/engine.ts`) is a pure function: `simulate(assumptions) → year rows`. No I/O. It's the same math whether you're editing, comparing, or goal-seeking, and it's covered by unit tests (`npm test`).
+The **engine** (`src/lib/simulator/engine.ts`) is a pure function: `simulate(assumptions) → year rows` — no I/O. Everything else layers on top of it additively: goal-seek by bisection, FIRE, the Monte-Carlo runner, and the stress overlay all reuse the same math, and a home/mortgage adds a home asset + liability to net worth when present. It's all covered by unit tests (`npm test`) — including regressions that pin "no mortgage / zero volatility = the plain projection, exactly."
 
 ## License
 

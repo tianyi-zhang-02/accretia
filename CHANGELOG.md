@@ -6,6 +6,10 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+- **Docs** — refreshed README (EN + 中文) for the full v1.0.0 feature set
+  (FIRE, Monte Carlo, stress test, mortgage, asset mix, themes) and added a
+  release / license badge.
+
 ## [1.0.0] — 2026-07-07
 
 First tagged release of **Accretia** — a complete, bilingual, fully
