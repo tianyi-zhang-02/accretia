@@ -6,6 +6,12 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-07-13
+
+The realism-and-delight release: a two-pool cash model, true retirement
+modeling, opt-in local save — and the pixel journey, a tiny living world
+above the chart.
+
 ### Pixel world: the underground
 
 - **Fixed** the rainbow is now clipped against the terrain — on a slope its
@@ -650,5 +656,6 @@ deleted and there are no DB changes; this is a reversible re-focus.**
 
 - Next.js 16 App Router scaffold, TypeScript strict, Tailwind v4, npm.
 
-[Unreleased]: https://github.com/tianyi-zhang-02/accretia/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/tianyi-zhang-02/accretia/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/tianyi-zhang-02/accretia/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/tianyi-zhang-02/accretia/compare/02542b7...v1.0.0
