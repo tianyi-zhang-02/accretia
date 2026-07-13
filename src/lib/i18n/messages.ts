@@ -273,6 +273,23 @@ const en = {
     nominal: 'nominal',
     inflationGap: 'Lost to inflation',
   },
+  pixel: {
+    heading: 'Pixel journey',
+    show: 'Show',
+    hide: 'Hide',
+    caption:
+      'Your projection as a tiny world — the terrain follows your real (today’s-dollar) net worth, and the landmarks are your milestones. Hover for details. Purely decorative: same numbers as the chart.',
+    kinds: {
+      coast: 'Coast FIRE',
+      lean: 'Lean FIRE',
+      full: 'FIRE',
+      goal: 'Goal',
+      home: 'Home purchase',
+      windfall: 'Windfall',
+      expense: 'Major expense',
+      crash: 'Market crash',
+    },
+  },
   fire: {
     heading: 'FIRE — financial independence',
     intro: 'The year your investments could cover your spending — work becomes optional.',
@@ -587,6 +604,23 @@ const zh: Messages = {
     todaysDollars: '今日购买力',
     nominal: '名义',
     inflationGap: '被通胀侵蚀',
+  },
+  pixel: {
+    heading: '像素之旅',
+    show: '展开',
+    hide: '收起',
+    caption:
+      '把你的推算变成一个小世界——地形跟随实际（今日购买力）净资产起伏，地标就是你的里程碑。悬停可查看详情。纯装饰：数字与图表完全一致。',
+    kinds: {
+      coast: 'Coast FIRE',
+      lean: '精简 FIRE',
+      full: 'FIRE',
+      goal: '目标',
+      home: '买房',
+      windfall: '额外收入',
+      expense: '大额支出',
+      crash: '股灾',
+    },
   },
   fire: {
     heading: 'FIRE · 财务自由',

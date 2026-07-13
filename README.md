@@ -36,6 +36,7 @@ Everything runs in the browser. **There is no backend, no database, no account, 
 
 **Use it your way**
 
+- **Pixel journey** 🕹 — your projection as a tiny living pixel world: terrain follows your real net worth, milestones become landmarks (FIRE house, goal flag, treasure chests, a storm on crash years), and a little walker — trailed by a cat — crosses the horizon under a sun–moon cycle. Procedural canvas, zero images, zero libraries.
 - **100% client-side** — nothing stored or sent. **Export / Import** a scenario as JSON is the only persistence.
 - **Bilingual** (English / 简体中文, native — not machine-translated), **light/dark theme**, **font zoom**, and **simple by default** with an "advanced tools" toggle.
 - **Installable PWA**, works offline.

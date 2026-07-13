@@ -8,6 +8,7 @@ import LangSwitch from '@/components/i18n/lang-switch';
 import AssumptionsForm from '@/components/simulator/assumptions-form';
 import CompareView, { type ComparableScenario } from '@/components/simulator/compare-view';
 import { defaultAssumptions, newId } from '@/components/simulator/default-assumptions';
+import PixelJourney from '@/components/pixel/pixel-journey';
 import FirePanel from '@/components/simulator/fire-panel';
 import GoalSeekPanel from '@/components/simulator/goal-seek-panel';
 import StressPanel from '@/components/simulator/stress-panel';
@@ -89,6 +90,7 @@ function SimulatorInner() {
 
   // Display preferences — in-memory (reset on refresh, per the no-storage rule).
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [showPixel, setShowPixel] = useState(true);
   const [fontScale, setFontScale] = useState(1);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -440,6 +442,28 @@ function SimulatorInner() {
                   <p className="text-muted nums mt-1 text-[11px]">
                     {t.projection.impliedSavings(fmt.pct0(impliedSavingsRate))}
                   </p>
+                ) : null}
+              </section>
+
+              {/* Pixel journey — the projection as a tiny living world. */}
+              <section className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-muted text-[10px] tracking-[0.18em] uppercase">
+                    {t.pixel.heading}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowPixel((v) => !v)}
+                    className="text-muted hover:text-foreground text-xs"
+                  >
+                    {showPixel ? t.pixel.hide : t.pixel.show}
+                  </button>
+                </div>
+                {showPixel && result ? (
+                  <>
+                    <PixelJourney rows={result.rows} assumptions={assumptions} theme={theme} />
+                    <p className="text-muted text-[10px]">{t.pixel.caption}</p>
+                  </>
                 ) : null}
               </section>
 
