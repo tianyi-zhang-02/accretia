@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Pixel journey — the projection as a tiny living world
+
+- **Added** a pixtuoid-inspired **Pixel journey** strip above the chart: the
+  terrain follows your real (today's-dollar) net worth, and your milestones
+  appear as pixel landmarks — Coast FIRE beach umbrella, Lean-FIRE tent,
+  Full-FIRE house with a gold flag, goal flag, home purchase, windfall
+  chests, expense signposts, and a storm cloud raining on a market-crash
+  year. A little walker crosses the horizon under a sun–moon cycle (gold
+  scarf + sparkles once past FIRE), trailed by a cat. Hover any year for
+  the number; hide it with one click.
+- **Zero dependencies** — procedural `<canvas>` (no images, no libraries),
+  no network. Dark/light palettes, bilingual labels, static frame under
+  `prefers-reduced-motion`. Purely decorative: same rows as the chart, with
+  the layout logic pure and unit-tested (88 tests).
+
 ### Two-pool model: bills come first, only invested money compounds
 
 - **Added** an **Invested share of surplus** input (Starting state, default
