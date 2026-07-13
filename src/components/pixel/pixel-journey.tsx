@@ -10,12 +10,14 @@ import type { Assumptions } from '@/lib/validation/scenarios';
 export type PixelScene = 'meadow' | 'seaside' | 'snow';
 
 /**
- * "Pixel journey" — the projection as a tiny living world (pixtuoid-style).
- * Terrain follows real net worth; FIRE / goal / home / windfall / expense /
- * crash years appear as landmarks; a little walker crosses the horizon under
- * a sun–moon cycle, trailed by a cat. Purely decorative — the numbers are
- * the same rows the chart draws. Procedural canvas, zero dependencies, no
- * network; honors prefers-reduced-motion with a static frame.
+ * "Pixel journey" — the projection as a tiny living world, original pixel
+ * art drawn procedurally. Terrain follows real net worth; FIRE / goal /
+ * home / windfall / expense / crash years appear as landmarks; a little
+ * walker crosses a permanently sunny horizon (clouds included), trailed by
+ * a cat — and once FIRE is reached, the sky past it celebrates with a
+ * rainbow, confetti, and fireworks. Purely decorative — the numbers are the
+ * same rows the chart draws. Zero dependencies, no network; honors
+ * prefers-reduced-motion with a static frame.
  */
 
 const W = 360;
@@ -23,17 +25,16 @@ const H = 96;
 const GROUND_BASE = H - 14; // valley floor (h=0)
 const HILL = 46; // peak rise above the floor (h=1)
 const WALK_SECONDS = 36;
-const SKY_CYCLE_SECONDS = 32;
+
+/** Rainbow / confetti / firework colors (red · gold · green · blue). */
+const FESTIVE = ['#e05b5b', '#f2c14e', '#7ab8a4', '#7fa8d9'] as const;
 
 type Palette = {
-  dayTop: [number, number, number];
-  nightTop: [number, number, number];
+  sky: string;
   grass: string;
   dirt: string;
   dirtSpeckle: string;
   sun: string;
-  moon: string;
-  star: string;
   cloud: string;
   skin: string;
   suit: string;
@@ -57,14 +58,11 @@ type Palette = {
 };
 
 const DARK: Palette = {
-  dayTop: [46, 58, 89],
-  nightTop: [13, 17, 30],
+  sky: '#2e3a59',
   grass: '#4f7d5d',
   dirt: '#333d4d',
   dirtSpeckle: '#3c4759',
   sun: '#f2c14e',
-  moon: '#dfe3f0',
-  star: '#aeb6d0',
   cloud: '#525f7d',
   skin: '#e8d5b5',
   suit: '#8a93a6',
@@ -89,13 +87,11 @@ const DARK: Palette = {
 
 const LIGHT: Palette = {
   ...DARK,
-  dayTop: [176, 214, 235],
-  nightTop: [90, 96, 140],
+  sky: '#b0d6eb',
   grass: '#79ab6d',
   dirt: '#c4a780',
   dirtSpeckle: '#b3966f',
   cloud: '#ffffff',
-  star: '#f5f1ea',
   suit: '#4a4a52',
   cat: '#5f5a55',
   storm: '#8b93a8',
@@ -105,7 +101,7 @@ const LIGHT: Palette = {
   tipBorder: '#c9c2b4',
 };
 
-/** Scene reskins (pixtuoid-style palettes): sand for seaside, white for snow. */
+/** Scene reskins (palette swaps): sand for seaside, white for snow. */
 const SCENE_OVERRIDES: Record<PixelScene, { dark: Partial<Palette>; light: Partial<Palette> }> = {
   meadow: { dark: {}, light: {} },
   seaside: {
@@ -119,8 +115,6 @@ const SCENE_OVERRIDES: Record<PixelScene, { dark: Partial<Palette>; light: Parti
 };
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const rgb = (a: [number, number, number], b: [number, number, number], t: number) =>
-  `rgb(${Math.round(lerp(a[0], b[0], t))},${Math.round(lerp(a[1], b[1], t))},${Math.round(lerp(a[2], b[2], t))})`;
 
 export default function PixelJourney({
   rows,
@@ -171,11 +165,6 @@ export default function PixelJourney({
       notation: 'compact',
       maximumFractionDigits: 1,
     });
-    // Deterministic star field.
-    const stars = Array.from({ length: 26 }, (_, i) => ({
-      x: (i * 137) % W,
-      y: ((i * 71) % 34) + 3,
-    }));
 
     const px = (x: number, y: number, c: string, w = 1, h = 1) => {
       ctx.fillStyle = c;
@@ -291,37 +280,38 @@ export default function PixelJourney({
           x2: Math.min(W, yearToX(journey.overcast.toYear) + 6),
         }
       : null;
-    // Seaside scene: a little bay at the lowest point of the terrain.
-    const bayX = (() => {
+    // Seaside scene: a proper sea. Set a waterline just above the terrain's
+    // lowest point and flood every column at/below it — low-net-worth years
+    // sit under water, and the boat anchors in the widest stretch.
+    const sea = (() => {
       if (scene !== 'seaside') return null;
-      let mi = 0;
-      journey.points.forEach((p, i) => {
-        if (p.h < journey.points[mi]!.h) mi = i;
-      });
-      return Math.min(W - 24, Math.max(12, yearToX(journey.points[mi]!.year)));
+      // Waterline = the height that submerges the ~28 lowest columns, so the
+      // sea is a real body of water regardless of how steep the terrain is.
+      const heights = Array.from({ length: W }, (_, x) => groundTop(x));
+      const level = [...heights].sort((a, b) => b - a)[27]!;
+      let best = { start: 0, len: 0 };
+      let s = -1;
+      for (let x = 0; x <= W; x += 1) {
+        const under = x < W && heights[x]! >= level;
+        if (under && s < 0) s = x;
+        if (!under && s >= 0) {
+          if (x - s > best.len) best = { start: s, len: x - s };
+          s = -1;
+        }
+      }
+      return { level, boatX: best.len >= 12 ? best.start + Math.floor(best.len / 2) : null };
     })();
 
     let raf = 0;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const render = (time: number) => {
-      // --- sky: sun for the first half of the cycle, moon for the second ---
-      const phase = (time % SKY_CYCLE_SECONDS) / SKY_CYCLE_SECONDS;
-      const daylight = phase < 0.5 ? Math.sin(Math.PI * (phase * 2)) : 0;
-      ctx.fillStyle = rgb(pal.nightTop, pal.dayTop, daylight);
+      // --- sky: always a sunny day ---
+      ctx.fillStyle = pal.sky;
       ctx.fillRect(0, 0, W, H);
-      if (daylight < 0.35) for (const s of stars) px(s.x, s.y, pal.star);
-      const p = phase < 0.5 ? phase * 2 : (phase - 0.5) * 2;
-      const bx = 10 + p * (W - 20);
-      const by = 34 - Math.sin(Math.PI * p) * 26;
-      if (phase < 0.5) {
-        px(bx - 1, by - 1, pal.sun, 4, 4);
-        px(bx, by - 2, pal.sun, 2, 6);
-        px(bx - 2, by, pal.sun, 6, 2);
-      } else {
-        px(bx, by, pal.moon, 3, 3);
-        px(bx + 1, by, pal.nightTop === DARK.nightTop ? '#1d2438' : '#8b93b8', 1, 1);
-      }
+      px(25, 11, pal.sun, 4, 4); // the ever-present sun
+      px(26, 9, pal.sun, 2, 8);
+      px(23, 12, pal.sun, 8, 2);
       // clouds drift
       for (let c = 0; c < 3; c += 1) {
         const cx = ((c * 120 + time * (3 + c)) % (W + 30)) - 15;
@@ -357,15 +347,34 @@ export default function PixelJourney({
         if ((x * 7 + gy * 13) % 37 === 0) px(x, gy + 5, pal.dirtSpeckle, 1, 1);
       }
 
-      // seaside scene: a bay at the lowest point, with a sailboat at anchor
-      if (bayX !== null) {
-        const by2 = groundTop(bayX);
-        const bob = Math.floor(time * 2) % 2;
-        px(bayX - 10, by2, pal.water, 21, 2);
-        px(bayX - 8, by2 + 1 + ((Math.floor(time * 3) + 1) % 2), pal.sail, 2, 1); // glint
-        px(bayX - 2, by2 - 2 - bob, pal.sign, 5, 2);
-        px(bayX, by2 - 6 - bob, pal.sign, 1, 4);
-        px(bayX + 1, by2 - 6 - bob, pal.sail, 2, 2);
+      // seaside scene: flood everything at/below the waterline into a sea,
+      // with animated surface glints and a sailboat anchored mid-water
+      if (sea) {
+        for (let x = 0; x < W; x += 1) {
+          const gy = groundTop(x);
+          if (gy >= sea.level) {
+            px(x, sea.level, pal.water, 1, Math.min(H, gy + 3) - sea.level);
+            if ((x + Math.floor(time * 4)) % 9 === 0) px(x, sea.level, pal.sail, 1, 1); // glint
+          }
+        }
+        if (sea.boatX !== null) {
+          const bob = Math.floor(time * 2) % 2;
+          px(sea.boatX - 2, sea.level - 2 - bob, pal.sign, 5, 2); // hull
+          px(sea.boatX, sea.level - 6 - bob, pal.sign, 1, 4); // mast
+          px(sea.boatX + 1, sea.level - 6 - bob, pal.sail, 2, 2); // sail
+        }
+      }
+
+      // FIRE reached → a rainbow arcs over the FIRE house 🌈
+      if (fireX < W) {
+        const fgy = groundTop(fireX);
+        for (let b = 0; b < 4; b += 1) {
+          const r = 22 - b * 2;
+          for (let a2 = 0; a2 <= 52; a2 += 1) {
+            const ang = (a2 / 52) * Math.PI;
+            px(fireX + Math.cos(ang) * r, fgy - Math.sin(ang) * r, FESTIVE[b]!);
+          }
+        }
       }
 
       // --- landmarks (same-year ones nudge right so nothing overlaps) ---
@@ -400,6 +409,32 @@ export default function PixelJourney({
         px(catX + 3, cgy - 3, pal.cat, 1, 1); // head
         px(catX + 3, cgy - 4, pal.cat, 1, 1); // ear
         px(catX - 1, cgy - 3 + (step ? 0 : -1), pal.cat, 1, 1); // tail flick
+      }
+
+      // past FIRE the sky celebrates: confetti drifts down (melting at the
+      // ground) and fireworks pop on a loop 🎆
+      if (fireX < W - 20) {
+        const from = fireX + 6;
+        const width = W - 4 - from;
+        for (let k = 0; k < 22; k += 1) {
+          const cxK = from + ((k * 53) % width);
+          const gT = groundTop(cxK);
+          const cyK = (time * (11 + (k % 5)) + k * 37) % gT;
+          if (cyK < gT - 1) px(cxK, cyK, FESTIVE[k % 4]!);
+        }
+        for (let b = 0; b < 2; b += 1) {
+          const ph = ((time + b * 1.3) % 2.6) / 2.6;
+          if (ph >= 0.5) continue;
+          const bx2 = Math.min(W - 10, from + 14 + b * 56);
+          const by2 = 18 + b * 9;
+          const r = 2 + ph * 22;
+          for (let s = 0; s < 12; s += 1) {
+            if (ph > 0.35 && s % 2 === 0) continue; // sparks fade out
+            const ang = (s / 12) * Math.PI * 2;
+            px(bx2 + Math.cos(ang) * r, by2 + Math.sin(ang) * r * 0.7, FESTIVE[(s + b) % 4]!);
+          }
+          if (ph < 0.12) px(bx2, by2, pal.sail, 1, 1); // launch flash
+        }
       }
 
       // snow scene: flakes drift down and melt where they meet the ground
@@ -453,7 +488,7 @@ export default function PixelJourney({
       raf = requestAnimationFrame(loop);
     };
     if (reduced) {
-      render(SKY_CYCLE_SECONDS * 0.25); // static mid-morning frame
+      render(2); // static frame
     } else {
       raf = requestAnimationFrame(loop);
     }
@@ -464,11 +499,11 @@ export default function PixelJourney({
         x: ((e.clientX - rect.left) / rect.width) * W,
         y: ((e.clientY - rect.top) / rect.height) * H,
       };
-      if (reduced) render(SKY_CYCLE_SECONDS * 0.25);
+      if (reduced) render(2);
     };
     const onLeave = () => {
       mouse.current = null;
-      if (reduced) render(SKY_CYCLE_SECONDS * 0.25);
+      if (reduced) render(2);
     };
     canvas.addEventListener('mousemove', onMove);
     canvas.addEventListener('mouseleave', onLeave);

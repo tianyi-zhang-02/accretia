@@ -6,6 +6,20 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Pixel world: FIRE celebration, endless summer, a real sea
+
+- **Added** reaching FIRE now throws a party past that year: a **rainbow**
+  arcs over the FIRE house 🌈, **confetti** drifts down (melting at the
+  ground), and **fireworks** pop on a loop 🎆.
+- **Changed** the world is now in **permanent daytime** — a fixed sun and
+  drifting clouds; no more night cycle, stars, or moon (job-loss overcast
+  and crash rain still darken their stretch).
+- **Fixed** the seaside scene: the tiny floating puddle became a **proper
+  sea** — a waterline submerges the terrain's lowest ~28 columns (the
+  journey starts at the shore), with animated glints and the sailboat
+  anchored mid-water.
+- All pixel art is original and drawn procedurally in-repo.
+
 ### Retirement realism — people can finally retire
 
 Modeled on full-featured retirement calculators (à la Financial Mentor's
@@ -50,7 +64,7 @@ horizon end — nobody could retire.
   from the mortgage block is tiered the same way), a yacht bobbing on its
   own water, and a suitcase — with a **plane crossing the sky** (contrail
   included) whenever any travel is planned.
-- **Added** three switchable **scenes** (pixtuoid-style reskins): Meadow ·
+- **Added** three switchable **scenes** (palette reskins): Meadow ·
   Seaside (sand palette + a sailboat anchored in a bay at the terrain's
   lowest point) · Snow (white ground + falling snow).
 - **Added** stress automation: a **job-loss window now darkens the sky** —
@@ -60,7 +74,7 @@ horizon end — nobody could retire.
 
 ### Pixel journey — the projection as a tiny living world
 
-- **Added** a pixtuoid-inspired **Pixel journey** strip above the chart: the
+- **Added** a **Pixel journey** strip above the chart: the
   terrain follows your real (today's-dollar) net worth, and your milestones
   appear as pixel landmarks — Coast FIRE beach umbrella, Lean-FIRE tent,
   Full-FIRE house with a gold flag, goal flag, home purchase, windfall
