@@ -34,7 +34,7 @@ const journeyFor = (a: Assumptions) => buildJourney(simulate(a).rows, a);
 
 describe('buildJourney', () => {
   it('empty rows → empty journey', () => {
-    expect(buildJourney([], mk())).toEqual({ points: [], landmarks: [] });
+    expect(buildJourney([], mk())).toEqual({ points: [], landmarks: [], overcast: null });
   });
 
   it('terrain heights are normalized 0..1 and rise with net worth', () => {
@@ -93,5 +93,49 @@ describe('buildJourney', () => {
   it('drops landmarks outside the horizon', () => {
     const a = mk({ windfalls: [{ label: 'late', year: 2090, amount: 1 }] });
     expect(journeyFor(a).landmarks.find((l) => l.kind === 'windfall')).toBeUndefined();
+  });
+
+  it('expense categories map to sprites: car / second home (tiered) / boat / travel', () => {
+    const a = mk({
+      majorExpenses: [
+        { label: '911', year: 2028, amount: 230_000, kind: 'car' },
+        { label: 'beach house', year: 2029, amount: 6_000_000, kind: 'house' },
+        { label: 'sailboat', year: 2030, amount: 80_000, kind: 'boat' },
+        { label: 'japan trip', year: 2031, amount: 10_000, kind: 'travel' },
+        { label: 'roof', year: 2032, amount: 20_000 }, // no kind → signpost
+      ],
+    });
+    const { landmarks } = journeyFor(a);
+    const at = (y: number) => landmarks.find((l) => l.year === y);
+    expect(at(2028)?.kind).toBe('car');
+    expect(at(2029)).toMatchObject({ kind: 'home', tier: 3 }); // 6M → mansion
+    expect(at(2030)?.kind).toBe('boat');
+    expect(at(2031)?.kind).toBe('travel');
+    expect(at(2032)?.kind).toBe('expense');
+  });
+
+  it('mortgage house is tiered by price (1M bungalow → 3M two-story → 5M mansion)', () => {
+    const withPrice = (homePrice: number) =>
+      journeyFor(
+        mk({
+          mortgage: {
+            purchaseYear: 2028,
+            homePrice,
+            downPaymentPct: 20,
+            mortgageRatePct: 6,
+            termYears: 30,
+            propertyTaxPct: 1,
+          },
+        }),
+      ).landmarks.find((l) => l.kind === 'home')?.tier;
+    expect(withPrice(1_000_000)).toBe(1);
+    expect(withPrice(3_000_000)).toBe(2);
+    expect(withPrice(5_000_000)).toBe(3);
+  });
+
+  it('job-loss stress becomes an overcast window, clamped to the horizon', () => {
+    const a = mk({ stress: { jobLoss: { startYear: 2033, years: 10, incomeReplacementPct: 0 } } });
+    expect(journeyFor(a).overcast).toEqual({ fromYear: 2033, toYear: 2035 }); // horizon ends 2035
+    expect(journeyFor(mk()).overcast).toBeNull();
   });
 });

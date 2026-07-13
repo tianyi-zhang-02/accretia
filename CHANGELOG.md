@@ -6,6 +6,23 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Pixel world 2.0 — categories, tiered houses, scenes, stress weather
+
+- **Added** an optional **category** on major expenses (car / home (second
+  property) / boat / travel / other). The engine ignores it; the pixel world
+  places matching sprites: a little car, a **second house sized by price**
+  (~$1M bungalow · ~$3M two-story · $5M+ mansion — the financed first home
+  from the mortgage block is tiered the same way), a yacht bobbing on its
+  own water, and a suitcase — with a **plane crossing the sky** (contrail
+  included) whenever any travel is planned.
+- **Added** three switchable **scenes** (pixtuoid-style reskins): Meadow ·
+  Seaside (sand palette + a sailboat anchored in a bay at the terrain's
+  lowest point) · Snow (white ground + falling snow).
+- **Added** stress automation: a **job-loss window now darkens the sky** —
+  an overcast band with parked grey clouds over the affected years (a
+  market-crash year already rains). Configured tools flow into the world
+  automatically. 91 tests.
+
 ### Pixel journey — the projection as a tiny living world
 
 - **Added** a pixtuoid-inspired **Pixel journey** strip above the chart: the

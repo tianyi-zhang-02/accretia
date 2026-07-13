@@ -8,7 +8,7 @@ import LangSwitch from '@/components/i18n/lang-switch';
 import AssumptionsForm from '@/components/simulator/assumptions-form';
 import CompareView, { type ComparableScenario } from '@/components/simulator/compare-view';
 import { defaultAssumptions, newId } from '@/components/simulator/default-assumptions';
-import PixelJourney from '@/components/pixel/pixel-journey';
+import PixelJourney, { type PixelScene } from '@/components/pixel/pixel-journey';
 import FirePanel from '@/components/simulator/fire-panel';
 import GoalSeekPanel from '@/components/simulator/goal-seek-panel';
 import StressPanel from '@/components/simulator/stress-panel';
@@ -91,6 +91,7 @@ function SimulatorInner() {
   // Display preferences — in-memory (reset on refresh, per the no-storage rule).
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [showPixel, setShowPixel] = useState(true);
+  const [pixelScene, setPixelScene] = useState<PixelScene>('meadow');
   const [fontScale, setFontScale] = useState(1);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -451,17 +452,40 @@ function SimulatorInner() {
                   <p className="text-muted text-[10px] tracking-[0.18em] uppercase">
                     {t.pixel.heading}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setShowPixel((v) => !v)}
-                    className="text-muted hover:text-foreground text-xs"
-                  >
-                    {showPixel ? t.pixel.hide : t.pixel.show}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {showPixel ? (
+                      <div className="border-border flex rounded border text-[10px]">
+                        {(['meadow', 'seaside', 'snow'] as const).map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setPixelScene(s)}
+                            className={`px-2 py-0.5 ${
+                              pixelScene === s ? 'bg-foreground/10 text-foreground' : 'text-muted'
+                            }`}
+                          >
+                            {t.pixel.scenes[s]}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setShowPixel((v) => !v)}
+                      className="text-muted hover:text-foreground text-xs"
+                    >
+                      {showPixel ? t.pixel.hide : t.pixel.show}
+                    </button>
+                  </div>
                 </div>
                 {showPixel && result ? (
                   <>
-                    <PixelJourney rows={result.rows} assumptions={assumptions} theme={theme} />
+                    <PixelJourney
+                      rows={result.rows}
+                      assumptions={assumptions}
+                      theme={theme}
+                      scene={pixelScene}
+                    />
                     <p className="text-muted text-[10px]">{t.pixel.caption}</p>
                   </>
                 ) : null}

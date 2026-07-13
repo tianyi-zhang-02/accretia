@@ -14,6 +14,7 @@ import { estimateEffectiveTaxRate, STATE_TAXES, TAX_LAST_REVIEWED } from '@/lib/
 import type {
   Assumptions,
   CareerStage,
+  ExpenseKind,
   Lifestyle,
   MajorExpense,
   MortgageConfig,
@@ -1083,6 +1084,34 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
                       setMajor(value.majorExpenses.map((x, j) => (j === i ? { ...x, label: v } : x)))
                     }
                   />
+                  <label className="flex flex-col gap-1">
+                    <span className="text-muted text-xs">{t.form.major.kind}</span>
+                    <select
+                      value={e.kind ?? 'other'}
+                      onChange={(ev) =>
+                        setMajor(
+                          value.majorExpenses.map((x, j) =>
+                            j === i
+                              ? {
+                                  ...x,
+                                  kind:
+                                    ev.target.value === 'other'
+                                      ? undefined
+                                      : (ev.target.value as ExpenseKind),
+                                }
+                              : x,
+                          ),
+                        )
+                      }
+                      className="border-border bg-background rounded border px-2 py-2 text-sm"
+                    >
+                      {(['other', 'car', 'house', 'boat', 'travel'] as const).map((k) => (
+                        <option key={k} value={k}>
+                          {t.form.major.kinds[k]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   {'year' in e ? (
                     <>
                       <NumField

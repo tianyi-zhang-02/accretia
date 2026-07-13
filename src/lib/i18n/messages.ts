@@ -196,6 +196,14 @@ const en = {
       addRecurring: '+ Recurring',
       defaultOneTimeLabel: 'One-time expense',
       defaultRecurringLabel: 'Recurring expense',
+      kind: 'Category',
+      kinds: {
+        other: 'Other',
+        car: 'Car',
+        house: 'Home (second property)',
+        boat: 'Boat / yacht',
+        travel: 'Travel',
+      },
     },
     mortgage: {
       enable: 'Model a home purchase',
@@ -288,7 +296,11 @@ const en = {
       windfall: 'Windfall',
       expense: 'Major expense',
       crash: 'Market crash',
+      car: 'Car',
+      boat: 'Boat',
+      travel: 'Travel',
     },
+    scenes: { meadow: 'Meadow', seaside: 'Seaside', snow: 'Snow' },
   },
   fire: {
     heading: 'FIRE — financial independence',
@@ -529,6 +541,14 @@ const zh: Messages = {
       addRecurring: '+ 周期性',
       defaultOneTimeLabel: '一次性支出',
       defaultRecurringLabel: '周期性支出',
+      kind: '类别',
+      kinds: {
+        other: '其他',
+        car: '买车',
+        house: '买房（第二套）',
+        boat: '游艇',
+        travel: '旅行',
+      },
     },
     mortgage: {
       enable: '模拟买房',
@@ -620,7 +640,11 @@ const zh: Messages = {
       windfall: '额外收入',
       expense: '大额支出',
       crash: '股灾',
+      car: '买车',
+      boat: '游艇',
+      travel: '旅行',
     },
+    scenes: { meadow: '草原', seaside: '海边', snow: '雪境' },
   },
   fire: {
     heading: 'FIRE · 财务自由',

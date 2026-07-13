@@ -40,17 +40,26 @@ const personSchema = z.object({
 });
 export type Person = z.infer<typeof personSchema>;
 
+// What a major expense buys. Optional flavor — the engine ignores it, but
+// the pixel journey places a matching sprite (car, another house sized by
+// price, a yacht, a plane for travel). 'house' is how you model a SECOND
+// home bought with cash — the mortgage block stays for the financed first.
+const expenseKindSchema = z.enum(['car', 'house', 'boat', 'travel', 'other']);
+export type ExpenseKind = z.infer<typeof expenseKindSchema>;
+
 // majorExpenses can be a one-time event or a recurring stream.
 const oneTimeMajorSchema = z.object({
   label,
   year,
   amount: money,
+  kind: expenseKindSchema.optional(),
 });
 const recurringMajorSchema = z.object({
   label,
   startYear: year,
   annualAmount: money,
   years: z.number().int().min(1).max(200),
+  kind: expenseKindSchema.optional(),
 });
 export const majorExpenseSchema = z.union([oneTimeMajorSchema, recurringMajorSchema]);
 export type MajorExpense = z.infer<typeof majorExpenseSchema>;
