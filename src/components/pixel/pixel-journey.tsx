@@ -29,6 +29,11 @@ const WALK_SECONDS = 36;
 /** Rainbow / confetti / firework colors (red · gold · green · blue). */
 const FESTIVE = ['#e05b5b', '#f2c14e', '#7ab8a4', '#7fa8d9'] as const;
 
+/** Underground flavor: ore gems + the cave critter (original designs). */
+const ORE_GEM = '#6fd0c0';
+const ORE_RUBY = '#b84d5e';
+const CRITTER = '#7cc36b';
+
 type Palette = {
   sky: string;
   grass: string;
@@ -52,6 +57,8 @@ type Palette = {
   car: string;
   water: string;
   sail: string;
+  cave: string;
+  coal: string;
   tipBg: string;
   tipText: string;
   tipBorder: string;
@@ -80,6 +87,8 @@ const DARK: Palette = {
   car: '#c25b4e',
   water: '#3d6e9e',
   sail: '#e8e0d0',
+  cave: '#12161f',
+  coal: '#1d222e',
   tipBg: 'rgba(10,10,10,0.88)',
   tipText: '#f5f1ea',
   tipBorder: '#4a5568',
@@ -96,6 +105,8 @@ const LIGHT: Palette = {
   cat: '#5f5a55',
   storm: '#8b93a8',
   water: '#5b93c4',
+  cave: '#4a4034',
+  coal: '#5b4f3e',
   tipBg: 'rgba(250,249,246,0.92)',
   tipText: '#1c1917',
   tipBorder: '#c9c2b4',
@@ -302,6 +313,26 @@ export default function PixelJourney({
       return { level, boatX: best.len >= 12 ? best.start + Math.floor(best.len / 2) : null };
     })();
 
+    // Underground: a cave (with a shy resident) plus a mine gallery, dug
+    // where the dirt is deepest — under the terrain's highest stretch.
+    const cave = (() => {
+      let bx = -1;
+      let bg = H;
+      for (let x = 90; x < W - 14; x += 1) {
+        const g = groundTop(x);
+        if (g < bg) {
+          bg = g;
+          bx = x;
+        }
+      }
+      if (bx < 0 || bg + 24 > H - 3) return null; // not enough dirt below
+      const y = bg + 18; // cave-chamber center depth
+      // The gallery runs left from the chamber; keep it under the surface.
+      let tx = bx - 26;
+      while (tx < bx - 8 && groundTop(tx) + 7 > y) tx += 1;
+      return { x: bx, y, tunnelFrom: tx < bx - 8 ? tx : null };
+    })();
+
     let raf = 0;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -339,12 +370,19 @@ export default function PixelJourney({
         for (let k = 1; k <= 3; k += 1) px(pxX - 2 - k * 4, 8, pal.cloud, 2, 1); // contrail
       }
 
-      // --- terrain ---
+      // --- terrain (with buried ores — deterministic scatter, no flicker) ---
       for (let x = 0; x < W; x += 1) {
         const gy = groundTop(x);
         px(x, gy, pal.grass, 1, 2);
         px(x, gy + 2, pal.dirt, 1, H - gy - 2);
         if ((x * 7 + gy * 13) % 37 === 0) px(x, gy + 5, pal.dirtSpeckle, 1, 1);
+        for (let oy = gy + 8; oy < H - 2; oy += 1) {
+          const hsh = (x * 73 + oy * 151) % 977;
+          if (hsh === 0) px(x, oy, pal.gold, 2, 1); // gold vein
+          else if (hsh === 244) px(x, oy, ORE_GEM, 1, 1); // gem
+          else if (hsh === 488) px(x, oy, ORE_RUBY, 1, 1); // ruby
+          else if (hsh === 732) px(x, oy, pal.coal, 2, 2); // coal seam
+        }
       }
 
       // seaside scene: flood everything at/below the waterline into a sea,
@@ -365,14 +403,55 @@ export default function PixelJourney({
         }
       }
 
-      // FIRE reached → a rainbow arcs over the FIRE house 🌈
+      // the underground: a cave chamber, a mine gallery, a miner at work,
+      // and a pair of green eyes that lives down there (an original critter)
+      if (cave) {
+        px(cave.x - 7, cave.y - 3, pal.cave, 14, 7); // chamber
+        px(cave.x - 5, cave.y - 5, pal.cave, 10, 2); // vaulted ceiling
+        const blink = Math.floor(time * 0.8) % 5 !== 0;
+        if (blink) {
+          px(cave.x + 2, cave.y - 1, CRITTER, 1, 1); // eyes in the dark
+          px(cave.x + 4, cave.y - 1, CRITTER, 1, 1);
+        }
+        if (Math.floor(time / 4) % 3 === 0) {
+          const hop = Math.floor(time * 3) % 2; // it hops when it thinks
+          px(cave.x + 1, cave.y + 1 - hop, CRITTER, 4, 2); // …nobody watches
+          px(cave.x + 2, cave.y - hop, CRITTER, 1, 1);
+        }
+        if (cave.tunnelFrom !== null) {
+          const my = cave.y + 2; // gallery floor
+          px(cave.tunnelFrom, my - 6, pal.cave, cave.x - 6 - cave.tunnelFrom, 6);
+          const mx = cave.tunnelFrom + 5; // the miner, facing the far wall
+          const swing = Math.floor(time * 3) % 2;
+          px(mx, my - 6, pal.gold, 2, 1); // helmet (lamp included)
+          px(mx, my - 5, pal.skin, 2, 2); // face
+          px(mx - 1, my - 3, pal.suit, 3, 2); // body
+          px(mx - 1, my - 1, pal.suit, 1, 1); // legs
+          px(mx + 1, my - 1, pal.suit, 1, 1);
+          if (swing === 0) {
+            px(mx - 2, my - 6, pal.sign, 1, 2); // pick raised…
+            px(mx - 3, my - 7, pal.cat, 2, 1);
+          } else {
+            px(mx - 3, my - 4, pal.sign, 2, 1); // …and striking
+            px(mx - 4, my - 4, pal.cat, 1, 2);
+            px(mx - 4 + (Math.floor(time * 6) % 2), my - 6, FESTIVE[1]!, 1, 1); // spark
+            px(cave.tunnelFrom + 1, my - 3, ORE_GEM, 1, 1); // the vein he's after
+          }
+        }
+      }
+
+      // FIRE reached → a rainbow arcs over the FIRE house 🌈 — clipped
+      // against the terrain, so on a slope the legs stop AT the hillside
+      // instead of burrowing into it.
       if (fireX < W) {
         const fgy = groundTop(fireX);
         for (let b = 0; b < 4; b += 1) {
           const r = 22 - b * 2;
           for (let a2 = 0; a2 <= 52; a2 += 1) {
             const ang = (a2 / 52) * Math.PI;
-            px(fireX + Math.cos(ang) * r, fgy - Math.sin(ang) * r, FESTIVE[b]!);
+            const rx = fireX + Math.cos(ang) * r;
+            const ry = fgy - Math.sin(ang) * r;
+            if (rx >= 0 && rx < W && ry < groundTop(rx)) px(rx, ry, FESTIVE[b]!);
           }
         }
       }

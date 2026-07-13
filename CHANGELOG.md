@@ -6,6 +6,18 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Pixel world: the underground
+
+- **Fixed** the rainbow is now clipped against the terrain — on a slope its
+  legs stop at the hillside instead of burrowing into the ground.
+- **Added** buried **ores** in the dirt (gold veins, gems, rubies, coal
+  seams — deterministic scatter, denser at depth), a **cave chamber** under
+  the terrain's highest stretch with a **green-eyed critter** that blinks in
+  the dark and hops when it thinks nobody's watching, and a **mine gallery**
+  with a **miner** (helmet lamp included) swinging a pickaxe on a loop —
+  sparks fly, and there's a gem vein he's chasing. All original, procedural
+  pixel art.
+
 ### Pixel world: FIRE celebration, endless summer, a real sea
 
 - **Added** reaching FIRE now throws a party past that year: a **rainbow**
