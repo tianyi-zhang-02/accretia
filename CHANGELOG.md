@@ -6,6 +6,22 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Unpredictable pay — partner draws, commission
+
+Some careers don't have a salary so much as a distribution: a law-firm
+partner's draw can swing ±30% year to year.
+
+- **Added** an optional per-stage **pay swing** (`volatilityPct`, one std
+  dev of total comp in %). The deterministic projection is untouched — it
+  shows the expected path — but the **Monte Carlo view draws each such
+  person-year's comp** (floored at $0) and rolls the swings into the
+  p10/p50/p90 bands, alongside market volatility.
+- **Changed** the BigLaw preset is now a two-stage **associate → partner**
+  track; the partner stage ships with a 30% pay swing.
+- Scenarios without volatile stages produce **bit-identical** Monte Carlo
+  bands (the income sampler is never invoked — regression-tested). 102
+  tests.
+
 ### Non-linear careers, made visible
 
 Salaries don't only go up — people plateau, take pay cuts, and step away

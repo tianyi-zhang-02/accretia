@@ -172,8 +172,9 @@ const en = {
       addBreak: '+ Career break',
       breakLabel: 'Career break',
       backLabel: 'Back to work',
+      volatility: 'Pay swing (±% · Monte Carlo)',
       stagesHint:
-        'Careers aren’t linear — stages can model plateaus (0% raise), pay cuts (negative raise or a lower-salary stage), and time off ($0-salary stage).',
+        'Careers aren’t linear — stages can model plateaus (0% raise), pay cuts (negative raise or a lower-salary stage), time off ($0-salary stage), and unpredictable pay (set a ± pay swing — partner draws, commission — and the Monte Carlo view rolls it into the bands).',
     },
     retirement: {
       spending: 'Retirement spending (% of current)',
@@ -541,8 +542,9 @@ const zh: Messages = {
       addBreak: '+ 职业空窗',
       breakLabel: '职业空窗',
       backLabel: '重返职场',
+      volatility: '收入波动（±% · 蒙特卡洛）',
       stagesHint:
-        '职业不是一路上升的——阶段可以模拟停滞（涨薪 0%）、降薪（负涨幅或低薪新阶段）、以及离开职场（薪资为 0 的阶段）。',
+        '职业不是一路上升的——阶段可以模拟停滞（涨薪 0%）、降薪（负涨幅或低薪新阶段）、离开职场（薪资为 0 的阶段），以及收入不稳定（设置 ± 收入波动——律所合伙人分红、佣金制——蒙特卡洛视图会把它算进区间）。',
     },
     retirement: {
       spending: '退休后开支（现开支的 %）',

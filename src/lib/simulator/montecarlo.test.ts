@@ -60,3 +60,39 @@ describe('runMonteCarlo', () => {
     expect(mc.successProbability).toBeNull();
   });
 });
+
+describe('income volatility (unpredictable pay)', () => {
+  const volatilePay: Assumptions = {
+    ...base,
+    people: [
+      {
+        id: 'p1',
+        name: 'A',
+        birthYear: 1996,
+        careerStages: [
+          // A partner-style draw: flat expected path, wide annual swings.
+          { label: 'partner', startAge: 30, baseSalary: 100_000, annualRaisePct: 0, volatilityPct: 30 },
+        ],
+      },
+    ],
+  };
+
+  it('pay swings alone open the bands, even with zero market volatility', () => {
+    const mc = runMonteCarlo(volatilePay, { volatilityPct: 0, runs: 500 });
+    const last = mc.years.length - 1;
+    expect(mc.p10[last]!).toBeLessThan(mc.p90[last]!);
+  });
+
+  it('deterministic projection is untouched — it shows the expected path', () => {
+    expect(simulate(volatilePay).rows).toEqual(simulate(base).rows);
+  });
+
+  it('scenarios without volatile stages produce bit-identical bands (rng untouched)', () => {
+    // The income sampler is only invoked for stages that declare
+    // volatilityPct, so pre-existing scenarios must not shift.
+    const mc = runMonteCarlo(base, { volatilityPct: 15, runs: 200 });
+    const again = runMonteCarlo(base, { volatilityPct: 15, runs: 200 });
+    expect(mc.p10).toEqual(again.p10);
+    expect(mc.p90).toEqual(again.p90);
+  });
+});

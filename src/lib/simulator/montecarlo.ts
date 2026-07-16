@@ -3,7 +3,9 @@
  * engine. It does NOT change `simulate()` or the core math: it just runs the
  * same per-year cash-flow logic many times, each year drawing a random return
  * from a normal distribution centred on your base return with a given
- * volatility, then aggregates the runs into p10 / p50 / p90 bands.
+ * volatility — plus, for career stages that declare `volatilityPct`
+ * (unpredictable pay: partner draws, commission), a per-year comp draw —
+ * then aggregates the runs into p10 / p50 / p90 bands.
  *
  * Seeded (fixed PRNG) so the same assumptions always produce the same bands —
  * no flicker on re-render. With `volatilityPct = 0` every run is identical and
@@ -71,7 +73,13 @@ export function runMonteCarlo(
   for (let r = 0; r < runs; r += 1) {
     // iid annual return draw, clamped to a sane band (no −100%+ wipeouts).
     const sample = () => Math.max(-90, Math.min(100, mean + sd * gaussian(rng)));
-    const rows = simulateScenario(a, mean, undefined, sample);
+    // Unpredictable pay (career stages with volatilityPct): a multiplicative
+    // comp factor, floored at 0 (a bad year pays little, never negative).
+    // Only invoked for volatile stages, so scenarios without any leave the
+    // rng sequence — and therefore the existing bands — untouched.
+    const sampleIncome = (_i: number, volPct: number) =>
+      Math.max(0, 1 + (volPct / 100) * gaussian(rng));
+    const rows = simulateScenario(a, mean, undefined, sample, sampleIncome);
     if (r === 0) years = rows.map((row) => row.year);
     rows.forEach((row, i) => {
       (byYear[i] ??= []).push(row.netWorthRealTodayDollars);

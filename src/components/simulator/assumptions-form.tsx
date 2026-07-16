@@ -1000,6 +1000,17 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
                           onChange={(v) => patchStage(p.id, i, { annualEquity: v })}
                           suffix="$"
                         />
+                        <NumField
+                          label={t.form.person.volatility}
+                          value={s.volatilityPct ?? 0}
+                          step={5}
+                          min={0}
+                          max={100}
+                          onChange={(v) =>
+                            patchStage(p.id, i, { volatilityPct: v <= 0 ? undefined : v })
+                          }
+                          suffix="%"
+                        />
                       </div>
                       <button
                         type="button"

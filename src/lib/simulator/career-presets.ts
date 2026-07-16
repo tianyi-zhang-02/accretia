@@ -22,7 +22,7 @@ export type CareerPreset = {
 export const CAREER_PRESETS: readonly CareerPreset[] = [
   {
     id: 'biglaw',
-    label: 'BigLaw associate (Cravath-scale)',
+    label: 'BigLaw associate → partner',
     stages: [
       {
         label: 'BigLaw Associate',
@@ -30,6 +30,17 @@ export const CAREER_PRESETS: readonly CareerPreset[] = [
         baseSalary: 225_000,
         annualRaisePct: 12,
         bonusPct: 25,
+      },
+      {
+        // Partner draws are eat-what-you-kill: the expected path grows
+        // modestly, but any single year can swing widely — volatilityPct
+        // feeds the Monte Carlo bands.
+        label: 'BigLaw Partner',
+        startAge: 36,
+        baseSalary: 1_100_000,
+        annualRaisePct: 3,
+        bonusPct: 0,
+        volatilityPct: 30,
       },
     ],
   },

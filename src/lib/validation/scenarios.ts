@@ -29,6 +29,13 @@ const careerStageSchema = z.object({
    * stage and taxed as ordinary income (RSUs vest as W-2 income).
    */
   annualEquity: positiveMoney.optional(),
+  /**
+   * How unpredictable this stage's pay is: one standard deviation of total
+   * comp, in % (e.g. 30 for a law-firm partner whose draw swings ±30% year
+   * to year). Deterministic projections ignore it (they show the expected
+   * path); Monte Carlo draws each year's comp from it. Optional = stable pay.
+   */
+  volatilityPct: z.number().min(0).max(100).optional(),
 });
 export type CareerStage = z.infer<typeof careerStageSchema>;
 

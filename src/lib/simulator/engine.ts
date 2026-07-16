@@ -56,6 +56,10 @@ import type {
  *      - `grossIncome` includes salary + bonus + equity (RSUs) across all
  *        people; see `personSalaryForYear`. All of it is taxed at the flat
  *        effective rate (RSUs vest as ordinary income).
+ *      - Pay need not be predictable: a stage may declare `volatilityPct`
+ *        (one std dev of total comp, % — partner draws, commission). The
+ *        deterministic projection shows the expected path; Monte Carlo
+ *        draws each such person-year's comp via `sampleIncome`.
  *      - `extraAnnualContribution` is the additional savings dollars used
  *        by the goal-seek "save $X/mo more" lever. Defaults to 0. In this
  *        derived model it is mathematically identical to reducing expenses
@@ -166,6 +170,9 @@ function resolveLifestyle(a: Assumptions): Lifestyle {
  * Runs one scenario at a constant `returnPct`. `stress` applies the optional
  * what-if shocks; `sampleReturn(i)` (used by Monte Carlo) supplies a per-year
  * return that overrides the constant — when omitted, behaviour is unchanged.
+ * `sampleIncome(i, volatilityPct)` (also Monte Carlo) supplies a multiplicative
+ * factor on a person-year's comp, called ONLY for stages that declare
+ * `volatilityPct` — deterministic runs (and stable stages) never see it.
  * Exported so the Monte-Carlo layer can reuse the exact cash-flow math.
  */
 export function simulateScenario(
@@ -173,6 +180,7 @@ export function simulateScenario(
   returnPct: number,
   stress?: StressConfig,
   sampleReturn?: (yearIndex: number) => number,
+  sampleIncome?: (yearIndex: number, volatilityPct: number) => number,
 ): YearRow[] {
   const rows: YearRow[] = [];
   // Two pools (assumption #2): only `invested` compounds; `cash` is the rest
@@ -234,6 +242,13 @@ export function simulateScenario(
     for (const p of a.people) {
       ages[p.id] = year - p.birthYear;
       let salary = personSalaryForYear(p, year);
+      // Unpredictable pay (partner draws, commission): in Monte Carlo runs,
+      // a stage that declares volatilityPct gets a per-year comp draw.
+      // Deterministic runs show the expected path.
+      if (sampleIncome && salary > 0) {
+        const vol = activeStageForAge(p, ages[p.id]!)?.volatilityPct ?? 0;
+        if (vol > 0) salary *= Math.max(0, sampleIncome(i, vol));
+      }
       // Stress: job-loss income interruption. During the window, the affected
       // person's pay scales to incomeReplacementPct (0 = full loss).
       const jl = stress?.jobLoss;
@@ -410,17 +425,23 @@ function annualMortgagePayment(loan: number, ratePct: number, years: number): nu
   return (loan * r) / (1 - Math.pow(1 + r, -years));
 }
 
-function personSalaryForYear(person: Person, year: number): number {
-  const age = year - person.birthYear;
-  // Retired — career income stops. (Absent retireAge = the old behavior:
-  // the latest stage pays forever.)
-  if (person.retireAge !== undefined && age >= person.retireAge) return 0;
+/** Latest stage whose startAge ≤ age — the one paying this year. */
+function activeStageForAge(person: Person, age: number): CareerStage | null {
   let active: CareerStage | null = null;
   for (const stage of person.careerStages) {
     if (stage.startAge <= age && (active === null || stage.startAge > active.startAge)) {
       active = stage;
     }
   }
+  return active;
+}
+
+function personSalaryForYear(person: Person, year: number): number {
+  const age = year - person.birthYear;
+  // Retired — career income stops. (Absent retireAge = the old behavior:
+  // the latest stage pays forever.)
+  if (person.retireAge !== undefined && age >= person.retireAge) return 0;
+  const active = activeStageForAge(person, age);
   if (!active) return 0;
   const yearsIntoStage = age - active.startAge;
   const base = active.baseSalary * Math.pow(1 + active.annualRaisePct / 100, yearsIntoStage);
