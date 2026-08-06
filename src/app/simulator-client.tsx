@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import GuidedSetup from '@/components/agent/guided-setup';
+import { PixelLabel } from '@/components/pixel/pixel-icon';
 import InsightsPanel from '@/components/agent/insights-panel';
 import MonteCarloChart from '@/components/charts/montecarlo-chart';
 import SimulatorChart, { type DisplayMode, type Marker } from '@/components/charts/simulator-chart';
@@ -90,16 +91,18 @@ export default function SimulatorClient() {
 function SimulatorInner() {
   const { t, fmt } = useI18n();
 
-  // In-memory scenarios. Nothing is written to a server or to browser
-  // storage — refresh means a clean slate. Persistence is by file only
-  // (Export / Import JSON).
+  // Scenarios. Nothing is ever written to a server; they're mirrored to this
+  // device's localStorage while "Save on this device" is ticked (see
+  // STORAGE_KEY), and exportable to a file either way.
   const [scenarios, setScenarios] = useState<ComparableScenario[]>(() => [
     { id: newId(), name: t.scenarioBar.defaultName(1), assumptions: defaultAssumptions() },
   ]);
   const [selectedId, setSelectedId] = useState<string>(() => scenarios[0]!.id);
   const [displayMode, setDisplayMode] = useState<DisplayMode>('nominal');
   // Deterministic band vs probabilistic Monte-Carlo fan (a chart-level switch).
-  const [chartEngine, setChartEngine] = useState<'deterministic' | 'probabilistic'>('deterministic');
+  const [chartEngine, setChartEngine] = useState<'deterministic' | 'probabilistic'>(
+    'deterministic',
+  );
   const [volatilityPct, setVolatilityPct] = useState(15);
 
   // Display preferences — in-memory (reset on refresh, per the no-storage rule).
@@ -539,9 +542,9 @@ function SimulatorInner() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Assumptions — edit here, watch the projection move. */}
             <div className="order-2 lg:order-1">
-              <p className="text-muted mb-2 text-[10px] tracking-[0.18em] uppercase">
+              <PixelLabel icon="person" className="mb-2">
                 {t.projection.assumptionsLabel}
-              </p>
+              </PixelLabel>
               <AssumptionsForm value={assumptions} onChange={patchCurrent} />
             </div>
 
@@ -554,14 +557,21 @@ function SimulatorInner() {
                 advanced ? '' : 'lg:sticky lg:top-6'
               }`}
             >
-              {/* Headline result. */}
+              {/* The answer first. The product is named after this sentence,
+                  so it outranks the balance — a number nobody can feel. */}
+              <InsightsPanel assumptions={assumptions} onChange={patchCurrent} />
+
+              {/* The balance behind it: supporting evidence, not the point. */}
               <section className="border-border rounded-lg border p-4">
-                <p className="text-muted text-[10px] tracking-[0.18em] uppercase">
+                <PixelLabel icon="coins">
                   {t.projection.finalBalance(assumptions.horizonEndYear)}
-                </p>
-                <p className="serif-display nums mt-1 text-3xl">{fmt.currency0(lastNominal)}</p>
+                </PixelLabel>
+                <p className="serif-display nums mt-1 text-2xl">{fmt.currency0(lastNominal)}</p>
                 <p className="text-muted nums mt-1 text-xs">
-                  {t.projection.inTodaysDollars(fmt.currency0(lastReal), fmt.signedPct1(totalGrowth))}
+                  {t.projection.inTodaysDollars(
+                    fmt.currency0(lastReal),
+                    fmt.signedPct1(totalGrowth),
+                  )}
                 </p>
                 {impliedSavingsRate !== null ? (
                   <p className="text-muted nums mt-1 text-[11px]">
@@ -570,15 +580,10 @@ function SimulatorInner() {
                 ) : null}
               </section>
 
-              {/* What the numbers actually mean — ranked by measured impact. */}
-              <InsightsPanel assumptions={assumptions} onChange={patchCurrent} />
-
               {/* Pixel journey — the projection as a tiny living world. */}
               <section className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-muted text-[10px] tracking-[0.18em] uppercase">
-                    {t.pixel.heading}
-                  </p>
+                  <PixelLabel icon="house">{t.pixel.heading}</PixelLabel>
                   <div className="flex items-center gap-2">
                     {showPixel ? (
                       <div className="border-border flex rounded border text-[10px]">
@@ -621,13 +626,13 @@ function SimulatorInner() {
               {/* Chart — deterministic band or probabilistic (Monte-Carlo) fan. */}
               <section className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-muted text-[10px] tracking-[0.18em] uppercase">
+                  <PixelLabel icon="chart">
                     {chartEngine === 'probabilistic'
                       ? t.projection.mcHeading
                       : displayMode === 'both'
                         ? t.projection.bothHeading
                         : t.projection.bandHeading}
-                  </p>
+                  </PixelLabel>
                   <div className="border-border flex rounded border text-[11px]">
                     {(['deterministic', 'probabilistic'] as const).map((e) => (
                       <button
@@ -727,7 +732,11 @@ function SimulatorInner() {
 
                   {/* FIRE — the year work becomes optional. */}
                   {result ? (
-                    <FirePanel assumptions={assumptions} rows={result.rows} onChange={patchCurrent} />
+                    <FirePanel
+                      assumptions={assumptions}
+                      rows={result.rows}
+                      onChange={patchCurrent}
+                    />
                   ) : null}
 
                   {/* Stress test — job loss + market crash what-ifs. */}
@@ -746,9 +755,7 @@ function SimulatorInner() {
           {/* Year-by-year table — full width below the split (it's wide). */}
           <section className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <p className="text-muted text-[10px] tracking-[0.18em] uppercase">
-                {t.table.heading}
-              </p>
+              <PixelLabel icon="clock">{t.table.heading}</PixelLabel>
               <button
                 type="button"
                 onClick={() => setShowTable((v) => !v)}

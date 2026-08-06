@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useI18n } from '@/lib/i18n/locale';
 import { simulate, type YearRow } from '@/lib/simulator/engine';
 import type { Assumptions, StressConfig } from '@/lib/validation/scenarios';
+import { PixelLabel } from '../pixel/pixel-icon';
 
 function NumField({
   label,
@@ -107,7 +108,7 @@ export default function StressPanel({
 
   return (
     <section className="border-border rounded border p-4">
-      <p className="text-muted text-[10px] tracking-[0.18em] uppercase">{t.stress.heading}</p>
+      <PixelLabel icon="cloud">{t.stress.heading}</PixelLabel>
       <p className="text-muted mt-1 text-xs">{t.stress.intro}</p>
 
       {/* Quick presets. */}
@@ -174,7 +175,9 @@ export default function StressPanel({
               min={0}
               max={100}
               suffix="%"
-              onChange={(n) => patchJobLoss({ incomeReplacementPct: Math.min(100, Math.max(0, n)) })}
+              onChange={(n) =>
+                patchJobLoss({ incomeReplacementPct: Math.min(100, Math.max(0, n)) })
+              }
             />
             <NumField
               label={t.stress.startYear}
@@ -233,7 +236,9 @@ export default function StressPanel({
 
       {/* Impact. */}
       <div className="mt-3 flex flex-col gap-1">
-        <p className="text-muted nums text-[11px]">{t.stress.baselineFinal(fmt.currency0(baselineFinal))}</p>
+        <p className="text-muted nums text-[11px]">
+          {t.stress.baselineFinal(fmt.currency0(baselineFinal))}
+        </p>
         {impact ? (
           <>
             <p className="nums text-xs">

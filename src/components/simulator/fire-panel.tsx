@@ -6,6 +6,7 @@ import { useI18n } from '@/lib/i18n/locale';
 import type { YearRow } from '@/lib/simulator/engine';
 import { computeFire, type FireMilestone } from '@/lib/simulator/fire';
 import type { Assumptions, FireConfig } from '@/lib/validation/scenarios';
+import { PixelLabel } from '../pixel/pixel-icon';
 
 function NumField({
   label,
@@ -75,7 +76,8 @@ export default function FirePanel({
   // Effective config (fall back to sensible defaults when `fire` is absent).
   const swrPct = assumptions.fire?.safeWithdrawalRatePct ?? 4;
   const health = assumptions.fire?.annualHealthInsurance ?? 0;
-  const essential = assumptions.fire?.essentialAnnualExpenses ?? assumptions.recurringAnnualExpenses;
+  const essential =
+    assumptions.fire?.essentialAnnualExpenses ?? assumptions.recurringAnnualExpenses;
   const primaryBirthYear = assumptions.people[0]?.birthYear ?? null;
 
   function setFire(patch: Partial<FireConfig>) {
@@ -112,15 +114,19 @@ export default function FirePanel({
   const leanStatus = status(fire.lean);
   const showLean = fire.leanSpend < fire.fullSpend;
 
-  const coastText = primaryBirthYear === null
-    ? { text: t.fire.coastNeedsPerson, ok: false }
-    : fire.coast.reached
-      ? { text: t.fire.coastLine(fire.coast.year!, fire.coast.age!, fire.retirementAge), ok: true }
-      : { text: t.fire.coastNotReached, ok: false };
+  const coastText =
+    primaryBirthYear === null
+      ? { text: t.fire.coastNeedsPerson, ok: false }
+      : fire.coast.reached
+        ? {
+            text: t.fire.coastLine(fire.coast.year!, fire.coast.age!, fire.retirementAge),
+            ok: true,
+          }
+        : { text: t.fire.coastNotReached, ok: false };
 
   return (
     <section className="border-border rounded border p-4">
-      <p className="text-muted text-[10px] tracking-[0.18em] uppercase">{t.fire.heading}</p>
+      <PixelLabel icon="house">{t.fire.heading}</PixelLabel>
       <p className="text-muted mt-1 text-xs">{t.fire.intro}</p>
 
       <div className="mt-3 grid grid-cols-3 gap-3">
@@ -159,10 +165,14 @@ export default function FirePanel({
           <div className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
             <div className="flex flex-col">
               <span className="text-foreground text-xs">{t.fire.fullLabel}</span>
-              <span className="text-muted text-[10px]">{t.fire.covers(fmt.currency0(fire.fullSpend))}</span>
+              <span className="text-muted text-[10px]">
+                {t.fire.covers(fmt.currency0(fire.fullSpend))}
+              </span>
             </div>
             <div className="text-right">
-              <span className="nums text-foreground block text-xs">{fmt.currency0(fire.full.number)}</span>
+              <span className="nums text-foreground block text-xs">
+                {fmt.currency0(fire.full.number)}
+              </span>
               <span className={`text-[10px] ${fullStatus.ok ? 'text-positive' : 'text-muted'}`}>
                 {fullStatus.text}
               </span>
@@ -174,10 +184,14 @@ export default function FirePanel({
             <div className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
               <div className="flex flex-col">
                 <span className="text-foreground text-xs">{t.fire.leanLabel}</span>
-                <span className="text-muted text-[10px]">{t.fire.covers(fmt.currency0(fire.leanSpend))}</span>
+                <span className="text-muted text-[10px]">
+                  {t.fire.covers(fmt.currency0(fire.leanSpend))}
+                </span>
               </div>
               <div className="text-right">
-                <span className="nums text-foreground block text-xs">{fmt.currency0(fire.lean.number)}</span>
+                <span className="nums text-foreground block text-xs">
+                  {fmt.currency0(fire.lean.number)}
+                </span>
                 <span className={`text-[10px] ${leanStatus.ok ? 'text-positive' : 'text-muted'}`}>
                   {leanStatus.text}
                 </span>
@@ -188,7 +202,9 @@ export default function FirePanel({
           {/* Coast FIRE */}
           <div className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
             <span className="text-foreground text-xs">{t.fire.coastLabel}</span>
-            <span className={`text-right text-[10px] ${coastText.ok ? 'text-positive' : 'text-muted'}`}>
+            <span
+              className={`text-right text-[10px] ${coastText.ok ? 'text-positive' : 'text-muted'}`}
+            >
               {coastText.text}
             </span>
           </div>

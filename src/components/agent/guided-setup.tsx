@@ -6,6 +6,7 @@ import { useI18n } from '@/lib/i18n/locale';
 import { assumptionsSchema, type Assumptions } from '@/lib/validation/scenarios';
 
 import { newId } from '../simulator/default-assumptions';
+import { PixelLabel } from '../pixel/pixel-icon';
 import PixelGuide from './pixel-guide';
 
 /**
@@ -29,7 +30,13 @@ type Answers = {
   netWorth: number;
 };
 
-const EMPTY: Answers = { age: 30, income: 150_000, partnerIncome: 0, spending: 60_000, netWorth: 50_000 };
+const EMPTY: Answers = {
+  age: 30,
+  income: 150_000,
+  partnerIncome: 0,
+  spending: 60_000,
+  netWorth: 50_000,
+};
 
 /**
  * Rough effective all-in rate (federal + state + payroll) by household
@@ -138,10 +145,14 @@ export default function GuidedSetup({
   }
 
   return (
-    <section className="border-border bg-surface rounded-lg border p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-muted text-[10px] tracking-[0.18em] uppercase">{g.heading}</span>
-        <button type="button" onClick={onCancel} className="text-muted hover:text-foreground text-[11px]">
+    <section className="border-border pixel-panel rounded-lg border p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <PixelLabel icon="spark">{g.heading}</PixelLabel>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-muted hover:text-foreground text-[11px]"
+        >
           {g.skip}
         </button>
       </div>
@@ -151,7 +162,7 @@ export default function GuidedSetup({
         {steps.map((s, i) => (
           <span
             key={s.key}
-            className={`h-1 flex-1 rounded ${i <= step ? 'bg-accent' : 'bg-foreground/10'}`}
+            className={`h-1.5 flex-1 ${i <= step ? 'bg-accent' : 'bg-foreground/10'}`}
           />
         ))}
       </div>
@@ -173,12 +184,23 @@ export default function GuidedSetup({
         className="flex flex-col gap-3"
       >
         {step === 0 ? (
-          <BigNumber value={ans.age} onChange={(v) => set({ age: Math.round(v) })} min={16} max={90} />
+          <BigNumber
+            value={ans.age}
+            onChange={(v) => set({ age: Math.round(v) })}
+            min={16}
+            max={90}
+          />
         ) : null}
 
         {step === 1 ? (
           <>
-            <BigNumber value={ans.income} onChange={(v) => set({ income: v })} min={0} step={5000} prefix="$" />
+            <BigNumber
+              value={ans.income}
+              onChange={(v) => set({ income: v })}
+              min={0}
+              step={5000}
+              prefix="$"
+            />
             <label className="text-muted flex flex-col gap-1 text-[11px]">
               {g.partnerIncome}
               <input
@@ -196,11 +218,23 @@ export default function GuidedSetup({
         ) : null}
 
         {step === 2 ? (
-          <BigNumber value={ans.spending} onChange={(v) => set({ spending: v })} min={0} step={5000} prefix="$" />
+          <BigNumber
+            value={ans.spending}
+            onChange={(v) => set({ spending: v })}
+            min={0}
+            step={5000}
+            prefix="$"
+          />
         ) : null}
 
         {step === 3 ? (
-          <BigNumber value={ans.netWorth} onChange={(v) => set({ netWorth: v })} min={0} step={10_000} prefix="$" />
+          <BigNumber
+            value={ans.netWorth}
+            onChange={(v) => set({ netWorth: v })}
+            min={0}
+            step={10_000}
+            prefix="$"
+          />
         ) : null}
 
         {/* A live read of what they've told us — the "it's listening" signal. */}

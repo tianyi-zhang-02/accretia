@@ -6,6 +6,31 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Design: the pixel world became the design language
+
+The journey strip had a visual identity the rest of the page didn't share.
+Now it does — as an accent language, not a costume. The type stays
+editorial and the numbers stay legible, because a tool that tells you hard
+truths has to look like it means them; only the edges get pixelated.
+
+- **Added** `PixelIcon` — 8×8 pixel icons drawn as SVG `<rect>` grids
+  (crisp at any size, themed via `currentColor` + `--accent`, server-
+  rendered, zero images). Eleven of them: house, coins, person, chart,
+  cloud, flag, chair, gem, clock, spark, shield. The grids are literal art
+  in the source — edit them by looking at them.
+- **Added** pixel CSS primitives: `.pixel-panel` (a hard 3px offset instead
+  of a soft blur), `.pixel-rule` (a divider drawn on a 4px grid), and
+  `.pixel-frame` (stepped 8-bit corners).
+- **Changed** every section label now carries its icon — assumptions,
+  balance, chart, journey, table, FIRE, stress, goal seek, and all ten
+  collapsible form sections — so the page reads as one system.
+- **Changed** **the hierarchy was backwards.** "Final balance $8.5M" was the
+  biggest thing on the page; "Work becomes optional at 49" — the sentence
+  the product is *named after* — sat below it. The insight panel is now the
+  hero, with a pixel house beside it, and the balance is supporting
+  evidence.
+- Verified on dark + light, desktop + 375px mobile.
+
 ### Renamed: Accretia → Work Optional
 
 "Accretia" was clever (from _accretion_) but needed a paragraph of

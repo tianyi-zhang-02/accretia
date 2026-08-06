@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 
 import { useI18n } from '@/lib/i18n/locale';
+
+import PixelIcon, { type PixelIconName } from '../pixel/pixel-icon';
 import { CAREER_PRESETS } from '@/lib/simulator/career-presets';
 import {
   ROLE_PRESETS,
@@ -10,7 +12,11 @@ import {
   type RolePreset,
   type RoleTrack,
 } from '@/lib/simulator/rolePresets';
-import { estimateEffectiveTaxRate, STATE_TAXES, TAX_LAST_REVIEWED } from '@/lib/simulator/tax-presets';
+import {
+  estimateEffectiveTaxRate,
+  STATE_TAXES,
+  TAX_LAST_REVIEWED,
+} from '@/lib/simulator/tax-presets';
 import type {
   Assumptions,
   CareerStage,
@@ -29,22 +35,27 @@ type Setter = (next: Assumptions) => void;
 
 function Section({
   title,
+  icon,
   defaultOpen = true,
   children,
 }: {
   title: string;
+  icon: PixelIconName;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className="border-border rounded border">
+    <section className="border-border hover:border-foreground/20 rounded border transition-colors">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
       >
-        <span className="text-[11px] tracking-[0.2em] uppercase">{title}</span>
+        <span className="flex items-center gap-2.5 text-[11px] tracking-[0.2em] uppercase">
+          <PixelIcon name={icon} size={13} className={open ? 'text-foreground' : 'text-muted'} />
+          {title}
+        </span>
         <span className="text-muted text-xs">{open ? '−' : '+'}</span>
       </button>
       {open ? <div className="border-border border-t px-4 py-4">{children}</div> : null}
@@ -462,7 +473,9 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
       >
         {t.form.allocation.addBucket}
       </button>
-      <p className="text-muted text-[11px]">{t.form.allocation.totalWeight(Math.round(totalWeight))}</p>
+      <p className="text-muted text-[11px]">
+        {t.form.allocation.totalWeight(Math.round(totalWeight))}
+      </p>
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-sm">{t.form.allocation.blended(fmt.pct(blended, 1))}</span>
         <button
@@ -609,7 +622,13 @@ function MortgageEditor({
   );
 }
 
-export default function AssumptionsForm({ value, onChange }: { value: Assumptions; onChange: Setter }) {
+export default function AssumptionsForm({
+  value,
+  onChange,
+}: {
+  value: Assumptions;
+  onChange: Setter;
+}) {
   // The asset-mix estimator gets its own inline disclosure (it used to hide
   // behind the global "advanced tools" toggle in the OTHER column — a
   // cross-column dependency nobody could find).
@@ -723,7 +742,7 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
 
   return (
     <div className="flex flex-col gap-3">
-      <Section title={t.form.section.horizon} defaultOpen={false}>
+      <Section icon="clock" title={t.form.section.horizon} defaultOpen={false}>
         <div className="grid grid-cols-2 gap-3">
           <NumField
             label={t.form.horizon.startYear}
@@ -742,7 +761,7 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
         </div>
       </Section>
 
-      <Section title={t.form.section.startingState}>
+      <Section icon="coins" title={t.form.section.startingState}>
         <div className="grid grid-cols-1 gap-3">
           <NumField
             label={t.form.starting.netWorth}
@@ -780,7 +799,7 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
         </div>
       </Section>
 
-      <Section title={t.form.section.taxes} defaultOpen={false}>
+      <Section icon="coins" title={t.form.section.taxes} defaultOpen={false}>
         <div className="flex flex-col gap-3">
           <TaxEstimator
             currentRate={value.effectiveTaxRatePct}
@@ -799,11 +818,11 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
         </div>
       </Section>
 
-      <Section title={t.form.section.lifestyleCreep} defaultOpen={false}>
+      <Section icon="coins" title={t.form.section.lifestyleCreep} defaultOpen={false}>
         <LifestyleEditor value={value.lifestyle} onChange={(next) => update({ lifestyle: next })} />
       </Section>
 
-      <Section title={t.form.section.investmentInflation}>
+      <Section icon="chart" title={t.form.section.investmentInflation}>
         <div className="grid grid-cols-1 gap-3">
           <NumField
             label={t.form.investment.inflation}
@@ -861,7 +880,7 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
         </div>
       </Section>
 
-      <Section title={t.form.section.peopleCareers(value.people.length)}>
+      <Section icon="person" title={t.form.section.peopleCareers(value.people.length)}>
         <div className="flex flex-col gap-4">
           {value.people.map((p) => (
             <div key={p.id} className="border-border rounded border p-3">
@@ -1043,7 +1062,11 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
         </div>
       </Section>
 
-      <Section title={t.form.section.windfalls(value.windfalls.length)} defaultOpen={false}>
+      <Section
+        icon="gem"
+        title={t.form.section.windfalls(value.windfalls.length)}
+        defaultOpen={false}
+      >
         <div className="flex flex-col gap-3">
           {value.windfalls.map((w, i) => (
             <div key={i} className="border-border rounded border p-3">
@@ -1088,7 +1111,11 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
             onClick={() =>
               setWindfalls([
                 ...value.windfalls,
-                { label: t.form.windfall.defaultLabel, year: value.horizonStartYear, amount: 10_000 },
+                {
+                  label: t.form.windfall.defaultLabel,
+                  year: value.horizonStartYear,
+                  amount: 10_000,
+                },
               ])
             }
             className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-xs"
@@ -1098,7 +1125,11 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
         </div>
       </Section>
 
-      <Section title={t.form.section.majorExpenses(value.majorExpenses.length)} defaultOpen={false}>
+      <Section
+        icon="coins"
+        title={t.form.section.majorExpenses(value.majorExpenses.length)}
+        defaultOpen={false}
+      >
         <div className="flex flex-col gap-3">
           {value.majorExpenses.map((e, i) => {
             const isRecurring = !('year' in e);
@@ -1136,7 +1167,9 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
                     label={t.form.major.label}
                     value={e.label}
                     onChange={(v) =>
-                      setMajor(value.majorExpenses.map((x, j) => (j === i ? { ...x, label: v } : x)))
+                      setMajor(
+                        value.majorExpenses.map((x, j) => (j === i ? { ...x, label: v } : x)),
+                      )
                     }
                   />
                   <label className="flex flex-col gap-1">
@@ -1254,7 +1287,11 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
               onClick={() =>
                 setMajor([
                   ...value.majorExpenses,
-                  { label: t.form.major.defaultOneTimeLabel, year: value.horizonStartYear, amount: 50_000 },
+                  {
+                    label: t.form.major.defaultOneTimeLabel,
+                    year: value.horizonStartYear,
+                    amount: 50_000,
+                  },
                 ])
               }
               className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
@@ -1282,7 +1319,7 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
         </div>
       </Section>
 
-      <Section title={t.form.section.mortgage} defaultOpen={false}>
+      <Section icon="house" title={t.form.section.mortgage} defaultOpen={false}>
         <MortgageEditor
           value={value.mortgage}
           defaultYear={value.horizonStartYear + 1}
@@ -1290,7 +1327,7 @@ export default function AssumptionsForm({ value, onChange }: { value: Assumption
         />
       </Section>
 
-      <Section title={t.form.section.retirement} defaultOpen={false}>
+      <Section icon="chair" title={t.form.section.retirement} defaultOpen={false}>
         <div className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <NumField
