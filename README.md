@@ -6,7 +6,7 @@
 
 _Watch your wealth accrete._ A single-page, **client-side** wealth-projection simulator. Project household net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
 
-Everything runs in the browser. **There is no backend, no database, no account, and nothing is ever sent anywhere.** By default nothing is stored either — refresh and you start clean. Keep a scenario with Export / Import, or opt in to **"Save on this device"** (this browser's local storage, your device only).
+Everything runs in the browser. **There is no backend, no database, no account, and nothing is ever sent anywhere.** Your plan is kept on your own device (this browser's local storage) so it's still there tomorrow — untick **"Save on this device"** to keep it memory-only, or use Export / Import for a file.
 
 > Stack: Next.js 16 (App Router) · TypeScript · Tailwind v4 · Recharts · Zod. No environment variables. No server.
 
@@ -50,7 +50,7 @@ The layout is a **live side-by-side editor**: assumptions on the left, the proje
 Because the app has no backend, the security model is trivial:
 
 - **Nothing leaves your device.** No API calls, no analytics, no telemetry, no cookies. Open DevTools → Network and you'll see the page load and nothing else.
-- **Nothing stored by default.** Refresh and you start clean. The optional **"Save on this device"** toggle keeps your scenarios in this browser's `localStorage` — on your device only, still never sent anywhere, validated on load like any untrusted input, and erased the moment you untick it.
+- **Stored on your device, never anywhere else.** **"Save on this device"** keeps your scenarios in this browser's `localStorage` — on your device only, never sent anywhere, validated on load like any untrusted input, and erased the moment you untick it. Untick it and the app runs memory-only, exactly as before.
 - **No secrets, no environment variables.** There's nothing to leak.
 - **Strict Content-Security-Policy** with a per-request nonce (`src/proxy.ts`): `script-src 'self' 'nonce-…' 'strict-dynamic'` (no `unsafe-inline`, no `unsafe-eval`), `connect-src 'self'`. Plus static hardening headers (HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy) in `next.config.ts`.
 - **Imported JSON is validated** against the engine's Zod schema before use, so a malformed file can't crash the projection.
