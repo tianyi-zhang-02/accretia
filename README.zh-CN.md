@@ -50,7 +50,7 @@ _见证财富的复利增长。_ 一个单页、**纯前端**的财富推算模�
 因为没有后端,安全模型非常简单:
 
 - **数据不离开你的设备。** 没有任何 API 调用、埋点、遥测或 Cookie。打开开发者工具的「网络」面板,你只会看到页面本身的加载,别无其他。
-- **默认什么都不存。** 刷新即清空。可选的**「在本设备保存」**开关会把方案存进此浏览器的 `localStorage`——只在你的设备上、依然绝不上传,载入时按不可信输入校验,取消勾选立即清除。
+- **只存在你自己的设备上,不存在别处。** **「在本设备保存」**会把方案存进此浏览器的 `localStorage`——只在你的设备上、绝不上传,载入时按不可信输入校验,取消勾选立即清除。取消后 App 就只在内存里跑,和以前完全一样。
 - **没有任何密钥或环境变量。** 没有可泄露的东西。
 - **严格的内容安全策略(CSP)**,每次请求都带随机 nonce(`src/proxy.ts`):`script-src 'self' 'nonce-…' 'strict-dynamic'`(不含 `unsafe-inline`、`unsafe-eval`),`connect-src 'self'`;并在 `next.config.ts` 中附加静态加固响应头(HSTS、X-Frame-Options DENY、nosniff、Referrer-Policy、Permissions-Policy)。
 - **导入的 JSON 先经校验** —— 在使用前用引擎的 Zod schema 校验,格式错误的文件不会拖垮推算。

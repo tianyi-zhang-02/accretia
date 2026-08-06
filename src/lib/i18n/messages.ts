@@ -16,12 +16,15 @@ export const LOCALES: readonly Locale[] = ['en', 'zh'] as const;
 /** Human label for the language switcher (each shown in its own script). */
 export const LOCALE_LABEL: Record<Locale, string> = { en: 'EN', zh: '中文' };
 
+/** English year count with the right plural ("1 year" / "3 years"). */
+const yrs = (n: number) => `${n} ${n === 1 ? 'year' : 'years'}`;
+
 const en = {
   app: {
     // Brand name — intentionally NOT translated in either locale.
     title: 'Accretia',
     tagline:
-      'Project net worth year by year from your own assumptions and watch it compound. Runs entirely in your browser — nothing is saved or sent anywhere. Use Export / Import to keep a scenario as a file.',
+      'Project net worth year by year from your own assumptions and watch it compound. Runs entirely in your browser — nothing is ever sent anywhere. Your plan is kept on this device so it’s still here tomorrow; untick “Save on this device” to keep it memory-only, or use Export / Import for a file.',
   },
   advanced: {
     show: 'Show advanced tools',
@@ -381,6 +384,59 @@ const en = {
       finance: 'Finance / Consulting',
     },
   },
+  guided: {
+    heading: 'Guided setup',
+    start: 'Guide me',
+    startHint: 'Four questions instead of fifty inputs — everything else is inferred, and still editable.',
+    skip: 'Skip — I’ll fill it in myself',
+    back: 'Back',
+    next: 'Next',
+    finish: 'Build my plan',
+    qAge: 'How old are you?',
+    qAgeHint: 'Everything else is keyed to this — milestone ages, retirement, the horizon.',
+    qIncome: 'What do you earn a year, before tax?',
+    qIncomeHint: 'Salary plus bonus and equity, roughly. Add a partner if you plan together.',
+    partnerIncome: 'Partner’s annual income (optional)',
+    qSpending: 'What do you spend a year?',
+    qSpendingHint:
+      'Everything: rent or mortgage, food, travel, the lot. This drives both your savings and your FIRE number, so it matters more than any other answer.',
+    qNetWorth: 'What have you saved so far?',
+    qNetWorthHint: 'Investments plus cash, minus debts. A rough number is fine.',
+    soFar: (age: number, income: string, spending: string) =>
+      `So far: age ${age} · ${income}/yr income · ${spending}/yr spending`,
+  },
+  insights: {
+    heading: 'What matters in your plan',
+    apply: 'Apply',
+    disclaimer:
+      'Each finding is measured by re-running the projection with one thing changed — a fact about the model, not advice. All of it computed on your device.',
+    fireAge: (age: number) => `Work becomes optional at ${age}.`,
+    fireAgeSub: (year: number) => `In ${year}, your investments could cover your spending.`,
+    fireNever:
+      'On these assumptions your investments never cover your spending — spending grows as fast as the portfolio does.',
+    spendLess: (years: number, age: number) =>
+      `Spending 10% less is worth ${yrs(years)} — FIRE at ${age}. It’s the only lever that cuts both ways: more saved, and a smaller number to reach.`,
+    spendLessReach: (age: number) => `Spending 10% less would make FIRE reachable — at ${age}.`,
+    dropCreep: (years: number, age: number) =>
+      `Lifestyle creep is costing you ${yrs(years)} — without it, FIRE at ${age}.`,
+    dropCreepReach: (age: number) => `Lifestyle creep is what puts FIRE out of reach — without it, ${age}.`,
+    investMore: (years: number, age: number) =>
+      `Investing 10% more of each year’s surplus is worth ${yrs(years)} — FIRE at ${age}. The rest sits as cash and earns nothing here.`,
+    investMoreReach: (age: number) =>
+      `Investing 10% more of each year’s surplus would make FIRE reachable — at ${age}.`,
+    savingsRateHigh: (pct: number) =>
+      `You’re saving ${pct}% of after-tax income in year one. Real households rarely sustain that — if it slips, so does every date above.`,
+    returnOptimistic: (pct: string) =>
+      `A ${pct} return is above the long-run average after fees. Try the low band, or the probabilistic view, before trusting the headline.`,
+    cashDrag: (pct: number) =>
+      `${pct}% of your current net worth is uninvested cash, which earns nothing in this model. Fine as a buffer — expensive as a habit.`,
+    crashCost: (year: number, years: number) =>
+      `A 2008-style crash in ${year} would delay FIRE by ${yrs(years)}. Worth knowing before it happens, not after.`,
+    noRetireAge:
+      'Nobody in this plan ever retires — career income runs to the end. Set a retire age to see the drawdown years.',
+    homeExcluded:
+      'Your home equity is in net worth but not in the FIRE number — you can’t withdraw 4% of a house.',
+  },
   footer: {
     disclaimer:
       'Estimates based on your assumptions. Not a prediction or financial advice. Career-role salaries in the role library are illustrative defaults, not market data — replace with your own figures.',
@@ -398,7 +454,7 @@ const zh: Messages = {
   app: {
     title: 'Accretia',
     tagline:
-      '根据你自己的假设逐年推算净资产，见证复利的力量。全部运算都在本地浏览器完成——不保存、也不上传任何数据。用「导出／导入」把方案存成文件。',
+      '根据你自己的假设逐年推算净资产，见证复利的力量。全部运算都在本地浏览器完成——任何数据都不会上传。方案默认保存在这台设备上，下次打开还在；不想留就取消勾选「在本设备保存」，或用「导出／导入」存成文件。',
   },
   advanced: {
     show: '显示高级工具',
@@ -749,6 +805,55 @@ const zh: Messages = {
       medicine: '医疗',
       finance: '金融 / 咨询',
     },
+  },
+  guided: {
+    heading: '引导设置',
+    start: '引导我填',
+    startHint: '四个问题,而不是五十个输入框——其余的自动推断，之后都还能改。',
+    skip: '跳过，我自己填',
+    back: '上一步',
+    next: '下一步',
+    finish: '生成我的方案',
+    qAge: '你今年多大？',
+    qAgeHint: '后面所有东西都以此为基准——里程碑年龄、退休、推算区间。',
+    qIncome: '你每年税前收入多少？',
+    qIncomeHint: '工资加奖金和股权，大概即可。和伴侣一起规划的话把 TA 也加上。',
+    partnerIncome: '伴侣的年收入（可留空）',
+    qSpending: '你每年花多少？',
+    qSpendingHint:
+      '全部算上：房租房贷、吃饭、旅行，都算。它同时决定你能存下多少和 FIRE 需要多少——比其他任何一个答案都重要。',
+    qNetWorth: '你现在攒了多少？',
+    qNetWorthHint: '投资加现金，减去负债。给个大概数就行。',
+    soFar: (age: number, income: string, spending: string) =>
+      `目前：${age} 岁 · 年收入 ${income} · 年开支 ${spending}`,
+  },
+  insights: {
+    heading: '你这份方案里，真正重要的是',
+    apply: '应用',
+    disclaimer:
+      '每条结论都是「只改一个变量、重跑推算」量出来的——是关于模型的事实，不是建议。全部在你的设备上计算。',
+    fireAge: (age: number) => `${age} 岁起，工作变成可选项。`,
+    fireAgeSub: (year: number) => `到 ${year} 年，你的投资收益就能覆盖开支。`,
+    fireNever: '按当前假设，你的投资永远追不上开支——开支涨得和资产一样快。',
+    spendLess: (years: number, age: number) =>
+      `每年少花 10%，值 ${years} 年——${age} 岁 FIRE。这是唯一双向生效的杠杆：既多存下钱，又拉低了目标线。`,
+    spendLessReach: (age: number) => `每年少花 10%，FIRE 就从「不可能」变成 ${age} 岁可达。`,
+    dropCreep: (years: number, age: number) =>
+      `生活方式膨胀正在偷走你 ${years} 年——去掉它，${age} 岁 FIRE。`,
+    dropCreepReach: (age: number) => `正是生活方式膨胀让 FIRE 遥不可及——去掉它，${age} 岁可达。`,
+    investMore: (years: number, age: number) =>
+      `每年盈余多投 10%，值 ${years} 年——${age} 岁 FIRE。剩下的钱以现金躺着，在模型里不产生任何收益。`,
+    investMoreReach: (age: number) => `每年盈余多投 10%，FIRE 就变成 ${age} 岁可达。`,
+    savingsRateHigh: (pct: number) =>
+      `第一年你要存下税后收入的 ${pct}%。真实家庭很难长期做到——一旦滑坡，上面所有年份都会推迟。`,
+    returnOptimistic: (pct: string) =>
+      `${pct} 的收益率高于扣费后的长期平均水平。相信这个数字之前，先看看低位区间或概率视图。`,
+    cashDrag: (pct: number) =>
+      `你现有净资产的 ${pct}% 是未投资的现金，在模型里不产生收益。作为缓冲没问题——作为习惯就很贵。`,
+    crashCost: (year: number, years: number) =>
+      `如果 ${year} 年来一次 2008 级别的股灾，FIRE 会推迟 ${years} 年。这种事最好提前知道。`,
+    noRetireAge: '这份方案里没有人退休——职业收入一直挣到最后。设个退休年龄，才能看到花钱的那些年。',
+    homeExcluded: '房产净值算进净资产，但不算进 FIRE 数字——你没法从房子里每年提 4%。',
   },
   footer: {
     disclaimer:

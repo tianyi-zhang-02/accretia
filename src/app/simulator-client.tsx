@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import GuidedSetup from '@/components/agent/guided-setup';
+import InsightsPanel from '@/components/agent/insights-panel';
 import MonteCarloChart from '@/components/charts/montecarlo-chart';
 import SimulatorChart, { type DisplayMode, type Marker } from '@/components/charts/simulator-chart';
 import LangSwitch from '@/components/i18n/lang-switch';
@@ -22,12 +24,13 @@ import { assumptionsSchema, type Assumptions } from '@/lib/validation/scenarios'
  * Wealth-projection simulator — the entire app.
  *
  * Purely client-side. There is no backend, no database, no auth, and
- * nothing is stored or cached anywhere:
+ * nothing is ever sent anywhere:
  *
- *   - Scenarios live in this component's React state only. Refreshing the
- *     tab resets to a single blank scenario. Nothing is written to a
- *     server, and nothing is written to browser storage (no localStorage,
- *     no cookies).
+ *   - Scenarios live in this component's React state, mirrored to ONE
+ *     localStorage key on the user's own device (see STORAGE_KEY) so the
+ *     app behaves like an app. That mirror is a checkbox — untick "Save on
+ *     this device" and the key is erased immediately. No cookies, no
+ *     server, no network: the data never leaves the browser either way.
  *   - Persistence is by file: "Export JSON" downloads the current scenario
  *     as a `.json`; "Import JSON" reads one back in. Both are pure browser
  *     APIs — no network call.
@@ -99,9 +102,18 @@ function SimulatorInner() {
 
   // Display preferences — in-memory (reset on refresh, per the no-storage rule).
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [guiding, setGuiding] = useState(false);
   const [showPixel, setShowPixel] = useState(true);
   const [pixelScene, setPixelScene] = useState<PixelScene>('meadow');
-  const [saveLocal, setSaveLocal] = useState(false);
+  // On by default so the app behaves like an app — your plan is still there
+  // tomorrow. It never leaves the device (single localStorage key), and one
+  // untick erases it. See STORAGE_KEY above.
+  const [saveLocal, setSaveLocal] = useState(true);
+
+  // Nothing may be WRITTEN to storage until the restore attempt has finished.
+  // Without this gate the persist effect (now on by default) fires first on
+  // mount and overwrites a saved session with the blank default scenario.
+  const hydrated = useRef(false);
 
   // Restore a saved session once, after mount (deferred a tick so the SSR
   // and hydration renders agree; storage is untrusted → validate everything).
@@ -109,7 +121,12 @@ function SimulatorInner() {
     const id = window.setTimeout(() => {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
+        // Nothing saved → first visit. Open the guided setup rather than
+        // dropping someone into fifty inputs.
+        if (!raw) {
+          setGuiding(true);
+          return;
+        }
         const parsed = JSON.parse(raw) as { scenarios?: unknown; selectedId?: unknown };
         if (!Array.isArray(parsed.scenarios)) return;
         const restored: ComparableScenario[] = [];
@@ -130,6 +147,9 @@ function SimulatorInner() {
         setSaveLocal(true);
       } catch {
         // Corrupted storage → start clean rather than crash.
+      } finally {
+        // Restore is done (found, missing, or broken) — writing is now safe.
+        hydrated.current = true;
       }
     }, 0);
     return () => window.clearTimeout(id);
@@ -137,7 +157,7 @@ function SimulatorInner() {
 
   // While enabled, mirror every change to localStorage (device-only).
   useEffect(() => {
-    if (!saveLocal) return;
+    if (!saveLocal || !hydrated.current) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ scenarios, selectedId }));
     } catch {
@@ -454,6 +474,19 @@ function SimulatorInner() {
             />
             {t.scenarioBar.saveLocal}
           </label>
+          <button
+            type="button"
+            onClick={() => {
+              setGuiding((v) => !v);
+              setComparing(false);
+            }}
+            title={t.guided.startHint}
+            className={`rounded border px-3 py-1.5 text-xs ${
+              guiding ? 'border-accent text-accent' : 'border-border hover:bg-foreground/5'
+            }`}
+          >
+            {t.guided.start}
+          </button>
           {scenarios.length >= 2 ? (
             <button
               type="button"
@@ -478,6 +511,17 @@ function SimulatorInner() {
         {note ? <p className="text-positive text-[11px]">{note}</p> : null}
         {importError ? <p className="text-negative text-[11px]">{importError}</p> : null}
       </section>
+
+      {guiding ? (
+        <GuidedSetup
+          theme={theme}
+          onComplete={(a) => {
+            patchCurrent(a);
+            setGuiding(false);
+          }}
+          onCancel={() => setGuiding(false)}
+        />
+      ) : null}
 
       {comparing ? (
         <CompareView scenarios={scenarios} onExit={() => setComparing(false)} />
@@ -519,6 +563,9 @@ function SimulatorInner() {
                   </p>
                 ) : null}
               </section>
+
+              {/* What the numbers actually mean — ranked by measured impact. */}
+              <InsightsPanel assumptions={assumptions} onChange={patchCurrent} />
 
               {/* Pixel journey — the projection as a tiny living world. */}
               <section className="flex flex-col gap-2">

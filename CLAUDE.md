@@ -10,7 +10,7 @@
 
 **Accretia** is a **purely client-side** wealth-projection simulator. One page. Runs entirely in the browser. (The name is from _accretion_ — growth by gradual accumulation, i.e. compounding.)
 
-**There is no backend, no database, no authentication, and nothing is stored or cached anywhere** — not on a server, not in `localStorage`, not in cookies. Scenarios live in React state; a refresh resets to a blank scenario. The only persistence is manual **Export / Import** of a scenario as a JSON file.
+**There is no backend, no database, no authentication, and nothing is ever sent anywhere** — no server, no network calls, no cookies. Scenarios live in React state, mirrored to ONE `localStorage` key on the user's own device (`accretia:saved:v1`) so the app behaves like an app across visits; the **"Save on this device"** checkbox is on by default and unticking it erases the key immediately. Beyond that, persistence is manual **Export / Import** of a scenario as a JSON file.
 
 The repo was formerly a full net-worth tracker (Supabase + auth + accounts/transactions/holdings/portfolio). All of that was deliberately removed — the owner uses a real brokerage for tracking and wanted just the projection tool. The old code is preserved in git history; do not resurrect it.
 
@@ -24,7 +24,7 @@ Do not add, or propose without flagging loudly, any of:
 
 - A backend, API route, database, or auth of any kind.
 - Network requests to anything (no `fetch`, no third-party APIs, no analytics, no telemetry, no fonts/CDNs beyond what `next/font` self-hosts at build time).
-- Persistent storage — no `sessionStorage`, cookies, or IndexedDB. Persistence is file export/import, plus ONE owner-approved exception: the opt-in "Save on this device" toggle (`localStorage` key `accretia:saved:v1`, default OFF, validated on load, erased on untick). Any storage beyond that key still requires flagging.
+- Persistent storage — no `sessionStorage`, cookies, or IndexedDB. Persistence is file export/import, plus ONE owner-approved exception: the "Save on this device" toggle (`localStorage` key `accretia:saved:v1`, **default ON** since v1.2, validated on load, erased on untick). Any storage beyond that key still requires flagging. Note the write gate: nothing may be written until the restore attempt finishes, or the default scenario clobbers a saved session.
 - Environment variables / secrets. There are none, and there should be none.
 
 If a requested feature seems to need any of the above, **stop and flag it** — it changes the entire nature of the project.
@@ -79,12 +79,13 @@ src/
     manifest.ts, icon*.tsx, apple-icon.tsx
   proxy.ts                per-request CSP nonce (the only server-touching code)
   components/
+    agent/                guided-setup (4-question onboarding), insights-panel, pixel-guide — the LOCAL agent: no LLM, no network
     simulator/            assumptions-form, compare-view, goal-seek-panel, year-table, default-assumptions
     charts/simulator-chart.tsx
     i18n/lang-switch.tsx  EN · 中文 toggle
     pwa/sw-register.tsx
   lib/
-    simulator/            engine, goalSeek, career-presets, rolePresets (+ tests)
+    simulator/            engine, goalSeek, insights (perturb-the-engine findings), career-presets, rolePresets (+ tests)
     i18n/                 messages.ts (EN/中文 catalog) + locale.tsx (LocaleProvider/useI18n)
     validation/scenarios.ts
     format/money.ts

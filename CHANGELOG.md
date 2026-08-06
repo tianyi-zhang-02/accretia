@@ -6,6 +6,41 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### A local agent — guided setup, and findings that rank themselves
+
+The tool could always answer "what happens if"; it couldn't answer "what
+should I look at?". Now it can — with **no LLM and no network**. Everything
+below is computed on your device from the same verified engine.
+
+- **Added** **Guided setup**: four plain-language questions (age, income,
+  spending, savings) with a **little pixel guide** who asks them, instead of
+  fifty inputs. Everything else is inferred — tax rate from household
+  income, a career stage from today's pay, a horizon that runs to 90 — and
+  every inferred value stays an ordinary editable field. Opens
+  automatically on a first visit; **"Guide me"** re-opens it any time.
+- **Added** an **insight engine** (`lib/simulator/insights.ts`) and a
+  **"What matters in your plan"** panel. It perturbs the engine and
+  *measures*, the same way goal-seek does — so each finding is a fact about
+  the model, ranked by what it's actually worth: "Spending 10% less is
+  worth 5 years — FIRE at 53" (one-click **Apply**), "a 2008-style crash in
+  2031 would delay FIRE by 4 years", "you're saving 70% of after-tax income
+  — real households rarely sustain that". Reality checks deliberately carry
+  no button: there's nothing to apply, the point is the truth.
+- **Changed** **"Save on this device" is now ON by default** — your plan is
+  still there tomorrow, which is what makes it feel like an app. It still
+  never leaves your device, and unticking erases it immediately. Privacy
+  copy updated everywhere to say exactly this.
+- **Fixed** a data-loss race the new default exposed: the persist effect ran
+  before the restore effect and **overwrote a saved session with the blank
+  default scenario**. Writes are now gated until restore finishes.
+- **Security** the guided setup treats its own number fields as untrusted —
+  values are clamped (`Infinity`/`NaN`/negatives squashed) and the assembled
+  scenario passes `assumptionsSchema` before touching app state, exactly
+  like an imported file. No new network calls, no unsafe DOM APIs.
+- **Mobile** numeric keypads (`inputMode`), 44px touch targets, 16px+ inputs
+  so iOS doesn't zoom, and no horizontal overflow at 375px.
+- 120 tests.
+
 ### Goal seek: the liquidity-event lever
 
 Some targets (say, $100M) are beyond any savings rate — they're an
