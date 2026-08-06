@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Renamed: Accretia → Work Optional
+
+"Accretia" was clever (from _accretion_) but needed a paragraph of
+explanation. The new name is the product's own headline — the sentence it
+prints for you is "work becomes optional at 53" — so people know what it
+does before they click.
+
+- **Changed** app name, page title, PWA manifest, package name, both
+  READMEs, and the repo/domain. Chinese keeps the English brand with a
+  plain tagline: 「算出你哪一年可以不上班。」
+- **Changed** the storage key to `workoptional:saved:v1`. The pre-rename key
+  is read once as a fallback and migrated, so nobody loses a saved plan.
+- Historical changelog entries keep the old name — they were true when
+  written.
+
 ### A local agent — guided setup, and findings that rank themselves
 
 The tool could always answer "what happens if"; it couldn't answer "what

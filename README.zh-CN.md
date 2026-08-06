@@ -1,16 +1,16 @@
-# Accretia
+# Work Optional
 
 [English](README.md) · **简体中文**
 
-[![release](https://img.shields.io/github/v/release/tianyi-zhang-02/accretia)](https://github.com/tianyi-zhang-02/accretia/releases) [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![release](https://img.shields.io/github/v/release/tianyi-zhang-02/work-optional)](https://github.com/tianyi-zhang-02/work-optional/releases) [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-_见证财富的复利增长。_ 一个单页、**纯前端**的财富推算模拟器。根据你自己的假设——职业收入、额外收入、大额支出、消费升级，以及低/中/高三档收益率——逐年推算家庭净资产，并回答「要在 Y 岁前达到 X 元，需要什么条件？」。
+_算出你哪一年可以不上班。_ 一个单页、**纯前端**的财富推算模拟器。根据你自己的假设——职业收入、额外收入、大额支出、消费升级，以及低/中/高三档收益率——逐年推算家庭净资产，并回答「要在 Y 岁前达到 X 元，需要什么条件？」。
 
-一切都在浏览器里运行。**没有后端、没有数据库、没有账号，任何数据都绝不上传。** 默认也不保存——刷新即从头开始;可用「导出／导入」把方案存成 JSON 文件，或勾选**「在本设备保存」**(仅存于此浏览器的本地存储,只在你的设备上)。
+一切都在浏览器里运行。**没有后端、没有数据库、没有账号，任何数据都绝不上传。** 方案默认保存在你自己的设备上(此浏览器的本地存储)，下次打开还在——不想留就取消勾选**「在本设备保存」**，或用「导出／导入」存成 JSON 文件。
 
 > 技术栈:Next.js 16(App Router)· TypeScript · Tailwind v4 · Recharts · Zod。没有环境变量,没有服务器。
 
-**线上地址:** https://accretia.vercel.app
+**线上地址:** https://work-optional.vercel.app
 
 ---
 
@@ -62,8 +62,8 @@ _见证财富的复利增长。_ 一个单页、**纯前端**的财富推算模�
 不需要账号、数据库或密钥——克隆下来即可运行。
 
 ```bash
-git clone https://github.com/tianyi-zhang-02/accretia.git
-cd accretia
+git clone https://github.com/tianyi-zhang-02/work-optional.git
+cd work-optional
 npm install
 npm run dev     # → http://localhost:3000
 ```

@@ -68,13 +68,15 @@ function downloadScenarioJson(name: string, assumptions: Assumptions): void {
 }
 
 /**
- * Opt-in local persistence. Default OFF — nothing is stored and a refresh
- * resets, exactly as before. When the user ticks "Save on this device",
- * scenarios live under this single localStorage key, on their device only
- * (nothing is ever sent anywhere); unticking erases it. Restored data is
- * validated against `assumptionsSchema` like any other untrusted input.
+ * Local persistence — ON by default, so the app is still your app tomorrow.
+ * Scenarios live under this ONE localStorage key, on the user's device only
+ * (nothing is ever sent anywhere); unticking "Save on this device" erases it
+ * and drops back to memory-only. Restored data is validated against
+ * `assumptionsSchema` like any other untrusted input.
  */
-const STORAGE_KEY = 'accretia:saved:v1';
+const STORAGE_KEY = 'workoptional:saved:v1';
+/** Pre-rename key. Read once so an existing plan survives the rename. */
+const LEGACY_STORAGE_KEY = 'accretia:saved:v1';
 
 /** Public entry — provides the locale context to the whole app. */
 export default function SimulatorClient() {
@@ -120,13 +122,17 @@ function SimulatorInner() {
   useEffect(() => {
     const id = window.setTimeout(() => {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        // Fall back to the pre-rename key so an existing plan isn't lost;
+        // it's migrated to the current key on the next write.
+        const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+        const raw = localStorage.getItem(STORAGE_KEY) ?? legacy;
         // Nothing saved → first visit. Open the guided setup rather than
         // dropping someone into fifty inputs.
         if (!raw) {
           setGuiding(true);
           return;
         }
+        if (legacy !== null) localStorage.removeItem(LEGACY_STORAGE_KEY);
         const parsed = JSON.parse(raw) as { scenarios?: unknown; selectedId?: unknown };
         if (!Array.isArray(parsed.scenarios)) return;
         const restored: ComparableScenario[] = [];
