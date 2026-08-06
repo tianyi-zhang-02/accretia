@@ -22,7 +22,7 @@ const yrs = (n: number) => `${n} ${n === 1 ? 'year' : 'years'}`;
 const en = {
   app: {
     // Brand name — intentionally NOT translated in either locale.
-    title: 'Accretia',
+    title: 'Work Optional',
     tagline:
       'Project net worth year by year from your own assumptions and watch it compound. Runs entirely in your browser — nothing is ever sent anywhere. Your plan is kept on this device so it’s still here tomorrow; untick “Save on this device” to keep it memory-only, or use Export / Import for a file.',
   },
@@ -452,7 +452,7 @@ export type Messages = typeof en;
 
 const zh: Messages = {
   app: {
-    title: 'Accretia',
+    title: 'Work Optional',
     tagline:
       '根据你自己的假设逐年推算净资产，见证复利的力量。全部运算都在本地浏览器完成——任何数据都不会上传。方案默认保存在这台设备上，下次打开还在；不想留就取消勾选「在本设备保存」，或用「导出／导入」存成文件。',
   },

@@ -8,9 +8,9 @@ import type { MetadataRoute } from 'next';
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Accretia',
-    short_name: 'Accretia',
-    description: 'Project net worth over time from your own assumptions — watch it compound. Client-side, nothing stored.',
+    name: 'Work Optional',
+    short_name: 'Work Optional',
+    description: 'Find out when work becomes optional. Projects your net worth year by year from your own assumptions — entirely in your browser.',
     start_url: '/',
     scope: '/',
     display: 'standalone',

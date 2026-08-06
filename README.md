@@ -1,16 +1,16 @@
-# Accretia
+# Work Optional
 
 **English** · [简体中文](README.zh-CN.md)
 
-[![release](https://img.shields.io/github/v/release/tianyi-zhang-02/accretia)](https://github.com/tianyi-zhang-02/accretia/releases) [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![release](https://img.shields.io/github/v/release/tianyi-zhang-02/work-optional)](https://github.com/tianyi-zhang-02/work-optional/releases) [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-_Watch your wealth accrete._ A single-page, **client-side** wealth-projection simulator. Project household net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
+_Find out when work becomes optional._ A single-page, **client-side** wealth-projection simulator. Project household net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
 
 Everything runs in the browser. **There is no backend, no database, no account, and nothing is ever sent anywhere.** Your plan is kept on your own device (this browser's local storage) so it's still there tomorrow — untick **"Save on this device"** to keep it memory-only, or use Export / Import for a file.
 
 > Stack: Next.js 16 (App Router) · TypeScript · Tailwind v4 · Recharts · Zod. No environment variables. No server.
 
-**Live:** https://accretia.vercel.app
+**Live:** https://work-optional.vercel.app
 
 ---
 
@@ -62,8 +62,8 @@ Because the app has no backend, the security model is trivial:
 No accounts, no database, no keys — just clone and go.
 
 ```bash
-git clone https://github.com/tianyi-zhang-02/accretia.git
-cd accretia
+git clone https://github.com/tianyi-zhang-02/work-optional.git
+cd work-optional
 npm install
 npm run dev     # → http://localhost:3000
 ```
