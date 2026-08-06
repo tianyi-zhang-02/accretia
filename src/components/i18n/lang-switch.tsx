@@ -10,7 +10,7 @@ import { LOCALES, LOCALE_LABEL } from '@/lib/i18n/messages';
 export default function LangSwitch() {
   const { locale, setLocale } = useI18n();
   return (
-    <div className="border-border flex rounded border text-[11px]" role="group" aria-label="Language">
+    <div className="border-border flex rounded border text-xs" role="group" aria-label="Language">
       {LOCALES.map((l) => (
         <button
           key={l}

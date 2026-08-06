@@ -40,7 +40,7 @@ function NumField({
   const display = draft !== null ? draft : value === 0 ? '' : String(value);
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-muted text-xs">{label}</span>
+      <span className="text-muted text-[13px]">{label}</span>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -69,7 +69,7 @@ function NumField({
           }}
           className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-3 py-2 text-base outline-none"
         />
-        {suffix ? <span className="text-muted text-xs">{suffix}</span> : null}
+        {suffix ? <span className="text-muted text-[13px]">{suffix}</span> : null}
       </div>
     </label>
   );
@@ -88,14 +88,14 @@ function LeverRow({
 }) {
   return (
     <li className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
-      <span className="text-foreground text-xs">{label}</span>
+      <span className="text-foreground text-[13px]">{label}</span>
       {result.ok ? (
-        <span className="text-muted nums text-right text-xs">
+        <span className="text-muted nums text-right text-[13px]">
           <span className="text-foreground">{formatValue(result.value)}</span>{' '}
           <span className="text-muted">({formatDelta(result.delta)})</span>
         </span>
       ) : (
-        <span className="text-muted text-right text-[11px] italic">{result.reason}</span>
+        <span className="text-muted text-right text-xs italic">{result.reason}</span>
       )}
     </li>
   );
@@ -136,16 +136,16 @@ export default function GoalSeekPanel({
               setResult(null);
             }
           }}
-          className="text-muted hover:text-foreground text-[11px]"
+          className="text-muted hover:text-foreground text-xs"
         >
           {hasTarget ? t.goalSeek.clearTarget : t.goalSeek.setTarget}
         </button>
       </div>
 
       {!hasTarget ? (
-        <p className="text-muted mt-2 text-xs">{t.goalSeek.hintNoTarget}</p>
+        <p className="text-muted mt-2 text-[13px]">{t.goalSeek.hintNoTarget}</p>
       ) : !hasPeople ? (
-        <p className="text-muted mt-2 text-xs italic">{t.goalSeek.hintNoPeople}</p>
+        <p className="text-muted mt-2 text-[13px] italic">{t.goalSeek.hintNoPeople}</p>
       ) : (
         <>
           <div className="mt-3 grid grid-cols-2 gap-3">
@@ -174,14 +174,14 @@ export default function GoalSeekPanel({
           <button
             type="button"
             onClick={recompute}
-            className="bg-foreground text-background mt-3 rounded px-3 py-1.5 text-xs font-medium"
+            className="bg-foreground text-background mt-3 rounded px-3 py-1.5 text-[13px] font-medium"
           >
             {t.goalSeek.compute}
           </button>
 
           {result ? <GoalSeekDisplay result={result} /> : null}
 
-          <p className="text-muted mt-3 text-[10px] italic">{t.goalSeek.disclaimer}</p>
+          <p className="text-muted mt-3 text-[11px] italic">{t.goalSeek.disclaimer}</p>
         </>
       )}
     </section>
@@ -195,8 +195,8 @@ function GoalSeekDisplay({ result }: { result: GoalSeekResult }) {
   if (result.kind === 'on-track') {
     return (
       <div className="border-border mt-3 flex flex-col gap-1 rounded border p-3">
-        <p className="text-positive text-xs font-medium">{t.goalSeek.onTrack}</p>
-        <p className="text-muted nums text-[11px]">
+        <p className="text-positive text-[13px] font-medium">{t.goalSeek.onTrack}</p>
+        <p className="text-muted nums text-xs">
           {t.goalSeek.onTrackDetail(
             fmt.currency0(result.projected),
             result.targetAge,
@@ -211,14 +211,14 @@ function GoalSeekDisplay({ result }: { result: GoalSeekResult }) {
   return (
     <div className="border-border mt-3 flex flex-col gap-2 rounded border p-3">
       <div className="flex flex-col gap-0.5">
-        <p className="text-foreground text-xs">
+        <p className="text-foreground text-[13px]">
           {t.goalSeek.projectedBy(fmt.currency0(result.projected), result.targetAge)}
         </p>
-        <p className="text-negative text-xs">
+        <p className="text-negative text-[13px]">
           {t.goalSeek.shortBy(fmt.currency0(result.gap), fmt.currency0(result.target))}
         </p>
       </div>
-      <p className="text-muted mt-1 text-[11px]">{t.goalSeek.anyOne}</p>
+      <p className="text-muted mt-1 text-xs">{t.goalSeek.anyOne}</p>
       <ul className="flex flex-col gap-1.5">
         <LeverRow
           label={t.goalSeek.leverSaveExtra}

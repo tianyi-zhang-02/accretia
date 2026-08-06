@@ -366,7 +366,7 @@ function SimulatorInner() {
           <h1 className="serif-display text-2xl">{t.app.title}</h1>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {/* Font size */}
-            <div className="border-border flex rounded border text-[11px]">
+            <div className="border-border flex rounded border text-xs">
               <button
                 type="button"
                 aria-label={t.controls.smaller}
@@ -389,14 +389,14 @@ function SimulatorInner() {
               type="button"
               aria-label={theme === 'dark' ? t.controls.lightTheme : t.controls.darkTheme}
               onClick={() => setTheme((v) => (v === 'dark' ? 'light' : 'dark'))}
-              className="border-border text-muted hover:text-foreground rounded border px-2 py-0.5 text-[11px]"
+              className="border-border text-muted hover:text-foreground rounded border px-2 py-0.5 text-xs"
             >
               {theme === 'dark' ? '☀' : '☾'}
             </button>
             <LangSwitch />
           </div>
         </div>
-        <p className="text-muted text-xs">{t.app.tagline}</p>
+        <p className="text-muted text-[13px]">{t.app.tagline}</p>
       </header>
 
       {/* Scenario bar — pick / name / manage the current scenario. */}
@@ -417,7 +417,7 @@ function SimulatorInner() {
           <button
             type="button"
             onClick={addScenario}
-            className="border-border hover:bg-foreground/5 shrink-0 rounded border px-3 py-2 text-xs"
+            className="border-border hover:bg-foreground/5 shrink-0 rounded border px-3 py-2 text-[13px]"
           >
             {t.scenarioBar.newScenario}
           </button>
@@ -436,21 +436,21 @@ function SimulatorInner() {
           <button
             type="button"
             onClick={duplicateCurrent}
-            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
+            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
           >
             {t.scenarioBar.duplicate}
           </button>
           <button
             type="button"
             onClick={exportCurrent}
-            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
+            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
           >
             {t.scenarioBar.exportJson}
           </button>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
+            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
           >
             {t.scenarioBar.importJson}
           </button>
@@ -462,7 +462,7 @@ function SimulatorInner() {
             className="hidden"
           />
           <label
-            className="text-muted flex cursor-pointer items-center gap-1.5 text-[11px]"
+            className="text-muted flex cursor-pointer items-center gap-1.5 text-xs"
             title={t.scenarioBar.saveLocalHint}
           >
             <input
@@ -490,7 +490,7 @@ function SimulatorInner() {
               setComparing(false);
             }}
             title={t.guided.startHint}
-            className={`rounded border px-3 py-1.5 text-xs ${
+            className={`rounded border px-3 py-1.5 text-[13px] ${
               guiding ? 'border-accent text-accent' : 'border-border hover:bg-foreground/5'
             }`}
           >
@@ -500,7 +500,7 @@ function SimulatorInner() {
             <button
               type="button"
               onClick={() => setComparing((v) => !v)}
-              className={`rounded border px-3 py-1.5 text-xs ${
+              className={`rounded border px-3 py-1.5 text-[13px] ${
                 comparing ? 'border-accent text-accent' : 'border-border hover:bg-foreground/5'
               }`}
             >
@@ -511,14 +511,14 @@ function SimulatorInner() {
             <button
               type="button"
               onClick={removeCurrent}
-              className="text-muted hover:text-negative ml-auto text-xs"
+              className="text-muted hover:text-negative ml-auto text-[13px]"
             >
               {t.scenarioBar.remove}
             </button>
           ) : null}
         </div>
-        {note ? <p className="text-positive text-[11px]">{note}</p> : null}
-        {importError ? <p className="text-negative text-[11px]">{importError}</p> : null}
+        {note ? <p className="text-positive text-xs">{note}</p> : null}
+        {importError ? <p className="text-negative text-xs">{importError}</p> : null}
       </section>
 
       {guiding ? (
@@ -567,14 +567,14 @@ function SimulatorInner() {
                   {t.projection.finalBalance(assumptions.horizonEndYear)}
                 </PixelLabel>
                 <p className="serif-display nums mt-1 text-2xl">{fmt.currency0(lastNominal)}</p>
-                <p className="text-muted nums mt-1 text-xs">
+                <p className="text-muted nums mt-1 text-[13px]">
                   {t.projection.inTodaysDollars(
                     fmt.currency0(lastReal),
                     fmt.signedPct1(totalGrowth),
                   )}
                 </p>
                 {impliedSavingsRate !== null ? (
-                  <p className="text-muted nums mt-1 text-[11px]">
+                  <p className="text-muted nums mt-1 text-xs">
                     {t.projection.impliedSavings(fmt.pct0(impliedSavingsRate))}
                   </p>
                 ) : null}
@@ -586,7 +586,7 @@ function SimulatorInner() {
                   <PixelLabel icon="house">{t.pixel.heading}</PixelLabel>
                   <div className="flex items-center gap-2">
                     {showPixel ? (
-                      <div className="border-border flex rounded border text-[10px]">
+                      <div className="border-border flex rounded border text-[11px]">
                         {(['meadow', 'seaside', 'snow'] as const).map((s) => (
                           <button
                             key={s}
@@ -604,7 +604,7 @@ function SimulatorInner() {
                     <button
                       type="button"
                       onClick={() => setShowPixel((v) => !v)}
-                      className="text-muted hover:text-foreground text-xs"
+                      className="text-muted hover:text-foreground text-[13px]"
                     >
                       {showPixel ? t.pixel.hide : t.pixel.show}
                     </button>
@@ -618,7 +618,7 @@ function SimulatorInner() {
                       theme={theme}
                       scene={pixelScene}
                     />
-                    <p className="text-muted text-[10px]">{t.pixel.caption}</p>
+                    <p className="text-muted text-[11px]">{t.pixel.caption}</p>
                   </>
                 ) : null}
               </section>
@@ -633,7 +633,7 @@ function SimulatorInner() {
                         ? t.projection.bothHeading
                         : t.projection.bandHeading}
                   </PixelLabel>
-                  <div className="border-border flex rounded border text-[11px]">
+                  <div className="border-border flex rounded border text-xs">
                     {(['deterministic', 'probabilistic'] as const).map((e) => (
                       <button
                         key={e}
@@ -652,7 +652,7 @@ function SimulatorInner() {
                 {/* Secondary controls: nominal/real (deterministic) or volatility (probabilistic). */}
                 <div className="flex items-center justify-between gap-2">
                   {chartEngine === 'deterministic' ? (
-                    <div className="border-border flex rounded border text-[11px]">
+                    <div className="border-border flex rounded border text-xs">
                       {(['nominal', 'real', 'both'] as const).map((m) => (
                         <button
                           key={m}
@@ -667,7 +667,7 @@ function SimulatorInner() {
                       ))}
                     </div>
                   ) : (
-                    <label className="text-muted flex items-center gap-1.5 text-[11px]">
+                    <label className="text-muted flex items-center gap-1.5 text-xs">
                       {t.projection.volatility}
                       <input
                         type="number"
@@ -684,7 +684,7 @@ function SimulatorInner() {
                     </label>
                   )}
                   {chartEngine === 'probabilistic' && mc?.successProbability != null ? (
-                    <span className="text-positive nums text-[11px]">
+                    <span className="text-positive nums text-xs">
                       {t.projection.successProb(fmt.pct0(mc.successProbability * 100))}
                     </span>
                   ) : null}
@@ -694,15 +694,15 @@ function SimulatorInner() {
                   mc ? (
                     <MonteCarloChart mc={mc} />
                   ) : (
-                    <p className="text-negative text-xs">{t.projection.computeError}</p>
+                    <p className="text-negative text-[13px]">{t.projection.computeError}</p>
                   )
                 ) : result ? (
                   <SimulatorChart result={result} mode={displayMode} markers={markers} />
                 ) : (
-                  <p className="text-negative text-xs">{t.projection.computeError}</p>
+                  <p className="text-negative text-[13px]">{t.projection.computeError}</p>
                 )}
 
-                <p className="text-muted text-[10px]">
+                <p className="text-muted text-[11px]">
                   {chartEngine === 'probabilistic'
                     ? mc?.successProbability == null
                       ? `${t.projection.mcCaption} ${t.projection.mcNeedTarget}`
@@ -717,10 +717,10 @@ function SimulatorInner() {
               <button
                 type="button"
                 onClick={() => setAdvanced((v) => !v)}
-                className="border-border hover:bg-foreground/5 flex items-center justify-between rounded border px-3 py-2 text-left text-xs"
+                className="border-border hover:bg-foreground/5 flex items-center justify-between rounded border px-3 py-2 text-left text-[13px]"
               >
                 <span>{advanced ? t.advanced.hide : t.advanced.show}</span>
-                <span className="text-muted text-[10px]">
+                <span className="text-muted text-[11px]">
                   {advanced ? '−' : `+ ${t.advanced.hint}`}
                 </span>
               </button>
@@ -759,7 +759,7 @@ function SimulatorInner() {
               <button
                 type="button"
                 onClick={() => setShowTable((v) => !v)}
-                className="text-muted hover:text-foreground text-xs"
+                className="text-muted hover:text-foreground text-[13px]"
               >
                 {showTable ? t.table.hide : t.table.show}
               </button>
@@ -775,7 +775,7 @@ function SimulatorInner() {
         </>
       )}
 
-      <p className="text-muted text-[10px] italic">{t.footer.disclaimer}</p>
+      <p className="text-muted text-[11px] italic">{t.footer.disclaimer}</p>
     </div>
   );
 }

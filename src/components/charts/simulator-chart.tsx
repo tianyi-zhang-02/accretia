@@ -51,7 +51,7 @@ function CustomTooltip({
 
   if (mode === 'both') {
     return (
-      <div className="border-border bg-background/95 rounded border px-2 py-1.5 text-[11px] shadow-lg backdrop-blur">
+      <div className="border-border bg-background/95 rounded border px-2 py-1.5 text-xs shadow-lg backdrop-blur">
         <p className="text-muted nums">{p.year}</p>
         <p className="nums">
           <span className="text-muted">{t.projection.nominal}</span>{' '}
@@ -70,7 +70,7 @@ function CustomTooltip({
 
   const base = mode === 'real' ? p.real : p.nominal;
   return (
-    <div className="border-border bg-background/95 rounded border px-2 py-1.5 text-[11px] shadow-lg backdrop-blur">
+    <div className="border-border bg-background/95 rounded border px-2 py-1.5 text-xs shadow-lg backdrop-blur">
       <p className="text-muted nums">
         {p.year} · {mode === 'real' ? t.chart.todaysDollars : t.chart.nominal}
       </p>
@@ -118,7 +118,7 @@ export default function SimulatorChart({
 
   if (data.length === 0) {
     return (
-      <div className="border-border text-muted flex h-[220px] items-center justify-center rounded border border-dashed text-xs">
+      <div className="border-border text-muted flex h-[220px] items-center justify-center rounded border border-dashed text-[13px]">
         {t.chart.adjustHorizon}
       </div>
     );

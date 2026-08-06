@@ -104,11 +104,11 @@ export default function CompareView({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <p className="text-muted text-[10px] tracking-[0.18em] uppercase">{t.compare.heading}</p>
+        <p className="text-muted text-[11px] tracking-[0.18em] uppercase">{t.compare.heading}</p>
         <button
           type="button"
           onClick={onExit}
-          className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
+          className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
         >
           {t.compare.backToEditor}
         </button>
@@ -120,7 +120,7 @@ export default function CompareView({
         </div>
       ) : (
         <>
-          <p className="text-muted text-xs">{t.compare.pickUpTo(MAX_SELECTED)}</p>
+          <p className="text-muted text-[13px]">{t.compare.pickUpTo(MAX_SELECTED)}</p>
           <ul className="flex flex-col gap-1">
             {scenarios.map((s, i) => {
               const checked = selectedIds.includes(s.id);
@@ -148,7 +148,7 @@ export default function CompareView({
                     />
                     <span className="flex-1 truncate">{s.name}</span>
                     {i === 0 ? (
-                      <span className="text-muted text-[10px]">{t.compare.mostRecent}</span>
+                      <span className="text-muted text-[11px]">{t.compare.mostRecent}</span>
                     ) : null}
                   </label>
                 </li>
@@ -210,8 +210,8 @@ export default function CompareView({
           </div>
 
           <div className="border-border overflow-x-auto rounded border">
-            <table className="nums w-full min-w-[480px] text-[11px]">
-              <thead className="text-muted text-[10px] tracking-wide uppercase">
+            <table className="nums w-full min-w-[480px] text-xs">
+              <thead className="text-muted text-[11px] tracking-wide uppercase">
                 <tr className="border-border border-b">
                   <th className="px-2 py-2 text-left">{t.compare.scenario}</th>
                   <th className="px-2 py-2 text-right">{t.compare.endBalance}</th>
@@ -258,7 +258,7 @@ export default function CompareView({
               </tbody>
             </table>
           </div>
-          <p className="text-muted text-[10px]">{t.compare.note}</p>
+          <p className="text-muted text-[11px]">{t.compare.note}</p>
         </>
       ) : null}
     </div>

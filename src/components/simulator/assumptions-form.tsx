@@ -52,11 +52,11 @@ function Section({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
       >
-        <span className="flex items-center gap-2.5 text-[11px] tracking-[0.2em] uppercase">
+        <span className="flex items-center gap-2.5 text-xs tracking-[0.2em] uppercase">
           <PixelIcon name={icon} size={13} className={open ? 'text-foreground' : 'text-muted'} />
           {title}
         </span>
-        <span className="text-muted text-xs">{open ? '−' : '+'}</span>
+        <span className="text-muted text-[13px]">{open ? '−' : '+'}</span>
       </button>
       {open ? <div className="border-border border-t px-4 py-4">{children}</div> : null}
     </section>
@@ -91,7 +91,7 @@ function NumField({
 
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-muted text-xs">{label}</span>
+      <span className="text-muted text-[13px]">{label}</span>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -120,7 +120,7 @@ function NumField({
           }}
           className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-3 py-2 text-base outline-none"
         />
-        {suffix ? <span className="text-muted text-xs">{suffix}</span> : null}
+        {suffix ? <span className="text-muted text-[13px]">{suffix}</span> : null}
       </div>
     </label>
   );
@@ -159,7 +159,7 @@ function RoleSearchBox({ onPick }: { onPick: (preset: RolePreset) => void }) {
         onFocus={() => setOpen(true)}
         onBlur={() => window.setTimeout(() => setOpen(false), 150)}
         placeholder={t.form.role.searchPlaceholder(ROLE_PRESETS.length)}
-        className="border-border focus:border-foreground placeholder:text-muted/50 w-full rounded border bg-transparent px-3 py-2 text-xs outline-none"
+        className="border-border focus:border-foreground placeholder:text-muted/50 w-full rounded border bg-transparent px-3 py-2 text-[13px] outline-none"
       />
       {open ? (
         <div
@@ -167,11 +167,11 @@ function RoleSearchBox({ onPick }: { onPick: (preset: RolePreset) => void }) {
           role="listbox"
         >
           {groups.length === 0 ? (
-            <p className="text-muted px-3 py-3 text-[11px]">{t.form.role.noMatch(query)}</p>
+            <p className="text-muted px-3 py-3 text-xs">{t.form.role.noMatch(query)}</p>
           ) : (
             groups.map(([track, roles]) => (
               <div key={track}>
-                <p className="text-muted bg-background/95 sticky top-0 px-3 py-1.5 text-[10px] font-medium tracking-[0.16em] uppercase backdrop-blur">
+                <p className="text-muted bg-background/95 sticky top-0 px-3 py-1.5 text-[11px] font-medium tracking-[0.16em] uppercase backdrop-blur">
                   {t.presets.track[track]}
                 </p>
                 <ul>
@@ -187,10 +187,10 @@ function RoleSearchBox({ onPick }: { onPick: (preset: RolePreset) => void }) {
                         }}
                         className="hover:bg-foreground/5 flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left"
                       >
-                        <span className="text-foreground text-xs">
+                        <span className="text-foreground text-[13px]">
                           {locale === 'zh' ? r.titleZh : r.title}
                         </span>
-                        <span className="text-muted nums text-[10px]">
+                        <span className="text-muted nums text-[11px]">
                           {fmt.currency0(r.baseSalary)} {t.form.role.base} · +{r.annualRaisePct}% ·{' '}
                           {r.bonusPct}% {t.form.role.bonus}
                           {r.annualEquity > 0
@@ -198,7 +198,7 @@ function RoleSearchBox({ onPick }: { onPick: (preset: RolePreset) => void }) {
                             : ''}
                         </span>
                         {(locale === 'zh' ? r.notesZh : r.notes) ? (
-                          <span className="text-muted text-[10px] italic">
+                          <span className="text-muted text-[11px] italic">
                             {locale === 'zh' ? r.notesZh : r.notes}
                           </span>
                         ) : null}
@@ -230,7 +230,7 @@ function TextField({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-muted text-xs">{label}</span>
+      <span className="text-muted text-[13px]">{label}</span>
       <input
         type="text"
         value={value}
@@ -272,7 +272,7 @@ function LifestyleEditor({
   return (
     <div className="flex flex-col gap-3">
       <label className="flex flex-col gap-1">
-        <span className="text-muted text-xs">{t.form.lifestyle.mode}</span>
+        <span className="text-muted text-[13px]">{t.form.lifestyle.mode}</span>
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value as 'off' | 'flat' | 'incomeScaled')}
@@ -308,7 +308,7 @@ function LifestyleEditor({
         />
       ) : null}
 
-      <p className="text-muted text-[10px]">{t.form.lifestyle.explainer}</p>
+      <p className="text-muted text-[11px]">{t.form.lifestyle.explainer}</p>
     </div>
   );
 }
@@ -332,12 +332,12 @@ function TaxEstimator({
 
   return (
     <div className="border-border flex flex-col gap-2 rounded border p-3">
-      <p className="text-muted text-[10px] tracking-[0.18em] uppercase">
+      <p className="text-muted text-[11px] tracking-[0.18em] uppercase">
         {t.form.taxes.estimateHeading}
       </p>
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1">
-          <span className="text-muted text-xs">{t.form.taxes.state}</span>
+          <span className="text-muted text-[13px]">{t.form.taxes.state}</span>
           <select
             value={stateCode}
             onChange={(e) => setStateCode(e.target.value)}
@@ -351,7 +351,7 @@ function TaxEstimator({
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-muted text-xs">{t.form.taxes.grossIncome}</span>
+          <span className="text-muted text-[13px]">{t.form.taxes.grossIncome}</span>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -363,7 +363,7 @@ function TaxEstimator({
               onChange={(e) => setIncome(e.target.value)}
               className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-2 py-2 text-sm outline-none"
             />
-            <span className="text-muted text-xs">$</span>
+            <span className="text-muted text-[13px]">$</span>
           </div>
         </label>
       </div>
@@ -375,12 +375,12 @@ function TaxEstimator({
           type="button"
           onClick={() => onApply(estimate)}
           disabled={estimate === currentRate}
-          className="bg-foreground text-background rounded px-3 py-1 text-xs font-medium disabled:opacity-40"
+          className="bg-foreground text-background rounded px-3 py-1 text-[13px] font-medium disabled:opacity-40"
         >
           {t.form.taxes.apply}
         </button>
       </div>
-      <p className="text-muted text-[10px] italic">{t.form.taxes.note(TAX_LAST_REVIEWED)}</p>
+      <p className="text-muted text-[11px] italic">{t.form.taxes.note(TAX_LAST_REVIEWED)}</p>
     </div>
   );
 }
@@ -415,7 +415,7 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
 
   return (
     <div className="border-border flex flex-col gap-2 rounded border p-3">
-      <p className="text-muted text-[10px] tracking-[0.18em] uppercase">
+      <p className="text-muted text-[11px] tracking-[0.18em] uppercase">
         {t.form.allocation.heading}
       </p>
       <div className="flex flex-col gap-2">
@@ -454,7 +454,7 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
             <button
               type="button"
               onClick={() => setBuckets((arr) => arr.filter((_, j) => j !== i))}
-              className="text-muted hover:text-negative mt-1 text-[11px]"
+              className="text-muted hover:text-negative mt-1 text-xs"
             >
               {t.form.allocation.remove}
             </button>
@@ -469,11 +469,11 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
             { label: t.form.allocation.asset, weightPct: 0, returnPct: 5, costPct: 0 },
           ])
         }
-        className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1 text-[11px]"
+        className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1 text-xs"
       >
         {t.form.allocation.addBucket}
       </button>
-      <p className="text-muted text-[11px]">
+      <p className="text-muted text-xs">
         {t.form.allocation.totalWeight(Math.round(totalWeight))}
       </p>
       <div className="flex flex-wrap items-center gap-3">
@@ -481,12 +481,12 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
         <button
           type="button"
           onClick={() => onApply(Number(blended.toFixed(1)))}
-          className="bg-foreground text-background rounded px-3 py-1 text-xs font-medium"
+          className="bg-foreground text-background rounded px-3 py-1 text-[13px] font-medium"
         >
           {t.form.allocation.apply}
         </button>
       </div>
-      <p className="text-muted text-[10px] italic">{t.form.allocation.note}</p>
+      <p className="text-muted text-[11px] italic">{t.form.allocation.note}</p>
     </div>
   );
 }
@@ -519,7 +519,7 @@ function MortgageEditor({
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="flex items-center gap-2 text-xs">
+      <label className="flex items-center gap-2 text-[13px]">
         <input
           type="checkbox"
           checked={!!value}
@@ -612,12 +612,12 @@ function MortgageEditor({
               onChange={(n) => patch({ homeAppreciationPct: n })}
             />
           </div>
-          <p className="text-muted nums text-[11px]">
+          <p className="text-muted nums text-xs">
             {t.form.mortgage.monthlyPayment(fmt.currency0(annual / 12))}
           </p>
         </>
       ) : null}
-      <p className="text-muted text-[10px] italic">{t.form.mortgage.note}</p>
+      <p className="text-muted text-[11px] italic">{t.form.mortgage.note}</p>
     </div>
   );
 }
@@ -795,7 +795,7 @@ export default function AssumptionsForm({
             onChange={(n) => update({ investedSharePct: Math.min(100, Math.max(0, n)) })}
             suffix="%"
           />
-          <p className="text-muted text-[10px]">{t.form.starting.investedShareHint}</p>
+          <p className="text-muted text-[11px]">{t.form.starting.investedShareHint}</p>
         </div>
       </Section>
 
@@ -814,7 +814,7 @@ export default function AssumptionsForm({
             onChange={(n) => update({ effectiveTaxRatePct: n })}
             suffix="%"
           />
-          <p className="text-muted text-[10px]">{t.form.taxes.savingsDerivedNote}</p>
+          <p className="text-muted text-[11px]">{t.form.taxes.savingsDerivedNote}</p>
         </div>
       </Section>
 
@@ -834,7 +834,7 @@ export default function AssumptionsForm({
           <button
             type="button"
             onClick={() => setShowAllocation((v) => !v)}
-            className="text-muted hover:text-foreground self-start text-[11px] underline-offset-2 hover:underline"
+            className="text-muted hover:text-foreground self-start text-xs underline-offset-2 hover:underline"
           >
             {showAllocation ? '− ' : '+ '}
             {t.form.allocation.heading}
@@ -876,7 +876,7 @@ export default function AssumptionsForm({
               suffix="%"
             />
           </div>
-          <p className="text-muted text-[10px]">{t.form.investment.constraint}</p>
+          <p className="text-muted text-[11px]">{t.form.investment.constraint}</p>
         </div>
       </Section>
 
@@ -910,12 +910,12 @@ export default function AssumptionsForm({
               </div>
 
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-muted text-[10px] tracking-[0.18em] uppercase">
+                <span className="text-muted text-[11px] tracking-[0.18em] uppercase">
                   {t.form.person.careerStages(p.careerStages.length)}
                 </span>
                 <div className="flex items-center gap-2">
                   <select
-                    className="border-border bg-background rounded border px-2 py-1 text-[11px]"
+                    className="border-border bg-background rounded border px-2 py-1 text-xs"
                     defaultValue=""
                     onChange={(e) => {
                       if (e.target.value) {
@@ -936,29 +936,29 @@ export default function AssumptionsForm({
                   <button
                     type="button"
                     onClick={() => addStage(p.id)}
-                    className="border-border hover:bg-foreground/5 rounded border px-2 py-1 text-[11px]"
+                    className="border-border hover:bg-foreground/5 rounded border px-2 py-1 text-xs"
                   >
                     {t.form.person.addStage}
                   </button>
                   <button
                     type="button"
                     onClick={() => addBreak(p.id)}
-                    className="border-border hover:bg-foreground/5 rounded border px-2 py-1 text-[11px]"
+                    className="border-border hover:bg-foreground/5 rounded border px-2 py-1 text-xs"
                   >
                     {t.form.person.addBreak}
                   </button>
                 </div>
               </div>
-              <p className="text-muted mt-1 text-[10px]">{t.form.person.stagesHint}</p>
+              <p className="text-muted mt-1 text-[11px]">{t.form.person.stagesHint}</p>
 
               {p.careerStages.length === 0 ? (
-                <p className="text-muted mt-2 text-xs italic">{t.form.person.noStages}</p>
+                <p className="text-muted mt-2 text-[13px] italic">{t.form.person.noStages}</p>
               ) : (
                 <ul className="mt-3 flex flex-col gap-2">
                   {p.careerStages.map((s, i) => (
                     <li key={i} className="border-border rounded border p-3">
                       <div className="mb-3 flex flex-col gap-1">
-                        <span className="text-muted text-[10px] tracking-[0.18em] uppercase">
+                        <span className="text-muted text-[11px] tracking-[0.18em] uppercase">
                           {t.form.person.roleLibrary}
                         </span>
                         <RoleSearchBox
@@ -971,7 +971,7 @@ export default function AssumptionsForm({
                             })
                           }
                         />
-                        <span className="text-muted text-[10px] italic">
+                        <span className="text-muted text-[11px] italic">
                           {t.form.person.startingEstimates}
                         </span>
                       </div>
@@ -1034,7 +1034,7 @@ export default function AssumptionsForm({
                       <button
                         type="button"
                         onClick={() => removeStage(p.id, i)}
-                        className="text-muted hover:text-negative mt-2 text-[11px]"
+                        className="text-muted hover:text-negative mt-2 text-xs"
                       >
                         {t.form.person.removeStage}
                       </button>
@@ -1046,7 +1046,7 @@ export default function AssumptionsForm({
               <button
                 type="button"
                 onClick={() => removePerson(p.id)}
-                className="text-muted hover:text-negative mt-3 text-[11px]"
+                className="text-muted hover:text-negative mt-3 text-xs"
               >
                 {t.form.person.removePerson}
               </button>
@@ -1055,7 +1055,7 @@ export default function AssumptionsForm({
           <button
             type="button"
             onClick={addPerson}
-            className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-xs"
+            className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-[13px]"
           >
             {t.form.person.addPerson}
           </button>
@@ -1100,7 +1100,7 @@ export default function AssumptionsForm({
               <button
                 type="button"
                 onClick={() => setWindfalls(value.windfalls.filter((_, j) => j !== i))}
-                className="text-muted hover:text-negative mt-2 text-[11px]"
+                className="text-muted hover:text-negative mt-2 text-xs"
               >
                 {t.form.windfall.remove}
               </button>
@@ -1118,7 +1118,7 @@ export default function AssumptionsForm({
                 },
               ])
             }
-            className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-xs"
+            className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-[13px]"
           >
             {t.form.windfall.add}
           </button>
@@ -1136,12 +1136,12 @@ export default function AssumptionsForm({
             return (
               <div key={i} className="border-border rounded border p-3">
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="text-muted text-[10px] tracking-[0.18em] uppercase">
+                  <span className="text-muted text-[11px] tracking-[0.18em] uppercase">
                     {isRecurring ? t.form.major.recurring : t.form.major.oneTime}
                   </span>
                   <button
                     type="button"
-                    className="text-muted hover:text-foreground text-[11px] underline-offset-2 hover:underline"
+                    className="text-muted hover:text-foreground text-xs underline-offset-2 hover:underline"
                     onClick={() => {
                       setMajor(
                         value.majorExpenses.map((x, j) => {
@@ -1173,7 +1173,7 @@ export default function AssumptionsForm({
                     }
                   />
                   <label className="flex flex-col gap-1">
-                    <span className="text-muted text-xs">{t.form.major.kind}</span>
+                    <span className="text-muted text-[13px]">{t.form.major.kind}</span>
                     <select
                       value={e.kind ?? 'other'}
                       onChange={(ev) =>
@@ -1274,7 +1274,7 @@ export default function AssumptionsForm({
                 <button
                   type="button"
                   onClick={() => setMajor(value.majorExpenses.filter((_, j) => j !== i))}
-                  className="text-muted hover:text-negative mt-2 text-[11px]"
+                  className="text-muted hover:text-negative mt-2 text-xs"
                 >
                   {t.form.major.remove}
                 </button>
@@ -1294,7 +1294,7 @@ export default function AssumptionsForm({
                   },
                 ])
               }
-              className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
+              className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
             >
               {t.form.major.addOneTime}
             </button>
@@ -1311,7 +1311,7 @@ export default function AssumptionsForm({
                   },
                 ])
               }
-              className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
+              className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
             >
               {t.form.major.addRecurring}
             </button>
@@ -1354,9 +1354,9 @@ export default function AssumptionsForm({
               onChange={(n) => update({ retirement: { ...value.retirement, postReturnPct: n } })}
             />
           </div>
-          <p className="text-muted text-[10px]">{t.form.retirement.note}</p>
+          <p className="text-muted text-[11px]">{t.form.retirement.note}</p>
 
-          <p className="text-muted text-[10px] tracking-[0.18em] uppercase">
+          <p className="text-muted text-[11px] tracking-[0.18em] uppercase">
             {t.form.retirement.incomes}
           </p>
           {(value.otherIncomes ?? []).map((inc, i) => {
@@ -1413,7 +1413,7 @@ export default function AssumptionsForm({
                   />
                 </div>
                 <div className="mt-2 flex items-center justify-between">
-                  <label className="text-muted flex items-center gap-1.5 text-[11px]">
+                  <label className="text-muted flex items-center gap-1.5 text-xs">
                     <input
                       type="checkbox"
                       checked={inc.inflationAdjusted !== false}
@@ -1432,7 +1432,7 @@ export default function AssumptionsForm({
                   <button
                     type="button"
                     onClick={() => setIncomes(incomes.filter((_, j) => j !== i))}
-                    className="text-muted hover:text-negative text-[11px]"
+                    className="text-muted hover:text-negative text-xs"
                   >
                     {t.form.retirement.remove}
                   </button>
@@ -1450,7 +1450,7 @@ export default function AssumptionsForm({
                 ],
               })
             }
-            className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-xs"
+            className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-[13px]"
           >
             {t.form.retirement.addIncome}
           </button>

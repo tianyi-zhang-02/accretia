@@ -6,6 +6,26 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Readability, and a number-input fix
+
+- **Fixed** clearing a number field in the guided setup didn't clear it — a
+  plain controlled `value={number}` turned the empty box straight back into
+  `0`, so you could never delete the last digit; you had to select-all and
+  overtype. It now keeps a string buffer while typing (the same pattern the
+  assumptions form already used) and settles to a sensible default on blur,
+  not to zero.
+- **Changed** the whole type scale up one step. There were **85 pieces of
+  user-facing text below 12px** (39 at 10px, 46 at 11px) and only 15 at
+  14px; body copy is now 13px, secondary 12px, micro-labels 11px, and
+  nothing renders at 10px.
+- **Changed** `--muted` contrast on both themes (dark `#a1a1aa` → `#b5b5c0`,
+  light `#6b6b74` → `#57575f`). Small *and* grey is where readability
+  actually dies.
+- **Changed** default body line-height to 1.55 with antialiasing — tight
+  lines are the other half of why small text reads badly.
+- Verified desktop + 375px mobile, both themes: no overflow, nothing
+  clipped.
+
 ### Design: the pixel world became the design language
 
 The journey strip had a visual identity the rest of the page didn't share.

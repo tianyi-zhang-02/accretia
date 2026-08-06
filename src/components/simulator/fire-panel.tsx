@@ -29,7 +29,7 @@ function NumField({
   const display = draft !== null ? draft : value === 0 ? '' : String(value);
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-muted text-xs">{label}</span>
+      <span className="text-muted text-[13px]">{label}</span>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -56,7 +56,7 @@ function NumField({
           }}
           className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-3 py-2 text-base outline-none"
         />
-        {suffix ? <span className="text-muted text-xs">{suffix}</span> : null}
+        {suffix ? <span className="text-muted text-[13px]">{suffix}</span> : null}
       </div>
     </label>
   );
@@ -127,7 +127,7 @@ export default function FirePanel({
   return (
     <section className="border-border rounded border p-4">
       <PixelLabel icon="house">{t.fire.heading}</PixelLabel>
-      <p className="text-muted mt-1 text-xs">{t.fire.intro}</p>
+      <p className="text-muted mt-1 text-[13px]">{t.fire.intro}</p>
 
       <div className="mt-3 grid grid-cols-3 gap-3">
         <NumField
@@ -158,22 +158,22 @@ export default function FirePanel({
       </div>
 
       {fire.fullSpend <= 0 ? (
-        <p className="text-muted mt-3 text-xs italic">{t.fire.needExpenses}</p>
+        <p className="text-muted mt-3 text-[13px] italic">{t.fire.needExpenses}</p>
       ) : (
         <div className="mt-3 flex flex-col gap-2">
           {/* Full FIRE */}
           <div className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
             <div className="flex flex-col">
-              <span className="text-foreground text-xs">{t.fire.fullLabel}</span>
-              <span className="text-muted text-[10px]">
+              <span className="text-foreground text-[13px]">{t.fire.fullLabel}</span>
+              <span className="text-muted text-[11px]">
                 {t.fire.covers(fmt.currency0(fire.fullSpend))}
               </span>
             </div>
             <div className="text-right">
-              <span className="nums text-foreground block text-xs">
+              <span className="nums text-foreground block text-[13px]">
                 {fmt.currency0(fire.full.number)}
               </span>
-              <span className={`text-[10px] ${fullStatus.ok ? 'text-positive' : 'text-muted'}`}>
+              <span className={`text-[11px] ${fullStatus.ok ? 'text-positive' : 'text-muted'}`}>
                 {fullStatus.text}
               </span>
             </div>
@@ -183,16 +183,16 @@ export default function FirePanel({
           {showLean ? (
             <div className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
               <div className="flex flex-col">
-                <span className="text-foreground text-xs">{t.fire.leanLabel}</span>
-                <span className="text-muted text-[10px]">
+                <span className="text-foreground text-[13px]">{t.fire.leanLabel}</span>
+                <span className="text-muted text-[11px]">
                   {t.fire.covers(fmt.currency0(fire.leanSpend))}
                 </span>
               </div>
               <div className="text-right">
-                <span className="nums text-foreground block text-xs">
+                <span className="nums text-foreground block text-[13px]">
                   {fmt.currency0(fire.lean.number)}
                 </span>
-                <span className={`text-[10px] ${leanStatus.ok ? 'text-positive' : 'text-muted'}`}>
+                <span className={`text-[11px] ${leanStatus.ok ? 'text-positive' : 'text-muted'}`}>
                   {leanStatus.text}
                 </span>
               </div>
@@ -201,9 +201,9 @@ export default function FirePanel({
 
           {/* Coast FIRE */}
           <div className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
-            <span className="text-foreground text-xs">{t.fire.coastLabel}</span>
+            <span className="text-foreground text-[13px]">{t.fire.coastLabel}</span>
             <span
-              className={`text-right text-[10px] ${coastText.ok ? 'text-positive' : 'text-muted'}`}
+              className={`text-right text-[11px] ${coastText.ok ? 'text-positive' : 'text-muted'}`}
             >
               {coastText.text}
             </span>
@@ -211,7 +211,7 @@ export default function FirePanel({
         </div>
       )}
 
-      <p className="text-muted mt-3 text-[10px] italic">{t.fire.disclaimer}</p>
+      <p className="text-muted mt-3 text-[11px] italic">{t.fire.disclaimer}</p>
     </section>
   );
 }
