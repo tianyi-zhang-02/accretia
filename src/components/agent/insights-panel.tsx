@@ -60,7 +60,7 @@ export default function InsightsPanel({
             key={`${ins.id}-${i}`}
             className="border-border hover:border-foreground/25 flex items-start justify-between gap-3 rounded border px-3 py-2.5 transition-colors"
           >
-            <span className="flex items-start gap-2.5 text-xs leading-relaxed">
+            <span className="flex items-start gap-2.5 text-[13px] leading-relaxed">
               <PixelIcon
                 name={ICON_FOR[ins.id]}
                 size={14}
@@ -72,7 +72,7 @@ export default function InsightsPanel({
               <button
                 type="button"
                 onClick={() => onChange({ ...assumptions, ...ins.patch })}
-                className="border-accent/50 text-accent hover:bg-accent hover:text-background min-h-8 shrink-0 rounded border px-2.5 text-[11px] font-medium transition-colors"
+                className="border-accent/50 text-accent hover:bg-accent hover:text-background min-h-8 shrink-0 rounded border px-2.5 text-xs font-medium transition-colors"
               >
                 {t.insights.apply}
               </button>
@@ -81,7 +81,7 @@ export default function InsightsPanel({
         ))}
       </ul>
 
-      <p className="text-muted mt-3 flex items-start gap-2 text-[10px] italic">
+      <p className="text-muted mt-3 flex items-start gap-2 text-[11px] italic">
         <PixelIcon name="shield" size={11} className="mt-px shrink-0" />
         {t.insights.disclaimer}
       </p>
@@ -104,7 +104,7 @@ function Headline({ insight }: { insight: Insight }) {
           <p className="serif-display text-2xl leading-tight text-balance sm:text-3xl">
             {t.insights.fireAge(insight.age)}
           </p>
-          <p className="text-muted mt-1 text-xs">{t.insights.fireAgeSub(insight.year)}</p>
+          <p className="text-muted mt-1 text-[13px]">{t.insights.fireAgeSub(insight.year)}</p>
         </div>
       </div>
     );

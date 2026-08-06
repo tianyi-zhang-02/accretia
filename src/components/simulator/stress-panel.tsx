@@ -28,7 +28,7 @@ function NumField({
   const display = draft !== null ? draft : value === 0 ? '' : String(value);
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-muted text-xs">{label}</span>
+      <span className="text-muted text-[13px]">{label}</span>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -55,7 +55,7 @@ function NumField({
           }}
           className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-3 py-2 text-base outline-none"
         />
-        {suffix ? <span className="text-muted text-xs">{suffix}</span> : null}
+        {suffix ? <span className="text-muted text-[13px]">{suffix}</span> : null}
       </div>
     </label>
   );
@@ -109,7 +109,7 @@ export default function StressPanel({
   return (
     <section className="border-border rounded border p-4">
       <PixelLabel icon="cloud">{t.stress.heading}</PixelLabel>
-      <p className="text-muted mt-1 text-xs">{t.stress.intro}</p>
+      <p className="text-muted mt-1 text-[13px]">{t.stress.intro}</p>
 
       {/* Quick presets. */}
       <div className="mt-3 flex flex-wrap gap-2">
@@ -121,14 +121,14 @@ export default function StressPanel({
               jobLoss: { startYear: nextYear, years: 1, incomeReplacementPct: 0 },
             })
           }
-          className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[11px]"
+          className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
         >
           {t.stress.presetJobLoss}
         </button>
         <button
           type="button"
           onClick={() => setStress({ ...stress, marketShock: { year: nextYear, returnPct: -37 } })}
-          className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[11px]"
+          className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
         >
           {t.stress.presetCrash}
         </button>
@@ -136,7 +136,7 @@ export default function StressPanel({
 
       {/* Job loss. */}
       <div className="border-border mt-3 rounded border p-3">
-        <label className="flex items-center gap-2 text-xs">
+        <label className="flex items-center gap-2 text-[13px]">
           <input
             type="checkbox"
             checked={!!stress?.jobLoss}
@@ -154,7 +154,7 @@ export default function StressPanel({
         {stress?.jobLoss ? (
           <div className="mt-3 grid grid-cols-2 gap-3">
             <label className="flex flex-col gap-1">
-              <span className="text-muted text-xs">{t.stress.who}</span>
+              <span className="text-muted text-[13px]">{t.stress.who}</span>
               <select
                 value={stress.jobLoss.personId ?? ''}
                 onChange={(e) => patchJobLoss({ personId: e.target.value || undefined })}
@@ -199,7 +199,7 @@ export default function StressPanel({
 
       {/* Market crash. */}
       <div className="border-border mt-3 rounded border p-3">
-        <label className="flex items-center gap-2 text-xs">
+        <label className="flex items-center gap-2 text-[13px]">
           <input
             type="checkbox"
             checked={!!stress?.marketShock}
@@ -236,28 +236,28 @@ export default function StressPanel({
 
       {/* Impact. */}
       <div className="mt-3 flex flex-col gap-1">
-        <p className="text-muted nums text-[11px]">
+        <p className="text-muted nums text-xs">
           {t.stress.baselineFinal(fmt.currency0(baselineFinal))}
         </p>
         {impact ? (
           <>
-            <p className="nums text-xs">
+            <p className="nums text-[13px]">
               {t.stress.stressedFinal(
                 fmt.currency0(impact.finalNw),
                 fmt.currencyDelta(impact.delta),
                 fmt.signedPct1(impact.pct),
               )}
             </p>
-            <p className="text-muted nums text-[11px]">
+            <p className="text-muted nums text-xs">
               {t.stress.trough(fmt.currency0(impact.troughValue), impact.troughYear)}
             </p>
           </>
         ) : (
-          <p className="text-muted text-[11px] italic">{t.stress.none}</p>
+          <p className="text-muted text-xs italic">{t.stress.none}</p>
         )}
       </div>
 
-      <p className="text-muted mt-3 text-[10px] italic">{t.stress.disclaimer}</p>
+      <p className="text-muted mt-3 text-[11px] italic">{t.stress.disclaimer}</p>
     </section>
   );
 }

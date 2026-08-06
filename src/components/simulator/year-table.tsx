@@ -19,8 +19,8 @@ export default function YearTable({
 
   return (
     <div className="border-border overflow-x-auto rounded border">
-      <table className="nums w-full min-w-[640px] text-[11px]">
-        <thead className="text-muted text-[10px] tracking-wide uppercase">
+      <table className="nums w-full min-w-[640px] text-xs">
+        <thead className="text-muted text-[11px] tracking-wide uppercase">
           <tr className="border-border border-b">
             <th className="px-2 py-2 text-left">{t.table.year}</th>
             {people.length > 0 ? <th className="px-2 py-2 text-left">{t.table.ages}</th> : null}

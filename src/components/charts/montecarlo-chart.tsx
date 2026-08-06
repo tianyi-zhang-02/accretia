@@ -28,7 +28,7 @@ function McTooltip({
   if (!active || !payload?.length) return null;
   const p = payload[0]!.payload;
   return (
-    <div className="border-border bg-background/95 rounded border px-2 py-1.5 text-[11px] shadow-lg backdrop-blur">
+    <div className="border-border bg-background/95 rounded border px-2 py-1.5 text-xs shadow-lg backdrop-blur">
       <p className="text-muted nums">
         {p.year} · {t.chart.todaysDollars}
       </p>
@@ -50,7 +50,7 @@ export default function MonteCarloChart({ mc }: { mc: MonteCarloResult }) {
 
   if (data.length === 0) {
     return (
-      <div className="border-border text-muted flex h-[220px] items-center justify-center rounded border border-dashed text-xs">
+      <div className="border-border text-muted flex h-[220px] items-center justify-center rounded border border-dashed text-[13px]">
         {t.chart.adjustHorizon}
       </div>
     );

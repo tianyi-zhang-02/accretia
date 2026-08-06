@@ -3,7 +3,9 @@
 :root {
   --background: #0a0a0a;
   --foreground: #f5f1ea;
-  --muted: #a1a1aa;
+  /* Lifted from #a1a1aa: secondary copy is small AND grey, and that
+     combination is where readability actually dies. ~9:1 on the dark bg. */
+  --muted: #b5b5c0;
   --border: #27272a;
   --accent: #d4a574;
   --positive: #7ab8a4;
@@ -15,7 +17,8 @@
 :root[data-theme='light'] {
   --background: #faf9f6;
   --foreground: #1c1917;
-  --muted: #6b6b74;
+  /* Darkened from #6b6b74 for the same reason on the light theme. */
+  --muted: #57575f;
   --border: #e5e2db;
   --accent: #a06a2c;
   --positive: #2f7d64;
@@ -45,6 +48,11 @@ body {
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
+  /* Roomier default leading — this UI is mostly small explanatory copy, and
+     tight lines are the other half of why small text reads badly. Headings
+     and hero numbers set their own tighter leading. */
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
   /* iOS safe-area, used by the bottom nav. */
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }

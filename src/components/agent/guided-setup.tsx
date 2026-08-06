@@ -151,7 +151,7 @@ export default function GuidedSetup({
         <button
           type="button"
           onClick={onCancel}
-          className="text-muted hover:text-foreground text-[11px]"
+          className="text-muted hover:text-foreground text-xs"
         >
           {g.skip}
         </button>
@@ -172,7 +172,7 @@ export default function GuidedSetup({
         <PixelGuide theme={theme} step={step} />
         <div className="min-w-0 flex-1">
           <p className="serif-display mb-1 text-lg leading-snug sm:text-xl">{current.question}</p>
-          <p className="text-muted text-xs">{current.hint}</p>
+          <p className="text-muted text-[13px]">{current.hint}</p>
         </div>
       </div>
 
@@ -189,6 +189,9 @@ export default function GuidedSetup({
             onChange={(v) => set({ age: Math.round(v) })}
             min={16}
             max={90}
+            // An age of 0 is meaningless — an emptied field settles back to
+            // the default rather than to zero.
+            fallback={EMPTY.age}
           />
         ) : null}
 
@@ -201,7 +204,7 @@ export default function GuidedSetup({
               step={5000}
               prefix="$"
             />
-            <label className="text-muted flex flex-col gap-1 text-[11px]">
+            <label className="text-muted flex flex-col gap-1 text-xs">
               {g.partnerIncome}
               <input
                 type="number"
@@ -239,7 +242,7 @@ export default function GuidedSetup({
 
         {/* A live read of what they've told us — the "it's listening" signal. */}
         {step > 0 ? (
-          <p className="text-muted nums text-[11px]">
+          <p className="text-muted nums text-xs">
             {g.soFar(
               ans.age,
               fmt.currency0(ans.income + ans.partnerIncome),
@@ -271,6 +274,17 @@ export default function GuidedSetup({
   );
 }
 
+/**
+ * The big answer field. Keeps a local STRING buffer while the user is
+ * typing, which is what makes clearing the field actually clear it: a
+ * plain controlled `value={number}` turns an empty box back into "0" on
+ * the very next render, so you can never delete the last digit — you have
+ * to select-all and overtype. The buffer also protects half-typed input
+ * ("", "-", "1.") from being parsed mid-keystroke.
+ *
+ * On blur an empty or unparseable buffer settles to `fallback`. Same
+ * pattern as `NumField` in the assumptions form — kept in sync on purpose.
+ */
 function BigNumber({
   value,
   onChange,
@@ -278,6 +292,7 @@ function BigNumber({
   max,
   step = 1,
   prefix,
+  fallback = 0,
 }: {
   value: number;
   onChange: (v: number) => void;
@@ -285,7 +300,11 @@ function BigNumber({
   max?: number;
   step?: number;
   prefix?: string;
+  fallback?: number;
 }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const display = draft !== null ? draft : value === 0 ? '' : String(value);
+
   return (
     <div className="flex items-center gap-2">
       {prefix ? <span className="text-muted serif-display text-2xl">{prefix}</span> : null}
@@ -294,12 +313,26 @@ function BigNumber({
         // Numeric keypad on phones, and 16px+ text so iOS doesn't zoom in.
         inputMode="decimal"
         autoFocus
-        value={value}
+        value={display}
+        placeholder="0"
         min={min}
         max={max}
         step={step}
-        onChange={(e) => onChange(Number(e.target.value) || 0)}
-        className="border-border bg-background nums serif-display w-full rounded border px-4 py-3 text-2xl"
+        onFocus={(e) => e.currentTarget.select()}
+        onChange={(e) => {
+          const next = e.target.value;
+          setDraft(next);
+          if (next.trim() === '') return; // let the field be empty
+          const n = Number(next);
+          if (Number.isFinite(n)) onChange(n);
+        }}
+        onBlur={() => {
+          if (draft === null) return;
+          const trimmed = draft.trim();
+          if (trimmed === '' || !Number.isFinite(Number(trimmed))) onChange(fallback);
+          setDraft(null);
+        }}
+        className="border-border focus:border-foreground placeholder:text-muted/40 bg-background nums serif-display w-full rounded border px-4 py-3 text-2xl outline-none"
       />
     </div>
   );

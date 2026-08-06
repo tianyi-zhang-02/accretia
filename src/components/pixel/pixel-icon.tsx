@@ -197,7 +197,7 @@ export function PixelLabel({
 }) {
   return (
     <span
-      className={`text-muted flex items-center gap-2 text-[10px] tracking-[0.18em] uppercase ${className}`}
+      className={`text-muted flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase ${className}`}
     >
       <PixelIcon name={icon} size={12} />
       {children}
