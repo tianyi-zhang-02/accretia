@@ -31,16 +31,22 @@ truths has to look like it means them; only the edges get pixelated.
   evidence.
 - Verified on dark + light, desktop + 375px mobile.
 
-### Renamed: Accretia → Work Optional
+### The app is now "Work Optional" (the repo and site stay Accretia)
 
 "Accretia" was clever (from _accretion_) but needed a paragraph of
-explanation. The new name is the product's own headline — the sentence it
-prints for you is "work becomes optional at 53" — so people know what it
-does before they click.
+explanation. The app now calls itself by the sentence it actually prints
+for you — "work becomes optional at 53" — so people know what it does
+before they click.
 
-- **Changed** app name, page title, PWA manifest, package name, both
-  READMEs, and the repo/domain. Chinese keeps the English brand with a
-  plain tagline: 「算出你哪一年可以不上班。」
+**Two names, deliberately.** A long-established US wealth-management firm
+already trades as Work Optional and owns workoptional.com, so the repo and
+the deployed site keep **Accretia** (`accretia.vercel.app`) and we don't
+compete for that ground. Documented in the READMEs and CLAUDE.md so nobody
+"fixes" the inconsistency later.
+
+- **Changed** the app-facing name — page `<title>`, PWA manifest, in-app
+  header, `package.json` — to **Work Optional**. Chinese keeps the English
+  brand with a plain tagline: 「算出你哪一年可以不上班。」
 - **Changed** the storage key to `workoptional:saved:v1`. The pre-rename key
   is read once as a fallback and migrated, so nobody loses a saved plan.
 - Historical changelog entries keep the old name — they were true when

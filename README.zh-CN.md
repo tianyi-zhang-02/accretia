@@ -2,7 +2,9 @@
 
 [English](README.md) · **简体中文**
 
-[![release](https://img.shields.io/github/v/release/tianyi-zhang-02/work-optional)](https://github.com/tianyi-zhang-02/work-optional/releases) [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![release](https://img.shields.io/github/v/release/tianyi-zhang-02/accretia)](https://github.com/tianyi-zhang-02/accretia/releases) [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+> **关于两个名字:** 应用界面叫 **Work Optional**——这正是它告诉你的那句话。仓库和网站沿用原名 **Accretia**(源自 _accretion_,靠累积而增长),因为美国已有一家财富管理公司以 Work Optional 经营,我们不去争那块地方。
 
 _算出你哪一年可以不上班。_ 一个单页、**纯前端**的财富推算模拟器。根据你自己的假设——职业收入、额外收入、大额支出、消费升级，以及低/中/高三档收益率——逐年推算家庭净资产，并回答「要在 Y 岁前达到 X 元，需要什么条件？」。
 
@@ -10,7 +12,7 @@ _算出你哪一年可以不上班。_ 一个单页、**纯前端**的财富推�
 
 > 技术栈:Next.js 16(App Router)· TypeScript · Tailwind v4 · Recharts · Zod。没有环境变量,没有服务器。
 
-**线上地址:** https://work-optional.vercel.app
+**线上地址:** https://accretia.vercel.app
 
 ---
 
@@ -62,8 +64,8 @@ _算出你哪一年可以不上班。_ 一个单页、**纯前端**的财富推�
 不需要账号、数据库或密钥——克隆下来即可运行。
 
 ```bash
-git clone https://github.com/tianyi-zhang-02/work-optional.git
-cd work-optional
+git clone https://github.com/tianyi-zhang-02/accretia.git
+cd accretia
 npm install
 npm run dev     # → http://localhost:3000
 ```

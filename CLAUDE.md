@@ -8,13 +8,15 @@
 
 ## What this is
 
-**Work Optional** is a **purely client-side** wealth-projection simulator. One page. Runs entirely in the browser. The name is the product's own headline: it tells you the year work becomes optional. (Renamed from _Accretia_ in v1.2 — plainer beats clever.)
+**Work Optional** is a **purely client-side** wealth-projection simulator. One page. Runs entirely in the browser.
+
+**Two names, on purpose — do not "fix" this.** The APP is **Work Optional** (page `<title>`, PWA manifest, in-app header, `package.json`): it's the product's own headline — it tells you the year work becomes optional. The REPO and the DEPLOYED SITE stay **Accretia** (`accretia.vercel.app`, from _accretion_: growth by accumulation), because a long-established US wealth-management firm already trades as Work Optional and owns workoptional.com; we deliberately don't compete for that ground.
 
 **There is no backend, no database, no authentication, and nothing is ever sent anywhere** — no server, no network calls, no cookies. Scenarios live in React state, mirrored to ONE `localStorage` key on the user's own device (`workoptional:saved:v1`) so the app behaves like an app across visits; the **"Save on this device"** checkbox is on by default and unticking it erases the key immediately. Beyond that, persistence is manual **Export / Import** of a scenario as a JSON file.
 
 The repo was formerly a full net-worth tracker (Supabase + auth + accounts/transactions/holdings/portfolio). All of that was deliberately removed — the owner uses a real brokerage for tracking and wanted just the projection tool. The old code is preserved in git history; do not resurrect it.
 
-**Live:** https://work-optional.vercel.app
+**Live:** https://accretia.vercel.app
 
 ---
 
