@@ -61,6 +61,39 @@ body {
   font-optical-sizing: auto;
 }
 
+/* ---------------------------------------------------------------------
+   Pixel accents. The journey strip taught the UI its own visual language;
+   these utilities carry it into the rest of the page WITHOUT touching
+   legibility — the type stays editorial, only the edges get pixelated.
+   --------------------------------------------------------------------- */
+
+/* A hard offset instead of a soft blur: reads as pixel art, stays crisp at
+   any zoom, and gives cards real depth on both themes. */
+.pixel-panel {
+  box-shadow: 3px 3px 0 0 var(--border);
+}
+
+/* Dashed rule drawn on a 4px grid — a divider made of pixels. */
+.pixel-rule {
+  height: 2px;
+  background-image: repeating-linear-gradient(90deg, var(--border) 0 4px, transparent 4px 8px);
+}
+
+/* Stepped corner treatment for the hero: a notch out of each corner, the
+   way an 8-bit dialog box is drawn. */
+.pixel-frame {
+  clip-path: polygon(
+    4px 0,
+    calc(100% - 4px) 0,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    0 calc(100% - 4px),
+    0 4px
+  );
+}
+
 /* Slide-in for toast notifications (subtle, finishes in 220ms). */
 @keyframes toast-in {
   from {
