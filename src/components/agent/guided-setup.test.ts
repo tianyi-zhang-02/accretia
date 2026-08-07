@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { assumptionsSchema } from '@/lib/validation/scenarios';
 
+import { simulate } from '@/lib/simulator/engine';
+
 import { buildFromAnswers } from './guided-setup';
 
 const answers = (o: Partial<Parameters<typeof buildFromAnswers>[0]> = {}) => ({
@@ -30,14 +32,34 @@ describe('guided setup → scenario', () => {
 
   it('scales the tax estimate with household income', () => {
     const low = buildFromAnswers(answers({ income: 80_000 })).effectiveTaxRatePct;
-    const high = buildFromAnswers(answers({ income: 500_000, partnerIncome: 400_000 }))
-      .effectiveTaxRatePct;
+    const high = buildFromAnswers(
+      answers({ income: 500_000, partnerIncome: 400_000 }),
+    ).effectiveTaxRatePct;
     expect(high).toBeGreaterThan(low);
   });
 
   it('runs the horizon to age 90 so retirement is visible', () => {
     const a = buildFromAnswers(answers({ age: 40 }));
     expect(a.horizonEndYear - a.horizonStartYear).toBe(50);
+  });
+
+  // Without a retire age the generated stage paid a rising salary until the
+  // horizon ended at 90 — a 91-year-old still drawing millions, which made
+  // the whole projection read as fantasy.
+  it('retires everyone at 65 by default, so income actually stops', () => {
+    const a = buildFromAnswers(answers({ partnerIncome: 150_000 }));
+    expect(a.people.map((p) => p.retireAge)).toEqual([65, 65]);
+    const { rows } = simulate(a);
+    expect(rows.at(-1)!.grossIncome).toBe(0);
+  });
+
+  it('never sets a retire age already in the past', () => {
+    const a = buildFromAnswers(answers({ age: 72 }));
+    expect(a.people[0]!.retireAge).toBe(73);
+    // Still earns for a year, then stops — not an instant-zero-income plan.
+    const { rows } = simulate(a);
+    expect(rows[0]!.grossIncome).toBeGreaterThan(0);
+    expect(rows.at(-1)!.grossIncome).toBe(0);
   });
 
   // --- untrusted input: a number field accepts more than numbers ---------

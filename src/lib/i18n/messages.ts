@@ -60,9 +60,11 @@ const en = {
   },
   projection: {
     assumptionsLabel: 'Assumptions',
-    finalBalance: (year: number) => `Final balance · ${year}`,
+    finalBalance: (year: number) => `Final balance · ${year} · today’s dollars`,
     inTodaysDollars: (real: string, pct: string) =>
       `${real} in today's dollars · ${pct} over horizon`,
+    nominalNote: (nominal: string, pct: string) =>
+      `${nominal} before inflation · ${pct} over horizon`,
     impliedSavings: (pct: string) => `Implied savings rate (year 1): ${pct} of after-tax income`,
     bandHeading: 'Projection · low–high band',
     bothHeading: 'Nominal vs real',
@@ -495,8 +497,9 @@ const zh: Messages = {
   },
   projection: {
     assumptionsLabel: '假设条件',
-    finalBalance: (year: number) => `期末净资产 · ${year}`,
+    finalBalance: (year: number) => `期末净资产 · ${year} · 按今天的钱算`,
     inTodaysDollars: (real: string, pct: string) => `${real}（按今日购买力）· 期间累计 ${pct}`,
+    nominalNote: (nominal: string, pct: string) => `未扣通胀是 ${nominal} · 期间累计 ${pct}`,
     impliedSavings: (pct: string) => `隐含储蓄率（第 1 年）：税后收入的 ${pct}`,
     bandHeading: '推算 · 悲观–乐观区间',
     bothHeading: '名义 vs 实际',

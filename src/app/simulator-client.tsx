@@ -561,15 +561,18 @@ function SimulatorInner() {
                   so it outranks the balance — a number nobody can feel. */}
               <InsightsPanel assumptions={assumptions} onChange={patchCurrent} />
 
-              {/* The balance behind it: supporting evidence, not the point. */}
+              {/* The balance behind it: supporting evidence, not the point.
+                  REAL leads. Over a long horizon the nominal figure is
+                  inflated several times over and reads as a fantasy — the
+                  today's-dollar number is the only one a human can judge. */}
               <section className="border-border rounded-lg border p-4">
                 <PixelLabel icon="coins">
                   {t.projection.finalBalance(assumptions.horizonEndYear)}
                 </PixelLabel>
-                <p className="serif-display nums mt-1 text-2xl">{fmt.currency0(lastNominal)}</p>
+                <p className="serif-display nums mt-1 text-2xl">{fmt.currency0(lastReal)}</p>
                 <p className="text-muted nums mt-1 text-[13px]">
-                  {t.projection.inTodaysDollars(
-                    fmt.currency0(lastReal),
+                  {t.projection.nominalNote(
+                    fmt.currency0(lastNominal),
                     fmt.signedPct1(totalGrowth),
                   )}
                 </p>

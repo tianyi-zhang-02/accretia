@@ -75,10 +75,17 @@ export function buildFromAnswers(raw: Answers): Assumptions {
   const birthYear = thisYear - ans.age;
   const household = ans.income + ans.partnerIncome;
 
+  // Retire at 65 unless the user says otherwise. Without this the generated
+  // career stage pays a rising salary until the horizon ends at 90 — which
+  // made the projection wildly optimistic (a 91-year-old still drawing
+  // $4M/yr) and is the opposite of what this tool is for.
+  const DEFAULT_RETIRE_AGE = 65;
+
   const person = (name: string, salary: number) => ({
     id: newId(),
     name,
     birthYear,
+    retireAge: Math.max(ans.age + 1, DEFAULT_RETIRE_AGE),
     careerStages: [
       { label: name, startAge: ans.age, baseSalary: salary, annualRaisePct: 3, bonusPct: 0 },
     ],
