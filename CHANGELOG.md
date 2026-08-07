@@ -6,6 +6,42 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Chinese copy, rewritten to sound Chinese
+
+The zh catalog had drifted into translation-ese: em dashes everywhere (an
+English habit), long compound clauses, and stiff written-register words
+(刻画 / 自…起生效 / 仅为粗略估算). Rewrote 31 strings — the tagline,
+the whole guided setup, every insight, and the longest form hints — as
+things a Chinese speaker would actually say.
+
+- 「引导设置」→「快速上手」, 「引导我填」→「带我填」,
+  「你这份方案里，真正重要的是」→「你的计划里，什么最要紧」.
+- Em dashes replaced with 。／，／： where Chinese wants them; only
+  three remain, each doing real work.
+- 「生活方式膨胀」 unified to 「消费升级」, matching the term the
+  lifestyle-creep section already used.
+
+### Pixel arrow for the guide
+
+- **Added** an `arrow` pixel icon, pointing from the guide at the question
+  it's asking — the little "this bit, right here" gesture.
+
+### CSP console errors: diagnosed, not a bug
+
+Investigated the `style-src` violations. **They are a `next dev` artifact
+and do not exist in production**, so there is nothing to fix:
+
+- Probed each operation in the page: element-`.style` writes, `Object.assign`
+  onto `.style`, and `setAttribute('style')` are all **permitted** by
+  `style-src-attr 'unsafe-inline'` — so Recharts (which only writes styles
+  to measure text) was never the culprit.
+- The one blocked node is Next's own dev-overlay `<style>` injecting
+  `@font-face{font-family:'__nextjs-Geist'}` without our nonce.
+- A production server serves **zero** `<style>` tags, no overlay, and a CSP
+  with no `unsafe-inline` at all.
+- Recorded in CLAUDE.md as a known non-issue so nobody weakens `style-src`
+  to silence it.
+
 ### Readability, and a number-input fix
 
 - **Fixed** clearing a number field in the guided setup didn't clear it — a
