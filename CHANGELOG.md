@@ -6,6 +6,28 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### The projection was too optimistic — two causes, both fixed
+
+Reported as "感觉我都能3亿美金了轻松", and measurement backed it up. A
+dual-income couple's headline read **$216.4M**. Two compounding mistakes,
+both introduced with the guided setup:
+
+- **Fixed** the guided setup never set a **retire age**, so the career stage
+  it generated paid a rising salary until the horizon ended at 90 — a
+  91-year-old still drawing **$4.1M/yr**. It now retires everyone at **65**
+  by default (clamped to at least age + 1 for users already past it), and
+  income actually stops. That alone took the same couple from $216.4M to
+  $139.4M, and a 34-year-old from $42.2M to $15.5M.
+- **Changed** the final-balance headline now shows **today's dollars**, with
+  the nominal figure demoted to the sub-line. Over a 60-year horizon nominal
+  is inflated 5–7× and reads as a fantasy; the real number is the only one a
+  human can judge. The couple's headline is now **$23.0M** — the same
+  projection, honestly stated.
+
+Net effect on what the user actually sees: **$216.4M → $23.0M**. The
+engine's math is unchanged; the defaults and the presentation were the
+problem. Two regression tests pin the retire-age default.
+
 ### Chinese copy, rewritten to sound Chinese
 
 The zh catalog had drifted into translation-ese: em dashes everywhere (an
