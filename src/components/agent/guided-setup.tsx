@@ -6,7 +6,7 @@ import { useI18n } from '@/lib/i18n/locale';
 import { assumptionsSchema, type Assumptions } from '@/lib/validation/scenarios';
 
 import { newId } from '../simulator/default-assumptions';
-import { PixelLabel } from '../pixel/pixel-icon';
+import PixelIcon, { PixelLabel } from '../pixel/pixel-icon';
 import PixelGuide from './pixel-guide';
 
 /**
@@ -167,9 +167,11 @@ export default function GuidedSetup({
         ))}
       </div>
 
-      {/* The guide asks; you answer. It waves on each new question. */}
-      <div className="mb-4 flex items-start gap-3">
+      {/* The guide asks; you answer. It waves on each new question, and the
+          little arrow points from the guide at what it's asking about. */}
+      <div className="mb-4 flex items-start gap-2">
         <PixelGuide theme={theme} step={step} />
+        <PixelIcon name="arrow" size={14} className="text-accent mt-3 shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="serif-display mb-1 text-lg leading-snug sm:text-xl">{current.question}</p>
           <p className="text-muted text-[13px]">{current.hint}</p>

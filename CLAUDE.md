@@ -35,6 +35,8 @@ Untrusted input surface: **imported JSON files.** Always validate imported data 
 
 Security posture (for such a simple app): strict CSP with per-request nonce in `src/proxy.ts` (no `unsafe-inline`/`unsafe-eval` for scripts; `connect-src 'self'`), plus static hardening headers in `next.config.ts`. Keep both.
 
+**Known non-issue — don't chase it.** In `next dev` the console fills with `Applying inline style violates ... 'style-src'`. This is Next's own dev overlay injecting a `@font-face{font-family:'__nextjs-Geist'}` `<style>` element without our nonce. Verified: element-`.style` writes (which is all Recharts does, to measure text) are permitted by `style-src-attr 'unsafe-inline'`, and a production server serves **zero** `<style>` tags and no overlay — so the violation does not exist in production. Do not relax `style-src` to silence it.
+
 ---
 
 ## Tech stack

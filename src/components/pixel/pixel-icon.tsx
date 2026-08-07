@@ -122,6 +122,17 @@ const ICONS = {
     '...++...',
     '...++...',
   ],
+  /** The guide's pointer — "this bit, right here". */
+  arrow: [
+    '........',
+    '..#.....',
+    '..##....',
+    '..+++++.',
+    '..+++++.',
+    '..##....',
+    '..#.....',
+    '........',
+  ],
   /** Privacy — nothing leaves the device. */
   shield: [
     '.######.',

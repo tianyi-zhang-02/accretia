@@ -61,7 +61,8 @@ const en = {
   projection: {
     assumptionsLabel: 'Assumptions',
     finalBalance: (year: number) => `Final balance · ${year}`,
-    inTodaysDollars: (real: string, pct: string) => `${real} in today's dollars · ${pct} over horizon`,
+    inTodaysDollars: (real: string, pct: string) =>
+      `${real} in today's dollars · ${pct} over horizon`,
     impliedSavings: (pct: string) => `Implied savings rate (year 1): ${pct} of after-tax income`,
     bandHeading: 'Projection · low–high band',
     bothHeading: 'Nominal vs real',
@@ -194,7 +195,8 @@ const en = {
       defaultLabel: 'Social security',
     },
     role: {
-      searchPlaceholder: (count: number) => `Browse or search ${count} roles (e.g. "biglaw", "L5", "MLE")…`,
+      searchPlaceholder: (count: number) =>
+        `Browse or search ${count} roles (e.g. "biglaw", "L5", "MLE")…`,
       noMatch: (query: string) => `No roles match “${query}”.`,
       base: 'base',
       bonus: 'bonus',
@@ -276,7 +278,8 @@ const en = {
     perMonthVsNow: (moneyDelta: string) => `${moneyDelta}/mo vs now`,
     pointsDelta: (d: number) => `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} pts`,
     ageValue: (v: number) => `age ${v.toFixed(1)}`,
-    yearsDelta: (d: number) => (Math.abs(d) < 0.05 ? '0 yrs' : `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} yrs`),
+    yearsDelta: (d: number) =>
+      Math.abs(d) < 0.05 ? '0 yrs' : `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} yrs`,
   },
   table: {
     heading: 'Year by year',
@@ -387,7 +390,8 @@ const en = {
   guided: {
     heading: 'Guided setup',
     start: 'Guide me',
-    startHint: 'Four questions instead of fifty inputs — everything else is inferred, and still editable.',
+    startHint:
+      'Four questions instead of fifty inputs — everything else is inferred, and still editable.',
     skip: 'Skip — I’ll fill it in myself',
     back: 'Back',
     next: 'Next',
@@ -419,7 +423,8 @@ const en = {
     spendLessReach: (age: number) => `Spending 10% less would make FIRE reachable — at ${age}.`,
     dropCreep: (years: number, age: number) =>
       `Lifestyle creep is costing you ${yrs(years)} — without it, FIRE at ${age}.`,
-    dropCreepReach: (age: number) => `Lifestyle creep is what puts FIRE out of reach — without it, ${age}.`,
+    dropCreepReach: (age: number) =>
+      `Lifestyle creep is what puts FIRE out of reach — without it, ${age}.`,
     investMore: (years: number, age: number) =>
       `Investing 10% more of each year’s surplus is worth ${yrs(years)} — FIRE at ${age}. The rest sits as cash and earns nothing here.`,
     investMoreReach: (age: number) =>
@@ -454,7 +459,7 @@ const zh: Messages = {
   app: {
     title: 'Work Optional',
     tagline:
-      '根据你自己的假设逐年推算净资产，见证复利的力量。全部运算都在本地浏览器完成——任何数据都不会上传。方案默认保存在这台设备上，下次打开还在；不想留就取消勾选「在本设备保存」，或用「导出／导入」存成文件。',
+      '按你自己的假设逐年推算净资产，看复利怎么滚起来。所有计算都在你的浏览器里跑，数据不会传到任何地方。方案默认存在这台设备上，下次打开还在；不想留，把「在本设备保存」的勾去掉就行，也可以用「导出／导入」存成文件。',
   },
   advanced: {
     show: '显示高级工具',
@@ -482,7 +487,8 @@ const zh: Messages = {
     invalidScenario: '该文件不是有效的方案。',
     unreadableFile: '无法读取该文件。',
     saveLocal: '在本设备保存',
-    saveLocalHint: '仅保存在此浏览器的本地存储中——只在你的设备上，绝不上传。取消勾选即清除。',
+    saveLocalHint:
+      '只存在这个浏览器的本地存储里，也就是只在你自己的设备上，不会上传。取消勾选就清除。',
     defaultName: (n: number) => `方案 ${n}`,
     copySuffix: (name: string) => `${name}（副本）`,
     importedName: '导入的方案',
@@ -497,15 +503,17 @@ const zh: Messages = {
     nominal: '名义',
     real: '实际',
     both: '对比',
-    computeError: '无法计算推算结果——请检查输入。',
+    computeError: '算不出结果，检查一下输入。',
     bandCaption: '区间表示从悲观到乐观的收益率。绿点为额外收入年份，红点为大额支出年份。',
-    gapCaption: '阴影 = 被通胀侵蚀的购买力（名义 − 实际）。绿点为额外收入年份，红点为大额支出年份。',
+    gapCaption:
+      '阴影 = 被通胀侵蚀的购买力（名义 − 实际）。绿点为额外收入年份，红点为大额支出年份。',
     detMode: '确定性',
     probMode: '概率',
     mcHeading: '概率 · p10–p90',
     volatility: '波动率',
     successProb: (pct: string) => `达标概率 ${pct}`,
-    mcCaption: '基于你的假设跑 1000 次随机市场路径。阴影 = p10–p90，中线 = p50（中位）。按今日购买力。',
+    mcCaption:
+      '基于你的假设跑 1000 次随机市场路径。阴影 = p10–p90，中线 = p50（中位）。按今日购买力。',
     mcNeedTarget: '在「高级工具」里设一个目标求解目标，即可看到达标概率。',
   },
   form: {
@@ -528,7 +536,7 @@ const zh: Messages = {
       expenses: '每年固定家庭开支',
       investedShare: '结余投资比例',
       investedShareHint:
-        '先付账单——税后扣除开支后的结余里，实际投进去的比例。其余以现金留存：仍计入净资产，但不产生收益。只有投进去的钱才吃复利。',
+        '账单先付。这是税后开支之后剩下的钱里，真正投出去的比例。剩下的当现金留着：算进净资产，但不产生收益。只有投出去的那部分才吃得到复利。',
     },
     taxes: {
       estimateHeading: '按州与收入估算',
@@ -550,7 +558,7 @@ const zh: Messages = {
       creepAboveInflation: '通胀之外的消费升级',
       shareOfRaise: '每次加薪被吸收的比例',
       explainer:
-        '消费升级用来刻画开支往往随时间上升的现象。「固定」在通胀之上叠加稳定的增幅；「随收入」把每次加薪的一部分转为开支；「关闭」则保持不升级（开支仅随通胀）。',
+        '开支往往会随着时间越花越多。「固定」是在通胀之上再加一个稳定增幅；「随收入」是每次加薪都有一部分变成开支；「关闭」就是不升级，开支只跟着通胀走。',
     },
     investment: {
       inflation: '通胀',
@@ -602,12 +610,12 @@ const zh: Messages = {
       backLabel: '重返职场',
       volatility: '收入波动（±% · 蒙特卡洛）',
       stagesHint:
-        '职业不是一路上升的——阶段可以模拟停滞（涨薪 0%）、降薪（负涨幅或低薪新阶段）、离开职场（薪资为 0 的阶段），以及收入不稳定（设置 ± 收入波动——律所合伙人分红、佣金制——蒙特卡洛视图会把它算进区间）。',
+        '职业不会一路往上走。用阶段可以模拟：涨薪停滞（涨幅填 0）、降薪（填负数，或新建一个低薪阶段）、离开职场（薪资填 0），还有收入不稳定（填 ± 收入波动，比如律所合伙人分红、佣金制，蒙特卡洛会把它算进区间）。',
     },
     retirement: {
       spending: '退休后开支（现开支的 %）',
       postReturn: '退休后收益率',
-      note: '自第一位成员的退休年龄起生效：退休后开支通常下降，组合通常更保守。下方收入流按第一位成员的年龄计，勾选「随通胀调整」时按今日美元填写，与其他收入一样计税。',
+      note: '从第一位成员退休那年开始算：退休后开支通常会降，组合也通常转保守。下面的收入流按第一位成员的年龄计；勾了「随通胀调整」就按今天的美元填，和其他收入一样要交税。',
       incomes: '收入流（社保 · 养老金 · 租金）',
       addIncome: '+ 收入流',
       label: '名称',
@@ -619,7 +627,8 @@ const zh: Messages = {
       defaultLabel: '社保',
     },
     role: {
-      searchPlaceholder: (count: number) => `浏览或搜索 ${count} 个职业（如 “biglaw”、“L5”、“MLE”）…`,
+      searchPlaceholder: (count: number) =>
+        `浏览或搜索 ${count} 个职业（如 “biglaw”、“L5”、“MLE”）…`,
       noMatch: (query: string) => `没有匹配 “${query}” 的职业。`,
       base: '底薪',
       bonus: '奖金',
@@ -700,7 +709,8 @@ const zh: Messages = {
     perMonthVsNow: (moneyDelta: string) => `${moneyDelta}/月（较当前）`,
     pointsDelta: (d: number) => `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} 个百分点`,
     ageValue: (v: number) => `${v.toFixed(1)} 岁`,
-    yearsDelta: (d: number) => (Math.abs(d) < 0.05 ? '0 年' : `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} 年`),
+    yearsDelta: (d: number) =>
+      Math.abs(d) < 0.05 ? '0 年' : `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} 年`,
   },
   table: {
     heading: '逐年明细',
@@ -759,7 +769,7 @@ const zh: Messages = {
   },
   fire: {
     heading: 'FIRE · 财务自由',
-    intro: '当投资收益足以覆盖开支的那一年——工作从此变成可选项。',
+    intro: '投资收益够付开支的那一年，工作就变成可选项了。',
     swr: '安全提取率',
     healthInsurance: '每年医保预留',
     essential: '每年必要开支（Lean FIRE）',
@@ -796,7 +806,7 @@ const zh: Messages = {
     baselineFinal: (v: string) => `原计划期末：${v}`,
     stressedFinal: (v: string, delta: string, pct: string) => `受冲击后：${v}（${delta} · ${pct}）`,
     trough: (v: string, year: number) => `最低点：${v}（${year} 年）`,
-    disclaimer: '这是叠加在你计划之上的确定性「假如」——主推算不受影响。非投资建议。',
+    disclaimer: '这是叠在你计划上的一次确定性「假如」，主推算不受影响。不构成投资建议。',
   },
   presets: {
     track: {
@@ -807,57 +817,58 @@ const zh: Messages = {
     },
   },
   guided: {
-    heading: '引导设置',
-    start: '引导我填',
-    startHint: '四个问题,而不是五十个输入框——其余的自动推断，之后都还能改。',
+    heading: '快速上手',
+    start: '带我填',
+    startHint: '问四个问题就够了，剩下的自动推断，之后都能改。',
     skip: '跳过，我自己填',
     back: '上一步',
     next: '下一步',
     finish: '生成我的方案',
     qAge: '你今年多大？',
-    qAgeHint: '后面所有东西都以此为基准——里程碑年龄、退休、推算区间。',
+    qAgeHint: '里程碑、退休、推算区间，后面全都按这个算。',
     qIncome: '你每年税前收入多少？',
-    qIncomeHint: '工资加奖金和股权，大概即可。和伴侣一起规划的话把 TA 也加上。',
+    qIncomeHint: '工资、奖金、股权都算上，写个大概就行。和伴侣一起规划，就把 TA 也填上。',
     partnerIncome: '伴侣的年收入（可留空）',
     qSpending: '你每年花多少？',
     qSpendingHint:
-      '全部算上：房租房贷、吃饭、旅行，都算。它同时决定你能存下多少和 FIRE 需要多少——比其他任何一个答案都重要。',
+      '房租房贷、吃饭、旅行，全都算进去。这个数既决定你能存下多少，也决定你要攒到多少，比其他几个问题都关键。',
     qNetWorth: '你现在攒了多少？',
     qNetWorthHint: '投资加现金，减去负债。给个大概数就行。',
     soFar: (age: number, income: string, spending: string) =>
       `目前：${age} 岁 · 年收入 ${income} · 年开支 ${spending}`,
   },
   insights: {
-    heading: '你这份方案里，真正重要的是',
+    heading: '你的计划里，什么最要紧',
     apply: '应用',
     disclaimer:
-      '每条结论都是「只改一个变量、重跑推算」量出来的——是关于模型的事实，不是建议。全部在你的设备上计算。',
+      '每条结论都是只改一个变量、把推算重跑一遍算出来的：它说的是模型里的事实，不是投资建议。全部在你的设备上完成。',
     fireAge: (age: number) => `${age} 岁起，工作变成可选项。`,
     fireAgeSub: (year: number) => `到 ${year} 年，你的投资收益就能覆盖开支。`,
-    fireNever: '按当前假设，你的投资永远追不上开支——开支涨得和资产一样快。',
+    fireNever: '按现在的假设，你的投资永远追不上开支：开支涨得和资产一样快。',
     spendLess: (years: number, age: number) =>
-      `每年少花 10%，值 ${years} 年——${age} 岁 FIRE。这是唯一双向生效的杠杆：既多存下钱，又拉低了目标线。`,
-    spendLessReach: (age: number) => `每年少花 10%，FIRE 就从「不可能」变成 ${age} 岁可达。`,
+      `每年少花 10%，能提前 ${years} 年，${age} 岁就够了。这是唯一两头都占的办法：存得更多，目标线还更低。`,
+    spendLessReach: (age: number) => `每年少花 10%，本来到不了的 FIRE，${age} 岁就能到。`,
     dropCreep: (years: number, age: number) =>
-      `生活方式膨胀正在偷走你 ${years} 年——去掉它，${age} 岁 FIRE。`,
-    dropCreepReach: (age: number) => `正是生活方式膨胀让 FIRE 遥不可及——去掉它，${age} 岁可达。`,
+      `消费升级正在吃掉你 ${years} 年。把它去掉，${age} 岁就能到。`,
+    dropCreepReach: (age: number) => `就是消费升级让 FIRE 变得遥不可及。去掉它，${age} 岁就能到。`,
     investMore: (years: number, age: number) =>
-      `每年盈余多投 10%，值 ${years} 年——${age} 岁 FIRE。剩下的钱以现金躺着，在模型里不产生任何收益。`,
-    investMoreReach: (age: number) => `每年盈余多投 10%，FIRE 就变成 ${age} 岁可达。`,
+      `每年结余多投 10%，能提前 ${years} 年，${age} 岁到。剩下那部分只是躺在现金里，模型里一分收益都没有。`,
+    investMoreReach: (age: number) => `每年结余多投 10%，${age} 岁就能到。`,
     savingsRateHigh: (pct: number) =>
-      `第一年你要存下税后收入的 ${pct}%。真实家庭很难长期做到——一旦滑坡，上面所有年份都会推迟。`,
+      `第一年你要存下税后收入的 ${pct}%。真实的家庭很难长期做到，一旦松了，上面那些年份都得往后推。`,
     returnOptimistic: (pct: string) =>
-      `${pct} 的收益率高于扣费后的长期平均水平。相信这个数字之前，先看看低位区间或概率视图。`,
+      `${pct} 的收益率高于扣掉费用后的长期平均。信这个数之前，先看看低位区间或者概率视图。`,
     cashDrag: (pct: number) =>
-      `你现有净资产的 ${pct}% 是未投资的现金，在模型里不产生收益。作为缓冲没问题——作为习惯就很贵。`,
+      `你现有净资产里有 ${pct}% 是没投出去的现金，模型里不产生收益。留一点应急没问题，长期这么放就很亏。`,
     crashCost: (year: number, years: number) =>
-      `如果 ${year} 年来一次 2008 级别的股灾，FIRE 会推迟 ${years} 年。这种事最好提前知道。`,
-    noRetireAge: '这份方案里没有人退休——职业收入一直挣到最后。设个退休年龄，才能看到花钱的那些年。',
-    homeExcluded: '房产净值算进净资产，但不算进 FIRE 数字——你没法从房子里每年提 4%。',
+      `万一 ${year} 年来一次 2008 那种级别的股灾，会推迟 ${years} 年。这种事早点知道比较好。`,
+    noRetireAge:
+      '这份方案里没人退休，工资一直挣到最后一年。设个退休年龄，才看得到只花不挣的那几年。',
+    homeExcluded: '房子的净值算在净资产里，但不算进 FIRE 数字：你没法每年从房子里取 4% 出来花。',
   },
   footer: {
     disclaimer:
-      '结果基于你的假设估算，并非预测，也不构成投资建议。职业库中的薪资仅为示例默认值，而非市场数据——请替换为你自己的数字。',
+      '结果按你的假设估算，既不是预测，也不构成投资建议。职业库里的薪资只是示例默认值，不是市场数据，记得换成你自己的数字。',
   },
 };
 
