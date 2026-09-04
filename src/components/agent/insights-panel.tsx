@@ -45,22 +45,20 @@ export default function InsightsPanel({
   const [headline, ...rest] = insights;
 
   return (
-    <section className="border-border pixel-panel rounded-lg border p-5">
-      <PixelLabel icon="gem" className="mb-3">
+    <section className="card">
+      <PixelLabel icon="gem" className="mb-4">
         {t.insights.heading}
       </PixelLabel>
 
       {headline ? <Headline insight={headline} /> : null}
 
-      <div className="pixel-rule my-4" />
+      <hr className="rule mt-5 mb-1" />
 
-      <ul className="flex flex-col gap-1.5">
+      {/* Rows, not boxes: one hairline between siblings. */}
+      <ul className="rows">
         {rest.map((ins, i) => (
-          <li
-            key={`${ins.id}-${i}`}
-            className="border-border hover:border-foreground/25 flex items-start justify-between gap-3 rounded border px-3 py-2.5 transition-colors"
-          >
-            <span className="flex items-start gap-2.5 text-[13px] leading-relaxed">
+          <li key={`${ins.id}-${i}`} className="row">
+            <span className="flex items-start gap-3 text-[13px] leading-relaxed">
               <PixelIcon
                 name={ICON_FOR[ins.id]}
                 size={14}
@@ -72,7 +70,7 @@ export default function InsightsPanel({
               <button
                 type="button"
                 onClick={() => onChange({ ...assumptions, ...ins.patch })}
-                className="border-accent/50 text-accent hover:bg-accent hover:text-background min-h-8 shrink-0 rounded border px-2.5 text-xs font-medium transition-colors"
+                className="btn btn-primary shrink-0"
               >
                 {t.insights.apply}
               </button>
@@ -81,7 +79,7 @@ export default function InsightsPanel({
         ))}
       </ul>
 
-      <p className="text-muted mt-3 flex items-start gap-2 text-[11px] italic">
+      <p className="text-muted mt-5 flex items-start gap-2 text-[11px] italic">
         <PixelIcon name="shield" size={11} className="mt-px shrink-0" />
         {t.insights.disclaimer}
       </p>
@@ -101,7 +99,7 @@ function Headline({ insight }: { insight: Insight }) {
       <div className="flex items-start gap-3">
         <PixelIcon name="house" size={34} className="text-foreground mt-1" />
         <div className="min-w-0">
-          <p className="serif-display text-2xl leading-tight text-balance sm:text-3xl">
+          <p className="figure text-[30px] text-balance sm:text-[38px]">
             {t.insights.fireAge(insight.age)}
           </p>
           <p className="text-muted mt-1 text-[13px]">{t.insights.fireAgeSub(insight.year)}</p>

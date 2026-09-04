@@ -67,7 +67,7 @@ function NumField({
               setDraft(null);
             }
           }}
-          className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-3 py-2 text-base outline-none"
+          className="field nums"
         />
         {suffix ? <span className="text-muted text-[13px]">{suffix}</span> : null}
       </div>
@@ -87,7 +87,7 @@ function LeverRow({
   formatDelta: (d: number) => string;
 }) {
   return (
-    <li className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
+    <li className="row">
       <span className="text-foreground text-[13px]">{label}</span>
       {result.ok ? (
         <span className="text-muted nums text-right text-[13px]">
@@ -122,7 +122,7 @@ export default function GoalSeekPanel({
   }
 
   return (
-    <section className="border-border rounded border p-4">
+    <section className="card">
       <div className="flex items-center justify-between gap-2">
         <PixelLabel icon="flag">{t.goalSeek.heading}</PixelLabel>
         <button
@@ -136,7 +136,7 @@ export default function GoalSeekPanel({
               setResult(null);
             }
           }}
-          className="text-muted hover:text-foreground text-xs"
+          className="btn btn-ghost"
         >
           {hasTarget ? t.goalSeek.clearTarget : t.goalSeek.setTarget}
         </button>
@@ -171,11 +171,7 @@ export default function GoalSeekPanel({
               }
             />
           </div>
-          <button
-            type="button"
-            onClick={recompute}
-            className="bg-foreground text-background mt-3 rounded px-3 py-1.5 text-[13px] font-medium"
-          >
+          <button type="button" onClick={recompute} className="btn btn-primary mt-4">
             {t.goalSeek.compute}
           </button>
 
@@ -194,7 +190,7 @@ function GoalSeekDisplay({ result }: { result: GoalSeekResult }) {
 
   if (result.kind === 'on-track') {
     return (
-      <div className="border-border mt-3 flex flex-col gap-1 rounded border p-3">
+      <div className="bg-surface-2 mt-3 flex flex-col gap-1 rounded-[10px] p-3">
         <p className="text-positive text-[13px] font-medium">{t.goalSeek.onTrack}</p>
         <p className="text-muted nums text-xs">
           {t.goalSeek.onTrackDetail(
@@ -209,7 +205,7 @@ function GoalSeekDisplay({ result }: { result: GoalSeekResult }) {
   }
 
   return (
-    <div className="border-border mt-3 flex flex-col gap-2 rounded border p-3">
+    <div className="bg-surface-2 mt-3 flex flex-col gap-2 rounded-[10px] p-3">
       <div className="flex flex-col gap-0.5">
         <p className="text-foreground text-[13px]">
           {t.goalSeek.projectedBy(fmt.currency0(result.projected), result.targetAge)}
@@ -219,7 +215,7 @@ function GoalSeekDisplay({ result }: { result: GoalSeekResult }) {
         </p>
       </div>
       <p className="text-muted mt-1 text-xs">{t.goalSeek.anyOne}</p>
-      <ul className="flex flex-col gap-1.5">
+      <ul className="rows">
         <LeverRow
           label={t.goalSeek.leverSaveExtra}
           result={

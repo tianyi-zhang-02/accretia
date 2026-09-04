@@ -66,7 +66,8 @@ All of this is covered by unit tests (`npm test`). If you change engine behavior
 
 - Files: `kebab-case.tsx`. Components: `PascalCase`. Functions: `camelCase`. Types: `type` over `interface`.
 - `strict: true`, no `any` (use `unknown` + narrow).
-- Tailwind utility-first; dark theme by default (`--background`, `--foreground`, `--accent`, etc. in `globals.css`). Numbers use the `.nums` (tabular) utility.
+- Tailwind utility-first, but **chrome goes through the component layer in `globals.css`, not ad-hoc utilities**: `.card` / `.card-tight`, `.rows` + `.row` (hairline between siblings), `.rule`, `.btn` / `.btn-primary` / `.btn-ghost`, `.field`, `.eyebrow`, `.figure`. Depth is **surface + space, never a border** — `--surface` / `--surface-2` / `--hairline`. The UI previously had 83 borders, 12 padding values and boxes inside boxes; if you find yourself writing `rounded border p-3` again, use `.card` instead. Numbers use `.nums` (tabular); hero figures use `.figure`.
+- Dark theme by default (`--background`, `--foreground`, `--accent`, etc. in `globals.css`).
 - Mobile-first; centered in a `max-w-6xl` column. On large screens the editor is two columns (assumptions left, projection right); on mobile it stacks.
 - **i18n**: the app is bilingual (English / 简体中文). All user-facing copy goes through `src/lib/i18n/messages.ts` via `useI18n()` — **never hard-code a display string**; add every new key to both `en` and `zh` (the `Messages` type makes a missing zh key a compile error), and write the Chinese natively, not as a literal translation. Locale is the `?lang` URL param (no storage). Currency stays USD. Keep `README.zh-CN.md` in sync when the README changes.
 

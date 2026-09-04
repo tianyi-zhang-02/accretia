@@ -53,7 +53,7 @@ function NumField({
               setDraft(null);
             }
           }}
-          className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-3 py-2 text-base outline-none"
+          className="field nums"
         />
         {suffix ? <span className="text-muted text-[13px]">{suffix}</span> : null}
       </div>
@@ -107,7 +107,7 @@ export default function StressPanel({
   }, [stressed, baselineFinal]);
 
   return (
-    <section className="border-border rounded border p-4">
+    <section className="card">
       <PixelLabel icon="cloud">{t.stress.heading}</PixelLabel>
       <p className="text-muted mt-1 text-[13px]">{t.stress.intro}</p>
 
@@ -121,21 +121,21 @@ export default function StressPanel({
               jobLoss: { startYear: nextYear, years: 1, incomeReplacementPct: 0 },
             })
           }
-          className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
+          className="btn"
         >
           {t.stress.presetJobLoss}
         </button>
         <button
           type="button"
           onClick={() => setStress({ ...stress, marketShock: { year: nextYear, returnPct: -37 } })}
-          className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-xs"
+          className="btn"
         >
           {t.stress.presetCrash}
         </button>
       </div>
 
       {/* Job loss. */}
-      <div className="border-border mt-3 rounded border p-3">
+      <div className="bg-surface-2 mt-3 rounded-[10px] p-3">
         <label className="flex items-center gap-2 text-[13px]">
           <input
             type="checkbox"
@@ -158,7 +158,7 @@ export default function StressPanel({
               <select
                 value={stress.jobLoss.personId ?? ''}
                 onChange={(e) => patchJobLoss({ personId: e.target.value || undefined })}
-                className="border-border bg-background rounded border px-2 py-2 text-sm"
+                className="field text-sm"
               >
                 <option value="">{t.stress.everyone}</option>
                 {assumptions.people.map((p) => (
@@ -198,7 +198,7 @@ export default function StressPanel({
       </div>
 
       {/* Market crash. */}
-      <div className="border-border mt-3 rounded border p-3">
+      <div className="bg-surface-2 mt-3 rounded-[10px] p-3">
         <label className="flex items-center gap-2 text-[13px]">
           <input
             type="checkbox"

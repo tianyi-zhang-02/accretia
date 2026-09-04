@@ -51,7 +51,7 @@ function CustomTooltip({
 
   if (mode === 'both') {
     return (
-      <div className="border-border bg-background/95 rounded border px-2 py-1.5 text-xs shadow-lg backdrop-blur">
+      <div className="bg-surface-2 rounded-[10px] px-2.5 py-2 text-xs shadow-lg">
         <p className="text-muted nums">{p.year}</p>
         <p className="nums">
           <span className="text-muted">{t.projection.nominal}</span>{' '}
@@ -70,7 +70,7 @@ function CustomTooltip({
 
   const base = mode === 'real' ? p.real : p.nominal;
   return (
-    <div className="border-border bg-background/95 rounded border px-2 py-1.5 text-xs shadow-lg backdrop-blur">
+    <div className="bg-surface-2 rounded-[10px] px-2.5 py-2 text-xs shadow-lg">
       <p className="text-muted nums">
         {p.year} · {mode === 'real' ? t.chart.todaysDollars : t.chart.nominal}
       </p>
@@ -118,7 +118,7 @@ export default function SimulatorChart({
 
   if (data.length === 0) {
     return (
-      <div className="border-border text-muted flex h-[220px] items-center justify-center rounded border border-dashed text-[13px]">
+      <div className="bg-surface-2 text-muted flex h-[220px] items-center justify-center rounded-[14px] text-[13px]">
         {t.chart.adjustHorizon}
       </div>
     );
@@ -169,7 +169,12 @@ export default function SimulatorChart({
                 strokeWidth={1.25}
                 strokeDasharray="4 3"
                 dot={false}
-                activeDot={{ r: 3, fill: 'var(--muted)', stroke: 'var(--background)', strokeWidth: 1 }}
+                activeDot={{
+                  r: 3,
+                  fill: 'var(--muted)',
+                  stroke: 'var(--background)',
+                  strokeWidth: 1,
+                }}
                 isAnimationActive={false}
               />
               {/* Nominal line — solid accent (the face-value number). */}
@@ -179,7 +184,12 @@ export default function SimulatorChart({
                 stroke="var(--accent)"
                 strokeWidth={1.25}
                 dot={false}
-                activeDot={{ r: 3, fill: 'var(--accent)', stroke: 'var(--background)', strokeWidth: 1 }}
+                activeDot={{
+                  r: 3,
+                  fill: 'var(--accent)',
+                  stroke: 'var(--background)',
+                  strokeWidth: 1,
+                }}
                 isAnimationActive={false}
               />
             </>
@@ -202,7 +212,12 @@ export default function SimulatorChart({
                 stroke="var(--accent)"
                 strokeWidth={1.25}
                 dot={false}
-                activeDot={{ r: 3, fill: 'var(--accent)', stroke: 'var(--background)', strokeWidth: 1 }}
+                activeDot={{
+                  r: 3,
+                  fill: 'var(--accent)',
+                  stroke: 'var(--background)',
+                  strokeWidth: 1,
+                }}
                 isAnimationActive={false}
               />
             </>

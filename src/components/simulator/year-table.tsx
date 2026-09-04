@@ -18,7 +18,7 @@ export default function YearTable({
   if (rows.length === 0) return null;
 
   return (
-    <div className="border-border overflow-x-auto rounded border">
+    <div className="bg-surface overflow-x-auto rounded-[14px]">
       <table className="nums w-full min-w-[640px] text-xs">
         <thead className="text-muted text-[11px] tracking-wide uppercase">
           <tr className="border-border border-b">

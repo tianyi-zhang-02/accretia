@@ -7,6 +7,12 @@
      combination is where readability actually dies. ~9:1 on the dark bg. */
   --muted: #b5b5c0;
   --border: #27272a;
+  /* Cards are a lighter SURFACE, not a bordered box. Robinhood-style depth
+     comes from elevation, not outlines — which is why 83 borders read as
+     clutter. --hairline is the only line we draw, and only between rows. */
+  --surface: #141417;
+  --surface-2: #1c1c20;
+  --hairline: #232327;
   --accent: #d4a574;
   --positive: #7ab8a4;
   --negative: #e08884;
@@ -20,6 +26,9 @@
   /* Darkened from #6b6b74 for the same reason on the light theme. */
   --muted: #57575f;
   --border: #e5e2db;
+  --surface: #ffffff;
+  --surface-2: #f4f2ed;
+  --hairline: #eceae4;
   --accent: #a06a2c;
   --positive: #2f7d64;
   --negative: #b8443e;
@@ -30,6 +39,9 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-hairline: var(--hairline);
   --color-accent: var(--accent);
   --color-positive: var(--positive);
   --color-negative: var(--negative);
@@ -70,16 +82,122 @@ body {
 }
 
 /* ---------------------------------------------------------------------
+   Component layer. The UI had 83 borders, 12 different padding values and
+   two radii — boxes inside boxes with no rhythm. These classes are the
+   whole vocabulary now: change a card everywhere by changing `.card`.
+   Depth comes from SURFACE + SPACE, the way Robinhood does it, not outlines.
+   --------------------------------------------------------------------- */
+
+/* The one card. No border — a lighter surface and real padding. */
+.card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 20px;
+}
+.card-tight {
+  padding: 14px 16px;
+}
+
+/* A list row inside a card: hairline between siblings, none after the last.
+   This replaces the old "every row is its own bordered box" pattern. */
+.rows > * + * {
+  border-top: 1px solid var(--hairline);
+}
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+}
+.row:first-child {
+  padding-top: 4px;
+}
+.row:last-child {
+  padding-bottom: 4px;
+}
+
+/* Hairline divider, for splitting a card into zones. */
+.rule {
+  height: 1px;
+  background: var(--hairline);
+  border: 0;
+}
+
+/* Controls. One height, one radius, three intents. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--surface-2);
+  color: var(--foreground);
+  transition: filter 120ms ease;
+}
+.btn:hover {
+  filter: brightness(1.25);
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--background);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+}
+.btn-ghost:hover {
+  color: var(--foreground);
+  filter: none;
+}
+
+/* Inputs: filled, not outlined — an outline next to a card border was the
+   worst of the nesting. 16px keeps iOS from zooming on focus. */
+.field {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--foreground);
+  font-size: 16px;
+  outline: none;
+  border: 1px solid transparent;
+  transition: border-color 120ms ease;
+}
+.field:focus {
+  border-color: var(--accent);
+}
+
+/* Section eyebrow — the small uppercase label above a block. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* The hero number. Robinhood's whole design is one enormous figure. */
+.figure {
+  font-family: var(--font-serif), Georgia, serif;
+  font-variant-numeric: tabular-nums;
+  font-optical-sizing: auto;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+/* ---------------------------------------------------------------------
    Pixel accents. The journey strip taught the UI its own visual language;
    these utilities carry it into the rest of the page WITHOUT touching
    legibility — the type stays editorial, only the edges get pixelated.
    --------------------------------------------------------------------- */
-
-/* A hard offset instead of a soft blur: reads as pixel art, stays crisp at
-   any zoom, and gives cards real depth on both themes. */
-.pixel-panel {
-  box-shadow: 3px 3px 0 0 var(--border);
-}
 
 /* Dashed rule drawn on a 4px grid — a divider made of pixels. */
 .pixel-rule {
