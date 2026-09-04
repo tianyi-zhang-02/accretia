@@ -6,6 +6,28 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Simpler by default: the plan is five numbers
+
+The last pass fixed how things *look*; this one fixes how much is on screen.
+A first load put **23 inputs, 27 buttons and 11,264px of page** in front of
+you — correct, but a spreadsheet. Robinhood's actual trick isn't the colors,
+it's that the home screen is one number and a short list.
+
+- **Added** a **Your plan** card: age · income · spending · saved · retire
+  age, as five scannable rows. Tap a value to edit it in place; the
+  projection moves as you type, same as before.
+- **Changed** the full eight-section form now lives behind one **All
+  details** disclosure instead of being permanently open beside the answer.
+- **Result: 23 visible inputs → 3, page height 11,264px → 6,943px** (−38%)
+  with nothing removed — everything is one tap away.
+- Write-back is deliberately conservative: a household with several people
+  or several career stages has no single "income" field, so that row goes
+  read-only and points at the full form rather than guessing which stage you
+  meant. Editing net worth also clamps `startingInvested` so the schema
+  invariant can't be broken from the summary.
+- **Removed** the redundant "Assumptions" eyebrow — it sat directly on top
+  of "Your plan", two labels for one thing.
+
 ### Design: a real component layer, Robinhood-plain
 
 The UI had grown **83 borders, 12 different padding values and two radii** —

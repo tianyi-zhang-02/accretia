@@ -96,7 +96,9 @@ src/
     format/money.ts
 ```
 
-UI is a live side-by-side editor: **Assumptions** (the form) on the left, **Projection** (final balance + chart + goal-seek) pinned on the right so edits update it in real time — with a scenario bar (select / name / duplicate / export / import / compare / remove) on top and the year-by-year table full-width below. **Compare** is a toggle in the scenario bar that swaps the editor for the compare view. On mobile it stacks (projection on top, assumptions below).
+UI is answer-first. The left column opens as a **plan summary** (`plan-summary.tsx`) — five inline-editable rows (age / income / spending / saved / retire age) — with the full eight-section `AssumptionsForm` behind an **All details** disclosure. That keeps a first load at ~3 visible inputs instead of 23; don't re-expand the form by default. Summary write-back stays conservative: rows that can't map to a single field (income for a multi-person or multi-stage household) go read-only rather than guessing.
+
+Underneath it is still a live side-by-side editor: **Assumptions** (the form) on the left, **Projection** (final balance + chart + goal-seek) pinned on the right so edits update it in real time — with a scenario bar (select / name / duplicate / export / import / compare / remove) on top and the year-by-year table full-width below. **Compare** is a toggle in the scenario bar that swaps the editor for the compare view. On mobile it stacks (projection on top, assumptions below).
 
 ---
 
