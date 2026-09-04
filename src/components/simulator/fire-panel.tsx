@@ -54,7 +54,7 @@ function NumField({
               setDraft(null);
             }
           }}
-          className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-3 py-2 text-base outline-none"
+          className="field nums"
         />
         {suffix ? <span className="text-muted text-[13px]">{suffix}</span> : null}
       </div>
@@ -125,7 +125,7 @@ export default function FirePanel({
         : { text: t.fire.coastNotReached, ok: false };
 
   return (
-    <section className="border-border rounded border p-4">
+    <section className="card">
       <PixelLabel icon="house">{t.fire.heading}</PixelLabel>
       <p className="text-muted mt-1 text-[13px]">{t.fire.intro}</p>
 
@@ -162,7 +162,7 @@ export default function FirePanel({
       ) : (
         <div className="mt-3 flex flex-col gap-2">
           {/* Full FIRE */}
-          <div className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
+          <div className="row">
             <div className="flex flex-col">
               <span className="text-foreground text-[13px]">{t.fire.fullLabel}</span>
               <span className="text-muted text-[11px]">
@@ -181,7 +181,7 @@ export default function FirePanel({
 
           {/* Lean FIRE — only when essential spend is lower than full. */}
           {showLean ? (
-            <div className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
+            <div className="row">
               <div className="flex flex-col">
                 <span className="text-foreground text-[13px]">{t.fire.leanLabel}</span>
                 <span className="text-muted text-[11px]">
@@ -200,7 +200,7 @@ export default function FirePanel({
           ) : null}
 
           {/* Coast FIRE */}
-          <div className="border-border flex items-start justify-between gap-3 rounded border px-3 py-2">
+          <div className="row">
             <span className="text-foreground text-[13px]">{t.fire.coastLabel}</span>
             <span
               className={`text-right text-[11px] ${coastText.ok ? 'text-positive' : 'text-muted'}`}

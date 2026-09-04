@@ -105,11 +105,7 @@ export default function CompareView({
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <p className="text-muted text-[11px] tracking-[0.18em] uppercase">{t.compare.heading}</p>
-        <button
-          type="button"
-          onClick={onExit}
-          className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
-        >
+        <button type="button" onClick={onExit} className="btn">
           {t.compare.backToEditor}
         </button>
       </div>
@@ -209,7 +205,7 @@ export default function CompareView({
             </ResponsiveContainer>
           </div>
 
-          <div className="border-border overflow-x-auto rounded border">
+          <div className="bg-surface overflow-x-auto rounded-[14px]">
             <table className="nums w-full min-w-[480px] text-xs">
               <thead className="text-muted text-[11px] tracking-wide uppercase">
                 <tr className="border-border border-b">

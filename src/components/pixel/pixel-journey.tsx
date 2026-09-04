@@ -182,7 +182,12 @@ export default function PixelJourney({
       ctx.fillRect(Math.round(x), Math.round(y), w, h);
     };
 
-    const drawLandmark = (l: Pick<Landmark, 'kind' | 'tier'>, x: number, gy: number, time: number) => {
+    const drawLandmark = (
+      l: Pick<Landmark, 'kind' | 'tier'>,
+      x: number,
+      gy: number,
+      time: number,
+    ) => {
       switch (l.kind) {
         case 'full': // house with a gold flag — work is optional here
           px(x - 3, gy - 4, pal.house, 6, 4);
@@ -378,9 +383,12 @@ export default function PixelJourney({
         if ((x * 7 + gy * 13) % 37 === 0) px(x, gy + 5, pal.dirtSpeckle, 1, 1);
         for (let oy = gy + 8; oy < H - 2; oy += 1) {
           const hsh = (x * 73 + oy * 151) % 977;
-          if (hsh === 0) px(x, oy, pal.gold, 2, 1); // gold vein
-          else if (hsh === 244) px(x, oy, ORE_GEM, 1, 1); // gem
-          else if (hsh === 488) px(x, oy, ORE_RUBY, 1, 1); // ruby
+          if (hsh === 0)
+            px(x, oy, pal.gold, 2, 1); // gold vein
+          else if (hsh === 244)
+            px(x, oy, ORE_GEM, 1, 1); // gem
+          else if (hsh === 488)
+            px(x, oy, ORE_RUBY, 1, 1); // ruby
           else if (hsh === 732) px(x, oy, pal.coal, 2, 2); // coal seam
         }
       }

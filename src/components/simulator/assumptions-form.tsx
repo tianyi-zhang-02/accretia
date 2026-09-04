@@ -46,19 +46,24 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className="border-border hover:border-foreground/20 rounded border transition-colors">
+    <section className="card card-tight">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        className="flex w-full items-center justify-between gap-3 py-1 text-left"
       >
         <span className="flex items-center gap-2.5 text-xs tracking-[0.2em] uppercase">
           <PixelIcon name={icon} size={13} className={open ? 'text-foreground' : 'text-muted'} />
           {title}
         </span>
-        <span className="text-muted text-[13px]">{open ? '−' : '+'}</span>
+        <span className="text-muted text-base leading-none">{open ? '−' : '+'}</span>
       </button>
-      {open ? <div className="border-border border-t px-4 py-4">{children}</div> : null}
+      {open ? (
+        <>
+          <hr className="rule mt-3 mb-4" />
+          {children}
+        </>
+      ) : null}
     </section>
   );
 }
@@ -118,7 +123,7 @@ function NumField({
               setDraft(null);
             }
           }}
-          className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-3 py-2 text-base outline-none"
+          className="field nums"
         />
         {suffix ? <span className="text-muted text-[13px]">{suffix}</span> : null}
       </div>
@@ -331,7 +336,7 @@ function TaxEstimator({
   const estimate = estimateEffectiveTaxRate(stateCode, Number.isFinite(incomeNum) ? incomeNum : 0);
 
   return (
-    <div className="border-border flex flex-col gap-2 rounded border p-3">
+    <div className="bg-surface-2 flex flex-col gap-2 rounded-[10px] p-3">
       <p className="text-muted text-[11px] tracking-[0.18em] uppercase">
         {t.form.taxes.estimateHeading}
       </p>
@@ -341,7 +346,7 @@ function TaxEstimator({
           <select
             value={stateCode}
             onChange={(e) => setStateCode(e.target.value)}
-            className="border-border bg-background rounded border px-2 py-2 text-sm"
+            className="field text-sm"
           >
             {STATE_TAXES.map((s) => (
               <option key={s.code} value={s.code}>
@@ -414,7 +419,7 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
   }
 
   return (
-    <div className="border-border flex flex-col gap-2 rounded border p-3">
+    <div className="bg-surface-2 flex flex-col gap-2 rounded-[10px] p-3">
       <p className="text-muted text-[11px] tracking-[0.18em] uppercase">
         {t.form.allocation.heading}
       </p>
@@ -473,9 +478,7 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
       >
         {t.form.allocation.addBucket}
       </button>
-      <p className="text-muted text-xs">
-        {t.form.allocation.totalWeight(Math.round(totalWeight))}
-      </p>
+      <p className="text-muted text-xs">{t.form.allocation.totalWeight(Math.round(totalWeight))}</p>
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-sm">{t.form.allocation.blended(fmt.pct(blended, 1))}</span>
         <button
@@ -883,7 +886,7 @@ export default function AssumptionsForm({
       <Section icon="person" title={t.form.section.peopleCareers(value.people.length)}>
         <div className="flex flex-col gap-4">
           {value.people.map((p) => (
-            <div key={p.id} className="border-border rounded border p-3">
+            <div key={p.id} className="bg-surface-2 rounded-[10px] p-3">
               <div className="grid grid-cols-2 gap-3">
                 <TextField
                   label={t.form.person.name}
@@ -915,7 +918,7 @@ export default function AssumptionsForm({
                 </span>
                 <div className="flex items-center gap-2">
                   <select
-                    className="border-border bg-background rounded border px-2 py-1 text-xs"
+                    className="field h-9 text-xs"
                     defaultValue=""
                     onChange={(e) => {
                       if (e.target.value) {
@@ -933,18 +936,10 @@ export default function AssumptionsForm({
                       </option>
                     ))}
                   </select>
-                  <button
-                    type="button"
-                    onClick={() => addStage(p.id)}
-                    className="border-border hover:bg-foreground/5 rounded border px-2 py-1 text-xs"
-                  >
+                  <button type="button" onClick={() => addStage(p.id)} className="btn">
                     {t.form.person.addStage}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => addBreak(p.id)}
-                    className="border-border hover:bg-foreground/5 rounded border px-2 py-1 text-xs"
-                  >
+                  <button type="button" onClick={() => addBreak(p.id)} className="btn">
                     {t.form.person.addBreak}
                   </button>
                 </div>
@@ -956,7 +951,7 @@ export default function AssumptionsForm({
               ) : (
                 <ul className="mt-3 flex flex-col gap-2">
                   {p.careerStages.map((s, i) => (
-                    <li key={i} className="border-border rounded border p-3">
+                    <li key={i} className="bg-surface-2 rounded-[10px] p-3">
                       <div className="mb-3 flex flex-col gap-1">
                         <span className="text-muted text-[11px] tracking-[0.18em] uppercase">
                           {t.form.person.roleLibrary}
@@ -1052,11 +1047,7 @@ export default function AssumptionsForm({
               </button>
             </div>
           ))}
-          <button
-            type="button"
-            onClick={addPerson}
-            className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-[13px]"
-          >
+          <button type="button" onClick={addPerson} className="btn self-start">
             {t.form.person.addPerson}
           </button>
         </div>
@@ -1069,7 +1060,7 @@ export default function AssumptionsForm({
       >
         <div className="flex flex-col gap-3">
           {value.windfalls.map((w, i) => (
-            <div key={i} className="border-border rounded border p-3">
+            <div key={i} className="bg-surface-2 rounded-[10px] p-3">
               <div className="grid grid-cols-3 gap-3">
                 <TextField
                   label={t.form.windfall.label}
@@ -1118,7 +1109,7 @@ export default function AssumptionsForm({
                 },
               ])
             }
-            className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-[13px]"
+            className="btn self-start"
           >
             {t.form.windfall.add}
           </button>
@@ -1134,7 +1125,7 @@ export default function AssumptionsForm({
           {value.majorExpenses.map((e, i) => {
             const isRecurring = !('year' in e);
             return (
-              <div key={i} className="border-border rounded border p-3">
+              <div key={i} className="bg-surface-2 rounded-[10px] p-3">
                 <div className="mb-2 flex items-center gap-2">
                   <span className="text-muted text-[11px] tracking-[0.18em] uppercase">
                     {isRecurring ? t.form.major.recurring : t.form.major.oneTime}
@@ -1191,7 +1182,7 @@ export default function AssumptionsForm({
                           ),
                         )
                       }
-                      className="border-border bg-background rounded border px-2 py-2 text-sm"
+                      className="field text-sm"
                     >
                       {(['other', 'car', 'house', 'boat', 'travel'] as const).map((k) => (
                         <option key={k} value={k}>
@@ -1294,7 +1285,7 @@ export default function AssumptionsForm({
                   },
                 ])
               }
-              className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
+              className="btn"
             >
               {t.form.major.addOneTime}
             </button>
@@ -1311,7 +1302,7 @@ export default function AssumptionsForm({
                   },
                 ])
               }
-              className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
+              className="btn"
             >
               {t.form.major.addRecurring}
             </button>
@@ -1364,7 +1355,7 @@ export default function AssumptionsForm({
             const setIncomes = (list: OtherIncome[]) =>
               update({ otherIncomes: list.length > 0 ? list : undefined });
             return (
-              <div key={i} className="border-border rounded border p-3">
+              <div key={i} className="bg-surface-2 rounded-[10px] p-3">
                 <div className="grid grid-cols-2 gap-3">
                   <TextField
                     label={t.form.retirement.label}
@@ -1450,7 +1441,7 @@ export default function AssumptionsForm({
                 ],
               })
             }
-            className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1.5 text-[13px]"
+            className="btn self-start"
           >
             {t.form.retirement.addIncome}
           </button>

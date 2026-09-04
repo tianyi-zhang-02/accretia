@@ -6,6 +6,34 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Design: a real component layer, Robinhood-plain
+
+The UI had grown **83 borders, 12 different padding values and two radii** —
+boxes inside boxes, with every panel spelling out its own chrome. That's
+both ugly and unmanageable: changing "how a card looks" meant a find-and-
+replace.
+
+- **Added** a component layer in `globals.css` that is now the whole
+  vocabulary: `.card` / `.card-tight`, `.rows` + `.row`, `.rule`, `.btn` /
+  `.btn-primary` / `.btn-ghost`, `.field`, `.eyebrow`, `.figure`. One place
+  to change a card everywhere.
+- **Added** `--surface` / `--surface-2` / `--hairline` tokens. **Depth now
+  comes from surface and space, not outlines** — the Robinhood move. Cards
+  are a lighter surface with 14px radius and real padding; the only line
+  drawn is a hairline *between rows*.
+- **Changed** inputs are filled, not outlined (an outlined field inside a
+  bordered card was the worst of the nesting), 44px tall, 16px text.
+- **Changed** insight findings and goal-seek levers went from "every row is
+  its own bordered box" to hairline-separated rows.
+- **Changed** hero figures are bigger and set in `.figure` (tabular, tight
+  tracking): the FIRE sentence is 30–38px, the balance 30px.
+- **Removed** `.pixel-panel`'s hard offset shadow — it fought the flat
+  surfaces. The pixel *icons* stay; they were the identity, the shadow was
+  noise.
+- **Result: 83 borders → 23**, all remaining ones deliberate. Verified dark
+  + light, desktop + 375px mobile: 13 cards, 9 buttons, 17 fields all
+  rendering from the shared classes; no overflow.
+
 ### The projection was too optimistic — two causes, both fixed
 
 Reported as "感觉我都能3亿美金了轻松", and measurement backed it up. A

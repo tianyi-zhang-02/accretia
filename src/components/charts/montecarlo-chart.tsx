@@ -17,18 +17,12 @@ import type { MonteCarloResult } from '@/lib/simulator/montecarlo';
 
 type Point = { year: number; p50: number; band: [number, number] };
 
-function McTooltip({
-  active,
-  payload,
-}: {
-  active?: boolean;
-  payload?: Array<{ payload: Point }>;
-}) {
+function McTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: Point }> }) {
   const { t, fmt } = useI18n();
   if (!active || !payload?.length) return null;
   const p = payload[0]!.payload;
   return (
-    <div className="border-border bg-background/95 rounded border px-2 py-1.5 text-xs shadow-lg backdrop-blur">
+    <div className="bg-surface-2 rounded-[10px] px-2.5 py-2 text-xs shadow-lg">
       <p className="text-muted nums">
         {p.year} · {t.chart.todaysDollars}
       </p>
@@ -50,7 +44,7 @@ export default function MonteCarloChart({ mc }: { mc: MonteCarloResult }) {
 
   if (data.length === 0) {
     return (
-      <div className="border-border text-muted flex h-[220px] items-center justify-center rounded border border-dashed text-[13px]">
+      <div className="bg-surface-2 text-muted flex h-[220px] items-center justify-center rounded-[14px] text-[13px]">
         {t.chart.adjustHorizon}
       </div>
     );

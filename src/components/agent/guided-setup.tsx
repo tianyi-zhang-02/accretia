@@ -152,14 +152,10 @@ export default function GuidedSetup({
   }
 
   return (
-    <section className="border-border pixel-panel rounded-lg border p-5">
+    <section className="card">
       <div className="mb-4 flex items-center justify-between gap-3">
         <PixelLabel icon="spark">{g.heading}</PixelLabel>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="text-muted hover:text-foreground text-xs"
-        >
+        <button type="button" onClick={onCancel} className="btn btn-ghost">
           {g.skip}
         </button>
       </div>
@@ -223,7 +219,7 @@ export default function GuidedSetup({
                 min={0}
                 step={5000}
                 onChange={(e) => set({ partnerIncome: Number(e.target.value) || 0 })}
-                className="border-border bg-background nums rounded border px-3 py-2.5 text-base"
+                className="field nums"
               />
             </label>
           </>
@@ -263,18 +259,11 @@ export default function GuidedSetup({
         {/* Touch targets sized for thumbs; primary action first on mobile. */}
         <div className="mt-1 flex items-center gap-2">
           {step > 0 ? (
-            <button
-              type="button"
-              onClick={() => setStep((s) => s - 1)}
-              className="border-border hover:bg-foreground/5 min-h-11 rounded border px-4 text-sm"
-            >
+            <button type="button" onClick={() => setStep((s) => s - 1)} className="btn">
               {g.back}
             </button>
           ) : null}
-          <button
-            type="submit"
-            className="bg-accent text-background min-h-11 flex-1 rounded px-4 text-sm font-medium sm:flex-none"
-          >
+          <button type="submit" className="btn btn-primary flex-1 sm:flex-none">
             {last ? g.finish : g.next}
           </button>
         </div>
@@ -341,7 +330,7 @@ function BigNumber({
           if (trimmed === '' || !Number.isFinite(Number(trimmed))) onChange(fallback);
           setDraft(null);
         }}
-        className="border-border focus:border-foreground placeholder:text-muted/40 bg-background nums serif-display w-full rounded border px-4 py-3 text-2xl outline-none"
+        className="field figure nums h-[58px] text-[26px]"
       />
     </div>
   );

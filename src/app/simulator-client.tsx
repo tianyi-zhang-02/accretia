@@ -366,7 +366,7 @@ function SimulatorInner() {
           <h1 className="serif-display text-2xl">{t.app.title}</h1>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {/* Font size */}
-            <div className="border-border flex rounded border text-xs">
+            <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
               <button
                 type="button"
                 aria-label={t.controls.smaller}
@@ -400,7 +400,7 @@ function SimulatorInner() {
       </header>
 
       {/* Scenario bar — pick / name / manage the current scenario. */}
-      <section className="border-border flex flex-col gap-3 rounded-lg border p-3">
+      <section className="card card-tight flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <select
             aria-label={t.scenarioBar.scenarioAria}
@@ -433,25 +433,13 @@ function SimulatorInner() {
         />
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={duplicateCurrent}
-            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
-          >
+          <button type="button" onClick={duplicateCurrent} className="btn">
             {t.scenarioBar.duplicate}
           </button>
-          <button
-            type="button"
-            onClick={exportCurrent}
-            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
-          >
+          <button type="button" onClick={exportCurrent} className="btn">
             {t.scenarioBar.exportJson}
           </button>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="border-border hover:bg-foreground/5 rounded border px-3 py-1.5 text-[13px]"
-          >
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="btn">
             {t.scenarioBar.importJson}
           </button>
           <input
@@ -565,11 +553,11 @@ function SimulatorInner() {
                   REAL leads. Over a long horizon the nominal figure is
                   inflated several times over and reads as a fantasy — the
                   today's-dollar number is the only one a human can judge. */}
-              <section className="border-border rounded-lg border p-4">
+              <section className="card">
                 <PixelLabel icon="coins">
                   {t.projection.finalBalance(assumptions.horizonEndYear)}
                 </PixelLabel>
-                <p className="serif-display nums mt-1 text-2xl">{fmt.currency0(lastReal)}</p>
+                <p className="figure mt-2 text-[30px]">{fmt.currency0(lastReal)}</p>
                 <p className="text-muted nums mt-1 text-[13px]">
                   {t.projection.nominalNote(
                     fmt.currency0(lastNominal),
@@ -607,7 +595,7 @@ function SimulatorInner() {
                     <button
                       type="button"
                       onClick={() => setShowPixel((v) => !v)}
-                      className="text-muted hover:text-foreground text-[13px]"
+                      className="btn btn-ghost"
                     >
                       {showPixel ? t.pixel.hide : t.pixel.show}
                     </button>
@@ -636,7 +624,7 @@ function SimulatorInner() {
                         ? t.projection.bothHeading
                         : t.projection.bandHeading}
                   </PixelLabel>
-                  <div className="border-border flex rounded border text-xs">
+                  <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
                     {(['deterministic', 'probabilistic'] as const).map((e) => (
                       <button
                         key={e}
@@ -655,7 +643,7 @@ function SimulatorInner() {
                 {/* Secondary controls: nominal/real (deterministic) or volatility (probabilistic). */}
                 <div className="flex items-center justify-between gap-2">
                   {chartEngine === 'deterministic' ? (
-                    <div className="border-border flex rounded border text-xs">
+                    <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
                       {(['nominal', 'real', 'both'] as const).map((m) => (
                         <button
                           key={m}
@@ -762,7 +750,7 @@ function SimulatorInner() {
               <button
                 type="button"
                 onClick={() => setShowTable((v) => !v)}
-                className="text-muted hover:text-foreground text-[13px]"
+                className="btn btn-ghost"
               >
                 {showTable ? t.table.hide : t.table.show}
               </button>
