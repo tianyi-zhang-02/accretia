@@ -9,6 +9,7 @@ import MonteCarloChart from '@/components/charts/montecarlo-chart';
 import SimulatorChart, { type DisplayMode, type Marker } from '@/components/charts/simulator-chart';
 import LangSwitch from '@/components/i18n/lang-switch';
 import AssumptionsForm from '@/components/simulator/assumptions-form';
+import PlanSummary from '@/components/simulator/plan-summary';
 import CompareView, { type ComparableScenario } from '@/components/simulator/compare-view';
 import { defaultAssumptions, newId } from '@/components/simulator/default-assumptions';
 import PixelJourney, { type PixelScene } from '@/components/pixel/pixel-journey';
@@ -530,10 +531,11 @@ function SimulatorInner() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Assumptions — edit here, watch the projection move. */}
             <div className="order-2 lg:order-1">
-              <PixelLabel icon="person" className="mb-2">
-                {t.projection.assumptionsLabel}
-              </PixelLabel>
-              <AssumptionsForm value={assumptions} onChange={patchCurrent} />
+              {/* The summary card carries its own heading — an "Assumptions"
+                  eyebrow on top of "Your plan" was two labels for one thing. */}
+              <PlanSummary assumptions={assumptions} onChange={patchCurrent}>
+                <AssumptionsForm value={assumptions} onChange={patchCurrent} />
+              </PlanSummary>
             </div>
 
             {/* Projection — pinned on desktop. */}
