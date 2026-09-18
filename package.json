@@ -5,14 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 3001",
+    "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prebuild": "node -e \"const [M,m]=process.versions.node.split('.').map(Number);if(M<20||(M===20&&m<19)){console.error('\\\\n✖ Node >=20.19 required (Next 16); got '+process.version+'.\\\\n  Another node is probably shadowing /usr/local/bin/node on PATH (e.g. Anaconda).\\\\n  Fix: put /usr/local/bin first on PATH, or use the version in .nvmrc.\\\\n');process.exit(1)}\""
   },
   "engines": {
     "node": ">=20.19"
