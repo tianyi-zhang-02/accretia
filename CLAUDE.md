@@ -50,6 +50,8 @@ Security posture (for such a simple app): strict CSP with per-request nonce in `
 | Validation      | Zod                                          |
 | Package manager | npm                                          |
 
+**Node runtime: 22 (see `.nvmrc`); Next 16 needs ≥20.19.** On this Mac `/opt/anaconda3/bin/node` (20.12) can shadow `/usr/local/bin/node` (22) on PATH; `npm run build` then dies with a cryptic `Unexpected token 'export'` from a mis-compiled `next.config`. A `prebuild` guard now fails fast with the real reason. Separately, if `node_modules/@next/swc-darwin-arm64/` exists but has no `.node` file, Turbopack falls back to WASM and refuses to build — `npm install` with the right Node restores it (no dependency changes).
+
 Runtime deps are only: `next`, `react`, `react-dom`, `recharts`, `zod`. **Do not add dependencies without asking.** The whole point is a tiny, dependency-light, backend-free app.
 
 ---

@@ -6,6 +6,20 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Build environment guardrails (no product change)
+
+A build silently broke locally for two environmental reasons that had
+nothing to do with the code — and the merge pipeline wasn't gated on the
+build result, which is the actual lesson.
+
+- **Added** `.nvmrc` (22) and a `prebuild` guard that fails fast with a
+  readable message when Node < 20.19 is on PATH, instead of Next's cryptic
+  `Unexpected token 'export'`.
+- **Fixed** `npm start` had a stray `-p 3001` left over from a one-off
+  production check; back to `next start`.
+- **Process** builds now gate commits: `build && typecheck && lint && test`
+  must all exit 0 before anything is committed.
+
 ### Single-person, on purpose
 
 「只有单人的结果 因为算双人不太合理」— agreed. A two-earner household
