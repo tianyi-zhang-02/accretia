@@ -109,7 +109,8 @@ function SimulatorInner() {
   // Display preferences — in-memory (reset on refresh, per the no-storage rule).
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [guiding, setGuiding] = useState(false);
-  const [showPixel, setShowPixel] = useState(true);
+  // One panel, three views — the home screen keeps to a single visual.
+  const [view, setView] = useState<'chart' | 'world' | 'table'>('chart');
   const [pixelScene, setPixelScene] = useState<PixelScene>('meadow');
   // On by default so the app behaves like an app — your plan is still there
   // tomorrow. It never leaves the device (single localStorage key), and one
@@ -183,7 +184,6 @@ function SimulatorInner() {
     // mix of rem and px text sizes in the UI.
     document.documentElement.style.zoom = String(fontScale);
   }, [fontScale]);
-  const [showTable, setShowTable] = useState(false);
   const [comparing, setComparing] = useState(false);
   // Progressive disclosure: keep the default view simple; reveal the analysis
   // panels (goal-seek, FIRE, stress) + the asset-mix calculator on demand.
@@ -573,144 +573,169 @@ function SimulatorInner() {
                 ) : null}
               </section>
 
+              {/* View switcher: chart / pixel world / year table. Tabs, not
+                  three stacked panels with their own show/hide buttons. */}
+              <div className="bg-surface-2 flex w-fit overflow-hidden rounded-[10px] text-xs">
+                {(['chart', 'world', 'table'] as const).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setView(v)}
+                    className={`min-h-9 px-3.5 font-medium transition-colors ${
+                      view === v
+                        ? 'bg-foreground text-background'
+                        : 'text-muted hover:text-foreground'
+                    }`}
+                  >
+                    {t.views[v]}
+                  </button>
+                ))}
+              </div>
+
               {/* Pixel journey — the projection as a tiny living world. */}
-              <section className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <PixelLabel icon="house">{t.pixel.heading}</PixelLabel>
-                  <div className="flex items-center gap-2">
-                    {showPixel ? (
-                      <div className="border-border flex rounded border text-[11px]">
-                        {(['meadow', 'seaside', 'snow'] as const).map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => setPixelScene(s)}
-                            className={`px-2 py-0.5 ${
-                              pixelScene === s ? 'bg-foreground/10 text-foreground' : 'text-muted'
-                            }`}
-                          >
-                            {t.pixel.scenes[s]}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => setShowPixel((v) => !v)}
-                      className="btn btn-ghost"
-                    >
-                      {showPixel ? t.pixel.hide : t.pixel.show}
-                    </button>
+              {view === 'world' ? (
+                <section className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <PixelLabel icon="house">{t.pixel.heading}</PixelLabel>
+                    <div className="flex items-center gap-2">
+                      {
+                        <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
+                          {(['meadow', 'seaside', 'snow'] as const).map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => setPixelScene(s)}
+                              className={`px-2 py-0.5 ${
+                                pixelScene === s ? 'bg-foreground/10 text-foreground' : 'text-muted'
+                              }`}
+                            >
+                              {t.pixel.scenes[s]}
+                            </button>
+                          ))}
+                        </div>
+                      }
+                    </div>
                   </div>
-                </div>
-                {showPixel && result ? (
-                  <>
-                    <PixelJourney
-                      rows={result.rows}
-                      assumptions={assumptions}
-                      theme={theme}
-                      scene={pixelScene}
-                    />
-                    <p className="text-muted text-[11px]">{t.pixel.caption}</p>
-                  </>
-                ) : null}
-              </section>
+                  {result ? (
+                    <>
+                      <PixelJourney
+                        rows={result.rows}
+                        assumptions={assumptions}
+                        theme={theme}
+                        scene={pixelScene}
+                      />
+                      <p className="text-muted text-[11px]">{t.pixel.caption}</p>
+                    </>
+                  ) : null}
+                </section>
+              ) : null}
 
               {/* Chart — deterministic band or probabilistic (Monte-Carlo) fan. */}
-              <section className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <PixelLabel icon="chart">
-                    {chartEngine === 'probabilistic'
-                      ? t.projection.mcHeading
-                      : displayMode === 'both'
-                        ? t.projection.bothHeading
-                        : t.projection.bandHeading}
-                  </PixelLabel>
-                  <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
-                    {(['deterministic', 'probabilistic'] as const).map((e) => (
-                      <button
-                        key={e}
-                        type="button"
-                        onClick={() => setChartEngine(e)}
-                        className={`px-2.5 py-1 ${
-                          chartEngine === e ? 'bg-foreground/10 text-foreground' : 'text-muted'
-                        }`}
-                      >
-                        {e === 'deterministic' ? t.projection.detMode : t.projection.probMode}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Secondary controls: nominal/real (deterministic) or volatility (probabilistic). */}
-                <div className="flex items-center justify-between gap-2">
-                  {chartEngine === 'deterministic' ? (
+              {view === 'chart' ? (
+                <section className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <PixelLabel icon="chart">
+                      {chartEngine === 'probabilistic'
+                        ? t.projection.mcHeading
+                        : displayMode === 'both'
+                          ? t.projection.bothHeading
+                          : t.projection.bandHeading}
+                    </PixelLabel>
                     <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
-                      {(['nominal', 'real', 'both'] as const).map((m) => (
+                      {(['deterministic', 'probabilistic'] as const).map((e) => (
                         <button
-                          key={m}
+                          key={e}
                           type="button"
-                          onClick={() => setDisplayMode(m)}
+                          onClick={() => setChartEngine(e)}
                           className={`px-2.5 py-1 ${
-                            displayMode === m ? 'bg-foreground/10 text-foreground' : 'text-muted'
+                            chartEngine === e ? 'bg-foreground/10 text-foreground' : 'text-muted'
                           }`}
                         >
-                          {t.projection[m]}
+                          {e === 'deterministic' ? t.projection.detMode : t.projection.probMode}
                         </button>
                       ))}
                     </div>
-                  ) : (
-                    <label className="text-muted flex items-center gap-1.5 text-xs">
-                      {t.projection.volatility}
-                      <input
-                        type="number"
-                        value={volatilityPct}
-                        min={0}
-                        max={60}
-                        step={1}
-                        onChange={(e) =>
-                          setVolatilityPct(Math.max(0, Math.min(60, Number(e.target.value) || 0)))
-                        }
-                        className="border-border focus:border-foreground nums w-14 rounded border bg-transparent px-2 py-1 text-right outline-none"
-                      />
-                      %
-                    </label>
-                  )}
-                  {chartEngine === 'probabilistic' && mc?.successProbability != null ? (
-                    <span className="text-positive nums text-xs">
-                      {t.projection.successProb(fmt.pct0(mc.successProbability * 100))}
-                    </span>
-                  ) : null}
-                </div>
+                  </div>
 
-                {chartEngine === 'probabilistic' ? (
-                  mc ? (
-                    <MonteCarloChart mc={mc} />
+                  {/* Secondary controls: nominal/real (deterministic) or volatility (probabilistic). */}
+                  <div className="flex items-center justify-between gap-2">
+                    {chartEngine === 'deterministic' ? (
+                      <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
+                        {(['nominal', 'real', 'both'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setDisplayMode(m)}
+                            className={`px-2.5 py-1 ${
+                              displayMode === m ? 'bg-foreground/10 text-foreground' : 'text-muted'
+                            }`}
+                          >
+                            {t.projection[m]}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <label className="text-muted flex items-center gap-1.5 text-xs">
+                        {t.projection.volatility}
+                        <input
+                          type="number"
+                          value={volatilityPct}
+                          min={0}
+                          max={60}
+                          step={1}
+                          onChange={(e) =>
+                            setVolatilityPct(Math.max(0, Math.min(60, Number(e.target.value) || 0)))
+                          }
+                          className="border-border focus:border-foreground nums w-14 rounded border bg-transparent px-2 py-1 text-right outline-none"
+                        />
+                        %
+                      </label>
+                    )}
+                    {chartEngine === 'probabilistic' && mc?.successProbability != null ? (
+                      <span className="text-positive nums text-xs">
+                        {t.projection.successProb(fmt.pct0(mc.successProbability * 100))}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {chartEngine === 'probabilistic' ? (
+                    mc ? (
+                      <MonteCarloChart mc={mc} />
+                    ) : (
+                      <p className="text-negative text-[13px]">{t.projection.computeError}</p>
+                    )
+                  ) : result ? (
+                    <SimulatorChart result={result} mode={displayMode} markers={markers} />
                   ) : (
                     <p className="text-negative text-[13px]">{t.projection.computeError}</p>
-                  )
-                ) : result ? (
-                  <SimulatorChart result={result} mode={displayMode} markers={markers} />
-                ) : (
-                  <p className="text-negative text-[13px]">{t.projection.computeError}</p>
-                )}
+                  )}
 
-                <p className="text-muted text-[11px]">
-                  {chartEngine === 'probabilistic'
-                    ? mc?.successProbability == null
-                      ? `${t.projection.mcCaption} ${t.projection.mcNeedTarget}`
-                      : t.projection.mcCaption
-                    : displayMode === 'both'
-                      ? t.projection.gapCaption
-                      : t.projection.bandCaption}
-                </p>
-              </section>
+                  <p className="text-muted text-[11px]">
+                    {chartEngine === 'probabilistic'
+                      ? mc?.successProbability == null
+                        ? `${t.projection.mcCaption} ${t.projection.mcNeedTarget}`
+                        : t.projection.mcCaption
+                      : displayMode === 'both'
+                        ? t.projection.gapCaption
+                        : t.projection.bandCaption}
+                  </p>
+                </section>
+              ) : null}
+
+              {/* Year-by-year table — scrolls sideways inside the column. */}
+              {view === 'table' && result ? (
+                <YearTable
+                  rows={result.rows}
+                  people={assumptions.people}
+                  highlightYears={highlightYears}
+                />
+              ) : null}
 
               {/* Advanced tools — collapsed by default (progressive disclosure). */}
               <button
                 type="button"
                 onClick={() => setAdvanced((v) => !v)}
-                className="border-border hover:bg-foreground/5 flex items-center justify-between rounded border px-3 py-2 text-left text-[13px]"
+                className="btn w-full justify-between"
               >
                 <span>{advanced ? t.advanced.hide : t.advanced.show}</span>
                 <span className="text-muted text-[11px]">
@@ -744,27 +769,6 @@ function SimulatorInner() {
               ) : null}
             </div>
           </div>
-
-          {/* Year-by-year table — full width below the split (it's wide). */}
-          <section className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <PixelLabel icon="clock">{t.table.heading}</PixelLabel>
-              <button
-                type="button"
-                onClick={() => setShowTable((v) => !v)}
-                className="btn btn-ghost"
-              >
-                {showTable ? t.table.hide : t.table.show}
-              </button>
-            </div>
-            {showTable && result ? (
-              <YearTable
-                rows={result.rows}
-                people={assumptions.people}
-                highlightYears={highlightYears}
-              />
-            ) : null}
-          </section>
         </>
       )}
 

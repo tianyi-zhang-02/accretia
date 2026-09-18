@@ -389,6 +389,11 @@ const en = {
       finance: 'Finance / Consulting',
     },
   },
+  views: {
+    chart: 'Chart',
+    world: 'Pixel world',
+    table: 'Year by year',
+  },
   summary: {
     heading: 'Your plan',
     age: 'Age',
@@ -829,6 +834,11 @@ const zh: Messages = {
       medicine: '医疗',
       finance: '金融 / 咨询',
     },
+  },
+  views: {
+    chart: '图表',
+    world: '像素世界',
+    table: '逐年明细',
   },
   summary: {
     heading: '你的计划',

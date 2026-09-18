@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### One panel, three views
+
+The right column stacked three visuals — pixel world, chart, and (below the
+grid) the year table — each with its own show/hide button. Robinhood keeps
+the home screen to a single visual, so now we do too.
+
+- **Added** a segmented **Chart · Pixel world · Year by year** switcher
+  above the visual. Chart is the default.
+- **Removed** the three separate show/hide toggles and the pixel-world
+  header button; the scene picker stays, shown only on the world tab.
+- **Changed** the year table now lives in the column under its tab and
+  scrolls sideways there, instead of as a full-width block under the grid.
+- The advanced-tools button uses the shared `.btn` style instead of its own
+  border.
+
 ### Build environment guardrails (no product change)
 
 A build silently broke locally for two environmental reasons that had
