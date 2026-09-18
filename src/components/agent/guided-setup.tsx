@@ -25,7 +25,6 @@ import PixelGuide from './pixel-guide';
 type Answers = {
   age: number;
   income: number;
-  partnerIncome: number;
   spending: number;
   netWorth: number;
 };
@@ -33,14 +32,12 @@ type Answers = {
 const EMPTY: Answers = {
   age: 30,
   income: 150_000,
-  partnerIncome: 0,
   spending: 60_000,
   netWorth: 50_000,
 };
 
 /**
- * Rough effective all-in rate (federal + state + payroll) by household
- * income. Illustrative — the form's tax presets do the detailed version.
+ * Rough effective all-in rate (federal + state + payroll) by income. Illustrative — the form's tax presets do the detailed version.
  */
 function estimateTaxPct(householdIncome: number): number {
   if (householdIncome < 100_000) return 22;
@@ -67,13 +64,11 @@ export function buildFromAnswers(raw: Answers): Assumptions {
   const ans: Answers = {
     age: Math.round(clamp(raw.age, 16, 90, 30)),
     income: clamp(raw.income, 0, MONEY_CAP, 0),
-    partnerIncome: clamp(raw.partnerIncome, 0, MONEY_CAP, 0),
     spending: clamp(raw.spending, 0, MONEY_CAP, 0),
     netWorth: clamp(raw.netWorth, 0, MONEY_CAP, 0),
   };
   const thisYear = new Date().getFullYear();
   const birthYear = thisYear - ans.age;
-  const household = ans.income + ans.partnerIncome;
 
   // Retire at 65 unless the user says otherwise. Without this the generated
   // career stage pays a rising salary until the horizon ends at 90 — which
@@ -96,16 +91,16 @@ export function buildFromAnswers(raw: Answers): Assumptions {
     // Run to 90 so retirement and the drawdown years are visible — but never
     // shorter than 5 years, or someone already near 90 gets an empty chart.
     horizonEndYear: Math.max(birthYear + 90, thisYear + 5),
-    people:
-      ans.partnerIncome > 0
-        ? [person('You', ans.income), person('Partner', ans.partnerIncome)]
-        : [person('You', ans.income)],
+    // One person, on purpose. A two-earner household needs its own tax
+    // treatment, its own retirement timing and a real income-merging rule;
+    // pretending a flat rate covers all that produced confident nonsense.
+    people: [person('You', ans.income)],
     startingNetWorth: ans.netWorth,
     // Assume most of an existing balance is invested, but keep a cash buffer
     // — the two-pool model only compounds what's actually invested.
     startingInvested: Math.round(ans.netWorth * 0.8),
     investedSharePct: 80,
-    effectiveTaxRatePct: estimateTaxPct(household),
+    effectiveTaxRatePct: estimateTaxPct(ans.income),
     investment: { returnPct: 6, returnPctLow: 3, returnPctHigh: 9 },
     inflationPct: 3,
     windfalls: [],
@@ -209,19 +204,6 @@ export default function GuidedSetup({
               step={5000}
               prefix="$"
             />
-            <label className="text-muted flex flex-col gap-1 text-xs">
-              {g.partnerIncome}
-              <input
-                type="number"
-                inputMode="decimal"
-                value={ans.partnerIncome || ''}
-                placeholder="0"
-                min={0}
-                step={5000}
-                onChange={(e) => set({ partnerIncome: Number(e.target.value) || 0 })}
-                className="field nums"
-              />
-            </label>
           </>
         ) : null}
 
@@ -250,7 +232,7 @@ export default function GuidedSetup({
           <p className="text-muted nums text-xs">
             {g.soFar(
               ans.age,
-              fmt.currency0(ans.income + ans.partnerIncome),
+              fmt.currency0(ans.income),
               step > 1 ? fmt.currency0(ans.spending) : '—',
             )}
           </p>

@@ -185,7 +185,7 @@ const en = {
     retirement: {
       spending: 'Retirement spending (% of current)',
       postReturn: 'Post-retirement return',
-      note: 'Active from the first person’s retire age: spending usually drops in retirement, and portfolios usually get more conservative. Income streams below are keyed to the first person’s age, in today’s dollars when inflation-adjusted, and taxed like all income.',
+      note: 'Active from your retire age: spending usually drops in retirement, and portfolios usually get more conservative. Income streams below are keyed to your age, in today’s dollars when inflation-adjusted, and taxed like all income.',
       incomes: 'Income streams (social security · pension · rental)',
       addIncome: '+ Income stream',
       label: 'Label',
@@ -393,7 +393,6 @@ const en = {
     heading: 'Your plan',
     age: 'Age',
     income: 'Income a year',
-    householdIncome: 'Household income a year',
     spending: 'Spending a year',
     netWorth: 'Saved so far',
     retireAge: 'Retire at',
@@ -414,8 +413,7 @@ const en = {
     qAge: 'How old are you?',
     qAgeHint: 'Everything else is keyed to this — milestone ages, retirement, the horizon.',
     qIncome: 'What do you earn a year, before tax?',
-    qIncomeHint: 'Salary plus bonus and equity, roughly. Add a partner if you plan together.',
-    partnerIncome: 'Partner’s annual income (optional)',
+    qIncomeHint: 'Salary plus bonus and equity, roughly.',
     qSpending: 'What do you spend a year?',
     qSpendingHint:
       'Everything: rent or mortgage, food, travel, the lot. This drives both your savings and your FIRE number, so it matters more than any other answer.',
@@ -631,7 +629,7 @@ const zh: Messages = {
     retirement: {
       spending: '退休后开支（现开支的 %）',
       postReturn: '退休后收益率',
-      note: '从第一位成员退休那年开始算：退休后开支通常会降，组合也通常转保守。下面的收入流按第一位成员的年龄计；勾了「随通胀调整」就按今天的美元填，和其他收入一样要交税。',
+      note: '从你退休那年开始算：退休后开支通常会降，组合也通常转保守。下面的收入流按你的年龄计；勾了「随通胀调整」就按今天的美元填，和其他收入一样要交税。',
       incomes: '收入流（社保 · 养老金 · 租金）',
       addIncome: '+ 收入流',
       label: '名称',
@@ -836,7 +834,6 @@ const zh: Messages = {
     heading: '你的计划',
     age: '年龄',
     income: '年收入',
-    householdIncome: '家庭年收入',
     spending: '年开支',
     netWorth: '已攒下',
     retireAge: '退休年龄',
@@ -856,8 +853,7 @@ const zh: Messages = {
     qAge: '你今年多大？',
     qAgeHint: '里程碑、退休、推算区间，后面全都按这个算。',
     qIncome: '你每年税前收入多少？',
-    qIncomeHint: '工资、奖金、股权都算上，写个大概就行。和伴侣一起规划，就把 TA 也填上。',
-    partnerIncome: '伴侣的年收入（可留空）',
+    qIncomeHint: '工资、奖金、股权都算上，写个大概就行。',
     qSpending: '你每年花多少？',
     qSpendingHint:
       '房租房贷、吃饭、旅行，全都算进去。这个数既决定你能存下多少，也决定你要攒到多少，比其他几个问题都关键。',

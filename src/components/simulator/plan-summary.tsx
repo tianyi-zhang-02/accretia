@@ -15,10 +15,11 @@ import PixelIcon, { type PixelIconName } from '../pixel/pixel-icon';
  * same handful of figures, so those get scannable rows here and everything
  * else moves one tap away.
  *
- * Writing back is deliberately conservative: a household with several people
- * or several career stages has no single "income" field to edit, so those
- * rows go read-only and point at the full form rather than guessing which
- * stage the user meant.
+ * Writing back is deliberately conservative: a plan with several career
+ * stages has no single "income" field to edit, so that row goes read-only
+ * and points at the full form rather than guessing which stage was meant.
+ * (The app is single-person; the engine still tolerates imported multi-
+ * person files, and those get the same read-only treatment.)
  */
 
 type Field = 'age' | 'income' | 'spending' | 'netWorth' | 'retireAge';
@@ -39,7 +40,7 @@ const thisYear = () => new Date().getFullYear();
 
 export function summarize(a: Assumptions, t: ReturnType<typeof useI18n>['t']): Line[] {
   const p = a.people[0];
-  const soloSimple = a.people.length === 1 && (p?.careerStages.length ?? 0) <= 1;
+  const simple = a.people.length === 1 && (p?.careerStages.length ?? 0) <= 1;
   const income = a.people.reduce(
     (sum, person) =>
       sum +
@@ -63,11 +64,11 @@ export function summarize(a: Assumptions, t: ReturnType<typeof useI18n>['t']): L
     {
       key: 'income',
       icon: 'coins',
-      label: a.people.length > 1 ? s.householdIncome : s.income,
+      label: s.income,
       value: Math.round(income),
       money: true,
-      editable: soloSimple,
-      hint: soloSimple ? undefined : s.seeDetails,
+      editable: simple,
+      hint: simple ? undefined : s.seeDetails,
     },
     {
       key: 'spending',

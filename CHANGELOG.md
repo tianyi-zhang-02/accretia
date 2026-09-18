@@ -6,6 +6,23 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Single-person, on purpose
+
+「只有单人的结果 因为算双人不太合理」— agreed. A two-earner household
+needs its own tax treatment, its own retirement timing and a real rule for
+merging incomes; running both through one flat rate and keying everything
+to "the first person" produced confident nonsense.
+
+- **Removed** the partner-income field from the guided setup; it always
+  builds one person now.
+- **Removed** "+ Add person" from the form. "Remove person" stays so a plan
+  saved in the two-person era can still be trimmed.
+- **Changed** the plan summary's income row no longer needs a "household"
+  fallback; the retirement note says "your retire age" instead of "the first
+  person's".
+- The engine and schema still accept multi-person files, so nothing
+  previously saved fails to restore. 122 tests.
+
 ### Simpler by default: the plan is five numbers
 
 The last pass fixed how things *look*; this one fixes how much is on screen.

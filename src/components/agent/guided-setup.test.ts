@@ -9,7 +9,6 @@ import { buildFromAnswers } from './guided-setup';
 const answers = (o: Partial<Parameters<typeof buildFromAnswers>[0]> = {}) => ({
   age: 30,
   income: 200_000,
-  partnerIncome: 0,
   spending: 60_000,
   netWorth: 100_000,
   ...o,
@@ -20,9 +19,9 @@ describe('guided setup → scenario', () => {
     expect(assumptionsSchema.safeParse(buildFromAnswers(answers())).success).toBe(true);
   });
 
-  it('adds a second person only when a partner income is given', () => {
+  it('always builds exactly one person (the app is single-person)', () => {
     expect(buildFromAnswers(answers()).people).toHaveLength(1);
-    expect(buildFromAnswers(answers({ partnerIncome: 150_000 })).people).toHaveLength(2);
+    expect(buildFromAnswers(answers({ income: 900_000 })).people).toHaveLength(1);
   });
 
   it('keeps startingInvested within startingNetWorth (schema invariant)', () => {
@@ -32,9 +31,7 @@ describe('guided setup → scenario', () => {
 
   it('scales the tax estimate with household income', () => {
     const low = buildFromAnswers(answers({ income: 80_000 })).effectiveTaxRatePct;
-    const high = buildFromAnswers(
-      answers({ income: 500_000, partnerIncome: 400_000 }),
-    ).effectiveTaxRatePct;
+    const high = buildFromAnswers(answers({ income: 900_000 })).effectiveTaxRatePct;
     expect(high).toBeGreaterThan(low);
   });
 
@@ -47,8 +44,8 @@ describe('guided setup → scenario', () => {
   // horizon ended at 90 — a 91-year-old still drawing millions, which made
   // the whole projection read as fantasy.
   it('retires everyone at 65 by default, so income actually stops', () => {
-    const a = buildFromAnswers(answers({ partnerIncome: 150_000 }));
-    expect(a.people.map((p) => p.retireAge)).toEqual([65, 65]);
+    const a = buildFromAnswers(answers());
+    expect(a.people.map((p) => p.retireAge)).toEqual([65]);
     const { rows } = simulate(a);
     expect(rows.at(-1)!.grossIncome).toBe(0);
   });
