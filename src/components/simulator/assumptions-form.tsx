@@ -29,7 +29,6 @@ import type {
   Windfall,
 } from '@/lib/validation/scenarios';
 
-import { newId } from './default-assumptions';
 
 type Setter = (next: Assumptions) => void;
 
@@ -647,18 +646,6 @@ export default function AssumptionsForm({
     update({ people });
   }
 
-  function addPerson() {
-    setPeople([
-      ...value.people,
-      {
-        id: newId(),
-        name: t.form.person.defaultName(value.people.length + 1),
-        birthYear: 1995,
-        careerStages: [],
-      },
-    ]);
-  }
-
   function patchPerson(personId: string, patch: Partial<Person>) {
     setPeople(value.people.map((p) => (p.id === personId ? { ...p, ...patch } : p)));
   }
@@ -1047,9 +1034,8 @@ export default function AssumptionsForm({
               </button>
             </div>
           ))}
-          <button type="button" onClick={addPerson} className="btn self-start">
-            {t.form.person.addPerson}
-          </button>
+          {/* Single-person app: no "+ Add person". The remove button stays so
+              a plan imported from the two-person era can still be trimmed. */}
         </div>
       </Section>
 
