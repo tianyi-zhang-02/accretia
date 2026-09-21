@@ -8,7 +8,7 @@
 
 ## What this is
 
-**Work Optional** is a **local-first** wealth-projection simulator. One page. All computation runs in the browser, and by default nothing leaves it. An **optional account** adds end-to-end-encrypted sync (owner-approved, 2026-09) — see "Optional cloud sync" below.
+**Work Optional** is a **local-first** app for keeping track of your money month by month, with a wealth-projection simulator as the yardstick. **Tracking is the home screen; the projection is one part** (owner's call, 2026-09: "主要还是 keep track"). One page, three sections — **Track · Plan · Data** (`tab` state in `simulator-client.tsx`; `.tabbar` in `globals.css` is a segmented control on desktop and a fixed bottom tab bar under 640px). All computation runs in the browser, and by default nothing leaves it. An **optional account** adds end-to-end-encrypted sync (owner-approved, 2026-09) — see "Optional cloud sync" below.
 
 **Two names, on purpose — do not "fix" this.** The APP is **Work Optional** (page `<title>`, PWA manifest, in-app header, `package.json`): it's the product's own headline — it tells you the year work becomes optional. The REPO and the DEPLOYED SITE stay **Accretia** (`accretia.vercel.app`, from _accretion_: growth by accumulation), because a long-established US wealth-management firm already trades as Work Optional and owns workoptional.com; we deliberately don't compete for that ground.
 
@@ -16,7 +16,7 @@
 
 **Built for long-term use without a backend.** Browser storage is not a vault (clearing site data, a new machine, Safari's 7-day eviction), so the durable copy is a file the user owns: the **Your data** card (`components/data/data-card.tsx`, logic in `lib/backup/backup.ts`) does one-click **Back up everything** / **Restore** (all scenarios + the ledger in one versioned JSON, restored as untrusted input with an explicit confirm), shows days since the last backup and nags after 30, and offers `navigator.storage.persist()` — **only from a click**, because Firefox prompts for it. `lastBackupAt` rides inside the scenarios blob; it is NOT a third storage key. Cross-device sync would need accounts + a server holding people's finances — that is the hard rule below, not a feature request to slip in.
 
-**Monthly ledger (owner-approved, deliberately light).** A fourth view tab records three numbers a month — take-home income, spending, month-end net worth — typed in or imported from a CSV template, and produces a year report (totals, savings rate, plan vs actual, print-to-PDF) plus a one-click "use these numbers in my plan" calibration. Logic is pure and tested in `src/lib/ledger/ledger.ts`. This is NOT the old tracker coming back: no accounts, no transactions, no categories. Keep it at three numbers.
+**Monthly tracking (the home screen, deliberately light).** The **Track** section opens on a one-month **check-in** (`components/ledger/month-check-in.tsx`): three labeled money fields, placeholders from the last three months' average, a "same as last month" chip for income, a live answer as you type ("you kept $X · your plan expects $Y a month"), an explicit Save, and a 12-dot year strip to jump between months. It opens on *last* month until that's logged (its numbers are final), then on this month (`checkInTarget`). Beside it, **Am I on track?** (`track-status.tsx`) holds the latest real net worth against the plan's interpolated value for that month (`planAt`), a plain-SVG actual-vs-plan sparkline, year-to-date kept/spent vs plan, and the projection reduced to one sentence with an "Open plan" link. The 12×3 grid and the CSV tools sit behind an "All months & spreadsheet" disclosure — nobody should face 36 empty cells to log one month. It records three numbers a month — take-home income, spending, month-end net worth — typed in or imported from a CSV template, and produces a year report (totals, savings rate, plan vs actual, print-to-PDF) plus a one-click "use these numbers in my plan" calibration. Logic is pure and tested in `src/lib/ledger/ledger.ts`. This is NOT the old tracker coming back: no accounts, no transactions, no categories. Keep it at three numbers.
 
 The repo was formerly a full net-worth tracker (Supabase + auth + accounts/transactions/holdings/portfolio). All of that was deliberately removed — the owner uses a real brokerage for tracking and wanted just the projection tool. The old code is preserved in git history; do not resurrect it.
 
@@ -108,7 +108,7 @@ src/
   proxy.ts                per-request CSP nonce (the only server-touching code)
   components/
     data/                 cloud-sync — optional account + encrypted upload/download (lazy, configured-only); data-card — where data lives, last backup, back up / restore everything, cleanup protection
-    ledger/               ledger-panel — monthly entry grid, CSV template/import/export, year report (the print area)
+    ledger/               ledger-panel — the Track section (check-in + status + year report, grid/CSV behind a disclosure); month-check-in — one-month entry form + year strip; track-status — actual vs plan
     agent/                guided-setup (4-question onboarding), insights-panel, pixel-guide — the LOCAL agent: no LLM, no network
     simulator/            assumptions-form, compare-view, goal-seek-panel, year-table, default-assumptions
     charts/simulator-chart.tsx
@@ -128,7 +128,7 @@ src/
 
 UI is answer-first. The left column opens as a **plan summary** (`plan-summary.tsx`) — five inline-editable rows (age / income / spending / saved / retire age) — with the full eight-section `AssumptionsForm` behind an **All details** disclosure. That keeps a first load at ~3 visible inputs instead of 23; don't re-expand the form by default. Summary write-back stays conservative: rows that can't map to a single field (income for a multi-person or multi-stage household) go read-only rather than guessing.
 
-The right column shows **one visual at a time** — a Chart · Pixel world · Year by year · Ledger segmented switcher (`view` state), chart by default. Don't stack them again.
+In **Plan**, the scenario bar shows only the scenario picker, **+ New**, **Guide me** (and **Compare** with 2+ scenarios); rename / duplicate / export / import / remove sit behind **Manage**. The "Save on this device" switch, the backup card and cloud sync live in **Data**, not in the plan column. The right column shows **one visual at a time** — a Chart · Pixel world · Year by year segmented switcher (`view` state), chart by default. Don't stack them again.
 
 Underneath it is still a live side-by-side editor: **Assumptions** (the form) on the left, **Projection** (final balance + chart + goal-seek) pinned on the right so edits update it in real time — with a scenario bar (select / name / duplicate / export / import / compare / remove) on top and the year-by-year table full-width below. **Compare** is a toggle in the scenario bar that swaps the editor for the compare view. On mobile it stacks (projection on top, assumptions below).
 

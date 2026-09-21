@@ -13,7 +13,7 @@ import SimulatorClient from './simulator-client';
 export default async function HomePage() {
   await connection();
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pt-6 pb-16 sm:pt-8">
+    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 has-tabbar px-4 pt-6 pb-16 sm:pt-8">
       <SimulatorClient />
     </main>
   );

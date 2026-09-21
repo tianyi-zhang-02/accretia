@@ -5,6 +5,8 @@ import { useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n/locale';
 import {
   calibrationPatch,
+  checkInTarget,
+  isAfter,
   parseLedgerCsv,
   remove,
   templateCsv,
@@ -12,19 +14,23 @@ import {
   upsert,
   yearReport,
   type MonthEntry,
+  type YearMonth,
 } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
 import PixelIcon, { PixelLabel } from '../pixel/pixel-icon';
+import MonthCheckIn from './month-check-in';
+import TrackStatus from './track-status';
 
 /**
- * Monthly ledger + year-end report.
+ * Track — the app's home: monthly check-in, "am I on track?", year report.
  *
- * Three numbers a month, typed here or filled into the CSV template in
- * Excel and imported. The report compares the year against the projection
- * and can push the real numbers back into the plan. Nothing leaves the
- * device: import is a local file read, export is a Blob download.
+ * Three numbers a month, typed into the check-in or filled into the CSV
+ * template in Excel and imported (the full-year grid sits behind a
+ * disclosure for bulk edits). The report compares the year against the
+ * projection and can push the real numbers back into the plan. Nothing
+ * leaves the device: import is a local file read, export is a Blob download.
  */
 
 type Field = 'income' | 'spending' | 'netWorth';
@@ -84,17 +90,32 @@ export default function LedgerPanel({
   onChange,
   assumptions,
   planRows,
+  fire,
+  onOpenPlan,
   onCalibrate,
 }: {
   entries: MonthEntry[];
   onChange: (next: MonthEntry[]) => void;
   assumptions: Assumptions;
   planRows: YearRow[];
+  fire: { age: number; year: number } | null;
+  onOpenPlan: () => void;
   onCalibrate: (patch: Partial<Assumptions>) => void;
 }) {
   const { t, fmt, locale } = useI18n();
   const L = t.ledger;
-  const [year, setYear] = useState(() => new Date().getFullYear());
+  const [today] = useState<YearMonth>(() => {
+    const d = new Date();
+    return { year: d.getFullYear(), month: d.getMonth() + 1 };
+  });
+  // Until the user picks a month, follow the check-in target — it moves on
+  // by itself once the saved ledger has loaded or last month gets logged.
+  const [picked, setPicked] = useState<YearMonth | null>(null);
+  const sel = picked ?? checkInTarget(entries, today);
+  const year = sel.year;
+  const select = (ym: YearMonth) => setPicked(isAfter(ym, today) ? today : ym);
+  const setYear = (y: number) => select({ year: y, month: sel.month });
+  const [showAll, setShowAll] = useState(false);
   const [note, setNote] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -139,7 +160,8 @@ export default function LedgerPanel({
     let merged = entries;
     for (const e of res.entries) merged = upsert(merged, e);
     onChange(merged.slice(-600));
-    if (res.entries[0]) setYear(res.entries.at(-1)!.year);
+    const lastImported = res.entries.at(-1);
+    if (lastImported) select(lastImported);
     const skipped = res.errors.map((e) => e.line);
     setNote({
       tone: skipped.length ? 'bad' : 'ok',
@@ -154,123 +176,58 @@ export default function LedgerPanel({
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="card">
-        <div className="mb-1 flex items-center justify-between gap-3">
-          <PixelLabel icon="coins">{L.heading}</PixelLabel>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              className="btn btn-ghost px-2"
-              onClick={() => setYear((y) => y - 1)}
-              aria-label={L.prevYear}
-            >
-              ‹
-            </button>
-            <span className="nums text-sm font-medium">{year}</span>
-            <button
-              type="button"
-              className="btn btn-ghost px-2"
-              onClick={() => setYear((y) => y + 1)}
-              aria-label={L.nextYear}
-            >
-              ›
-            </button>
-          </div>
-        </div>
-        <p className="text-muted mb-3 text-xs">{L.intro}</p>
-
-        <div className="text-muted mb-1 grid grid-cols-[3rem_1fr_1fr_1fr] gap-2 text-[11px]">
-          <span />
-          <span className="text-right">{L.income}</span>
-          <span className="text-right">{L.spending}</span>
-          <span className="text-right">{L.netWorth}</span>
-        </div>
-        <ul className="flex flex-col gap-1.5">
-          {Array.from({ length: 12 }, (_, i) => i + 1).map((mo) => {
-            const e = entries.find((x) => x.year === year && x.month === mo);
-            return (
-              <li
-                key={`${year}-${mo}`}
-                className="grid grid-cols-[3rem_1fr_1fr_1fr] items-center gap-2"
-              >
-                <span className="text-muted text-xs">{monthName(mo)}</span>
-                <Cell
-                  value={e?.income}
-                  label={`${monthName(mo)} ${L.income}`}
-                  onCommit={(n) => edit(mo, 'income', n)}
-                />
-                <Cell
-                  value={e?.spending}
-                  label={`${monthName(mo)} ${L.spending}`}
-                  onCommit={(n) => edit(mo, 'spending', n)}
-                />
-                <Cell
-                  value={e?.netWorth}
-                  label={`${monthName(mo)} ${L.netWorth}`}
-                  allowNegative
-                  onCommit={(n) => edit(mo, 'netWorth', n)}
-                />
-              </li>
-            );
-          })}
-        </ul>
-
-        <hr className="rule my-4" />
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="btn"
-            onClick={() => download(`ledger-template-${year}.csv`, templateCsv(year))}
-          >
-            {L.template}
-          </button>
-          <button type="button" className="btn" onClick={() => fileRef.current?.click()}>
-            {L.importCsv}
-          </button>
-          <button
-            type="button"
-            className="btn"
-            disabled={entries.length === 0}
-            onClick={() => download('ledger.csv', toCsv(entries))}
-          >
-            {L.exportCsv}
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv,text/csv"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void importFile(f);
-              e.target.value = '';
-            }}
-          />
-        </div>
-        {note ? (
-          <p className={`mt-2 text-xs ${note.tone === 'ok' ? 'text-positive' : 'text-negative'}`}>
-            {note.text}
-          </p>
-        ) : null}
-        <p className="text-muted mt-3 flex items-start gap-2 text-[11px] italic">
-          <PixelIcon name="shield" size={11} className="mt-px shrink-0" />
-          {L.privacy}
-        </p>
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[3fr_2fr]">
+        <MonthCheckIn
+          entries={entries}
+          sel={sel}
+          today={today}
+          planRows={planRows}
+          startingNetWorth={assumptions.startingNetWorth}
+          onSelect={select}
+          onSave={(e) => {
+            onChange(upsert(entries, e));
+            setPicked({ year: e.year, month: e.month });
+          }}
+          onClear={(ym) => onChange(remove(entries, ym.year, ym.month))}
+        />
+        <TrackStatus
+          entries={entries}
+          report={report}
+          planRows={planRows}
+          startingNetWorth={assumptions.startingNetWorth}
+          fire={fire}
+          onOpenPlan={onOpenPlan}
+        />
       </div>
 
       {/* Year-end report — also the print area. */}
       <div className="card print-area">
         <div className="mb-3 flex items-center justify-between gap-3">
           <PixelLabel icon="chart">{L.reportHeading(year)}</PixelLabel>
-          {report.monthsRecorded > 0 ? (
+          <div className="print-hide flex items-center gap-1">
             <button
               type="button"
-              className="btn btn-ghost print-hide"
-              onClick={() => window.print()}
+              className="btn btn-ghost px-2"
+              onClick={() => setYear(year - 1)}
+              aria-label={L.prevYear}
             >
-              {L.print}
+              ‹
             </button>
-          ) : null}
+            <button
+              type="button"
+              className="btn btn-ghost px-2"
+              onClick={() => setYear(year + 1)}
+              disabled={year >= today.year}
+              aria-label={L.nextYear}
+            >
+              ›
+            </button>
+            {report.monthsRecorded > 0 ? (
+              <button type="button" className="btn btn-ghost" onClick={() => window.print()}>
+                {L.print}
+              </button>
+            ) : null}
+          </div>
         </div>
 
         {report.monthsRecorded === 0 ? (
@@ -401,6 +358,123 @@ export default function LedgerPanel({
           </>
         )}
       </div>
+
+      <button
+        type="button"
+        className="btn print-hide w-full justify-between"
+        aria-expanded={showAll}
+        onClick={() => setShowAll((v) => !v)}
+      >
+        <span>{showAll ? L.hideAll : L.showAll}</span>
+        <span className="text-muted text-[11px]">{showAll ? '−' : `+ ${L.showAllHint}`}</span>
+      </button>
+
+      {showAll ? (
+        <div className="card">
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <PixelLabel icon="coins">{L.heading}</PixelLabel>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                className="btn btn-ghost px-2"
+                onClick={() => setYear(year - 1)}
+                aria-label={L.prevYear}
+              >
+                ‹
+              </button>
+              <span className="nums text-sm font-medium">{year}</span>
+              <button
+                type="button"
+                className="btn btn-ghost px-2"
+                onClick={() => setYear(year + 1)}
+                disabled={year >= today.year}
+                aria-label={L.nextYear}
+              >
+                ›
+              </button>
+            </div>
+          </div>
+          <p className="text-muted mb-3 text-xs">{L.intro}</p>
+
+          <div className="text-muted mb-1 grid grid-cols-[3rem_1fr_1fr_1fr] gap-2 text-[11px]">
+            <span />
+            <span className="text-right">{L.income}</span>
+            <span className="text-right">{L.spending}</span>
+            <span className="text-right">{L.netWorth}</span>
+          </div>
+          <ul className="flex flex-col gap-1.5">
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((mo) => {
+              const e = entries.find((x) => x.year === year && x.month === mo);
+              return (
+                <li
+                  key={`${year}-${mo}`}
+                  className="grid grid-cols-[3rem_1fr_1fr_1fr] items-center gap-2"
+                >
+                  <span className="text-muted text-xs">{monthName(mo)}</span>
+                  <Cell
+                    value={e?.income}
+                    label={`${monthName(mo)} ${L.income}`}
+                    onCommit={(n) => edit(mo, 'income', n)}
+                  />
+                  <Cell
+                    value={e?.spending}
+                    label={`${monthName(mo)} ${L.spending}`}
+                    onCommit={(n) => edit(mo, 'spending', n)}
+                  />
+                  <Cell
+                    value={e?.netWorth}
+                    label={`${monthName(mo)} ${L.netWorth}`}
+                    allowNegative
+                    onCommit={(n) => edit(mo, 'netWorth', n)}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+
+          <hr className="rule my-4" />
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className="btn"
+              onClick={() => download(`ledger-template-${year}.csv`, templateCsv(year))}
+            >
+              {L.template}
+            </button>
+            <button type="button" className="btn" onClick={() => fileRef.current?.click()}>
+              {L.importCsv}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              disabled={entries.length === 0}
+              onClick={() => download('ledger.csv', toCsv(entries))}
+            >
+              {L.exportCsv}
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void importFile(f);
+                e.target.value = '';
+              }}
+            />
+          </div>
+          {note ? (
+            <p className={`mt-2 text-xs ${note.tone === 'ok' ? 'text-positive' : 'text-negative'}`}>
+              {note.text}
+            </p>
+          ) : null}
+          <p className="text-muted mt-3 flex items-start gap-2 text-[11px] italic">
+            <PixelIcon name="shield" size={11} className="mt-px shrink-0" />
+            {L.privacy}
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }
