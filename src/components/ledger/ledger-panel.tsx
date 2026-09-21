@@ -326,6 +326,27 @@ export default function LedgerPanel({
                           style={{ width: `${Math.max(1, Math.min(100, r.sharePct))}%` }}
                         />
                       </span>
+                      {r.items.length ? (
+                        <ul className="mt-1.5 flex flex-col gap-0.5 pl-3">
+                          {r.items.map((item) => (
+                            <li
+                              key={item.id}
+                              className="text-muted flex items-baseline justify-between gap-3 text-xs"
+                            >
+                              <span>{t.track.subcategories[item.id]}</span>
+                              <span className="nums">
+                                {fmt.currency0(item.total)} · {fmt.pct0(item.sharePct)}
+                              </span>
+                            </li>
+                          ))}
+                          {r.unitemized > 0 ? (
+                            <li className="text-muted flex items-baseline justify-between gap-3 text-xs italic">
+                              <span>{L.unitemized}</span>
+                              <span className="nums">{fmt.currency0(r.unitemized)}</span>
+                            </li>
+                          ) : null}
+                        </ul>
+                      ) : null}
                     </li>
                   ))}
                   {breakdown.uncategorized > 0 ? (
@@ -493,6 +514,18 @@ export default function LedgerPanel({
               }
             >
               {L.templateDetailed}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={() =>
+                download(
+                  `ledger-template-${year}-full.csv`,
+                  templateCsv(year, 'full', { ...t.track.categories, ...t.track.subcategories }),
+                )
+              }
+            >
+              {L.templateFull}
             </button>
             <button type="button" className="btn" onClick={() => fileRef.current?.click()}>
               {L.importCsv}

@@ -18,6 +18,8 @@ import {
   recordedYears,
   shiftMonth,
   streak,
+  SUB_IDS,
+  subTotal,
   templateCsv,
   toCsv,
   upsert,
@@ -356,5 +358,92 @@ describe('spending categories', () => {
     });
     const report = yearReport([m(1, 10_000, 8_000)], 2026, rows);
     expect(report.plan).toEqual({ spending: 8_000, saved: 4_500 });
+  });
+});
+
+describe('line items inside categories', () => {
+  const base = { year: 2026, month: 1, income: 10_000, spending: 0 };
+
+  it('totals are derived from the finest level filled in', () => {
+    const [e] = upsert([], {
+      ...base,
+      spending: 1,
+      // housing has items → its typed 9999 is replaced by their sum; food has none → kept.
+      categories: { housing: 9999, food: 800 },
+      breakdown: { 'housing.mortgage': 2800, 'housing.propertyTax': 450.25, 'housing.hoa': 0 },
+    });
+    expect(e!.categories).toEqual({ housing: 3250.25, food: 800 });
+    expect(e!.breakdown).toEqual({ 'housing.mortgage': 2800, 'housing.propertyTax': 450.25 });
+    expect(e!.spending).toBe(4050.25);
+    expect(subTotal(e!.breakdown, 'housing')).toBe(3250.25);
+    expect(subTotal(e!.breakdown, 'food')).toBe(0);
+  });
+
+  it('line items alone are enough — the category and the total follow', () => {
+    const parsed = monthEntrySchema.parse({
+      ...base,
+      breakdown: { 'insurance.auto': 140, 'insurance.health': 410 },
+    });
+    expect(parsed.categories).toEqual({ insurance: 550 });
+    expect(parsed.spending).toBe(550);
+  });
+
+  it('rejects unknown line items and negatives', () => {
+    expect(monthEntrySchema.safeParse({ ...base, breakdown: { 'housing.moat': 5 } }).success).toBe(
+      false,
+    );
+    expect(monthEntrySchema.safeParse({ ...base, breakdown: { 'food.dining': -1 } }).success).toBe(
+      false,
+    );
+  });
+
+  it('every line item belongs to a known category and ids are unique', () => {
+    expect(new Set(SUB_IDS).size).toBe(SUB_IDS.length);
+    expect(SUB_IDS.length).toBeGreaterThan(30);
+  });
+
+  it('CSV: a full-detail ledger round-trips; labelled headers and mixed case are accepted', () => {
+    const entries = upsert([], {
+      ...base,
+      categories: { food: 900 },
+      breakdown: { 'housing.mortgage': 2800, 'insurance.auto': 140 },
+    });
+    const csv = toCsv(entries);
+    expect(csv.split('\n')[0]).toContain('housing.mortgage');
+    expect(parseLedgerCsv(csv).entries).toEqual(entries);
+
+    const labelled = templateCsv(2026, 'full', {
+      'housing.hoa': 'HOA, fees (monthly)',
+      housing: '住房',
+    });
+    const header = labelled.split('\n')[0]!;
+    expect(header).toContain('housing (住房)');
+    expect(header).toContain('housing.hoa (HOA  fees  monthly)');
+    expect(header.split(',')).toHaveLength(5 + 10 + SUB_IDS.length);
+    expect(parseLedgerCsv(labelled).entries).toEqual([]);
+
+    const typed = parseLedgerCsv(
+      'year,month,income,Housing.PropertyTax (房产税),insurance.auto（车险）\n2026,3,9000,450,140\n',
+    );
+    expect(typed.errors).toEqual([]);
+    expect(typed.entries[0]).toMatchObject({
+      spending: 590,
+      categories: { housing: 450, insurance: 140 },
+      breakdown: { 'housing.propertyTax': 450, 'insurance.auto': 140 },
+    });
+  });
+
+  it('categoryBreakdown lists line items by size and what was left un-itemized', () => {
+    const entries = [
+      { ...base, month: 1, breakdown: { 'housing.mortgage': 2800, 'housing.hoa': 200 } },
+      { ...base, month: 2, categories: { housing: 3000 } },
+    ].reduce<MonthEntry[]>((acc, e) => upsert(acc, e as MonthEntry), []);
+    const row = categoryBreakdown(entries, 2026)!.rows[0]!;
+    expect(row).toMatchObject({ id: 'housing', total: 6000, unitemized: 3000 });
+    expect(row.items.map((i) => [i.id, i.total])).toEqual([
+      ['housing.mortgage', 2800],
+      ['housing.hoa', 200],
+    ]);
+    expect(row.items[0]!.sharePct).toBeCloseTo(46.67, 1);
   });
 });

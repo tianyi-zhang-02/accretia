@@ -11,9 +11,12 @@ import {
   recentAverage,
   shiftMonth,
   streak,
+  subsOf,
+  type Breakdown,
   type Categories,
   type CategoryId,
   type MonthEntry,
+  type SubId,
   type YearMonth,
 } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
@@ -120,6 +123,16 @@ function Form({
   const [cats, setCats] = useState<Partial<Record<CategoryId, string>>>(() =>
     Object.fromEntries(CATEGORY_IDS.map((id) => [id, str(entry?.categories?.[id])])),
   );
+  // The finest level: line items inside a category (housing → mortgage, tax,
+  // HOA…). A category with items filled in shows their sum and can't be typed.
+  const [subs, setSubs] = useState<Partial<Record<SubId, string>>>(() =>
+    Object.fromEntries(Object.entries(entry?.breakdown ?? {}).map(([id, v]) => [id, str(v)])),
+  );
+  const [open, setOpen] = useState<CategoryId[]>(() => {
+    const from =
+      entry ?? entries.filter((e) => e.year * 12 + e.month < ym.year * 12 + ym.month).at(-1);
+    return CATEGORY_IDS.filter((c) => subsOf(c).some((id) => from?.breakdown?.[id] !== undefined));
+  });
   const [touched, setTouched] = useState(false);
 
   const usual = useMemo(() => recentAverage(entries, ym), [entries, ym]);
@@ -134,9 +147,24 @@ function Form({
 
   const inc = income.trim() === '' ? undefined : parseMoney(income);
   // Per-category parse: number, undefined (blank) or null (unreadable).
+  const blank = (raw: string | undefined) => (raw ?? '').trim() === '';
   const catValues = CATEGORY_IDS.map((id) => {
-    const raw = cats[id] ?? '';
-    return { id, value: raw.trim() === '' ? undefined : parseMoney(raw) };
+    const items = subsOf(id).map((sub) => ({
+      id: sub,
+      value: blank(subs[sub]) ? undefined : parseMoney(subs[sub]!),
+    }));
+    const filled = items.filter((i) => typeof i.value === 'number');
+    // With line items, the category IS their sum; otherwise it's what was typed.
+    const itemized = filled.length > 0;
+    const sum = Math.round(filled.reduce((t, i) => t + (i.value as number), 0) * 100) / 100;
+    const value = items.some((i) => i.value === null)
+      ? null
+      : itemized
+        ? sum
+        : blank(cats[id])
+          ? undefined
+          : parseMoney(cats[id]!);
+    return { id, value, items, itemized };
   });
   const catFilled = catValues.filter((c) => typeof c.value === 'number');
   const catTotal = Math.round(catFilled.reduce((t, c) => t + (c.value as number), 0) * 100) / 100;
@@ -164,6 +192,13 @@ function Form({
     setTouched(true);
     onDirty();
   };
+  const editSub = (id: SubId, next: string) => {
+    setSubs((c) => ({ ...c, [id]: next }));
+    setTouched(true);
+    onDirty();
+  };
+  const toggleOpen = (id: CategoryId) =>
+    setOpen((o) => (o.includes(id) ? o.filter((x) => x !== id) : [...o, id]));
 
   function switchMode(next: boolean) {
     if (next === detailed) return;
@@ -181,11 +216,21 @@ function Form({
   /** Last month's bills are this month's first guess — only blanks are filled. */
   function fillFromLast() {
     if (!prev?.categories) return;
+    const itemizedLast = (id: CategoryId) =>
+      subsOf(id).some((sub) => prev.breakdown?.[sub] !== undefined);
+    setSubs((c) => {
+      const out = { ...c };
+      for (const [sub, v] of Object.entries(prev.breakdown ?? {}) as Array<[SubId, number]>) {
+        if (blank(out[sub])) out[sub] = String(v);
+      }
+      return out;
+    });
     setCats((c) => {
       const out = { ...c };
       for (const id of CATEGORY_IDS) {
         const v = prev.categories?.[id];
-        if ((out[id] ?? '').trim() === '' && v !== undefined) out[id] = String(v);
+        // A category that was itemized last month is filled through its items.
+        if (blank(out[id]) && v !== undefined && !itemizedLast(id)) out[id] = String(v);
       }
       return out;
     });
@@ -203,7 +248,12 @@ function Form({
         e.preventDefault();
         if (!canSave) return;
         const categories: Categories = {};
-        if (detailed) for (const c of catFilled) categories[c.id] = c.value as number;
+        const breakdown: Breakdown = {};
+        if (detailed) {
+          for (const c of catFilled) categories[c.id] = c.value as number;
+          for (const c of catValues)
+            for (const i of c.items) if (typeof i.value === 'number') breakdown[i.id] = i.value;
+        }
         onSave({
           year: ym.year,
           month: ym.month,
@@ -211,6 +261,7 @@ function Form({
           spending: sp ?? 0,
           ...(typeof nw === 'number' ? { netWorth: nw } : {}),
           ...(detailed && catFilled.length ? { categories } : {}),
+          ...(detailed && Object.keys(breakdown).length ? { breakdown } : {}),
         });
         setTouched(false);
       }}
@@ -295,40 +346,99 @@ function Form({
               </button>
             ) : null}
           </div>
+          <p className="text-muted text-[11px]">{C.breakdownHint}</p>
           <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-            {catValues.map(({ id, value }) => (
-              <li key={id}>
-                <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13px]">{t.track.categories[id]}</span>
-                    {id === 'housing' && plan && plan.monthlyHousing > 0 ? (
-                      <span className="text-muted block truncate text-[11px]">
-                        {C.housingPlan(fmt.currency0(plan.monthlyHousing))}
+            {catValues.map(({ id, value, items, itemized }) => {
+              const isOpen = open.includes(id);
+              return (
+                <li key={id} className={isOpen ? 'sm:col-span-2' : ''}>
+                  <div className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      onClick={() => toggleOpen(id)}
+                      className="hover:text-foreground flex min-w-0 items-center gap-2 text-left"
+                    >
+                      <span
+                        aria-hidden
+                        className={`text-muted inline-block w-3 shrink-0 text-xs transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                      >
+                        ›
                       </span>
-                    ) : null}
-                  </span>
-                  <span className="relative">
-                    <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
-                      $
+                      <span className="min-w-0">
+                        <span className="block truncate text-[13px]">{t.track.categories[id]}</span>
+                        {id === 'housing' && plan && plan.monthlyHousing > 0 ? (
+                          <span className="text-muted block truncate text-[11px]">
+                            {C.housingPlan(fmt.currency0(plan.monthlyHousing))}
+                          </span>
+                        ) : itemized && !isOpen ? (
+                          <span className="text-muted block truncate text-[11px]">
+                            {C.itemCount(items.filter((i) => typeof i.value === 'number').length)}
+                          </span>
+                        ) : null}
+                      </span>
+                    </button>
+                    <span className="relative">
+                      <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
+                        $
+                      </span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        aria-label={t.track.categories[id]}
+                        value={itemized ? String(value ?? '') : (cats[id] ?? '')}
+                        readOnly={itemized}
+                        title={itemized ? C.sumOfItems : undefined}
+                        placeholder={
+                          prev?.categories?.[id] !== undefined ? plain(prev.categories[id]!) : '0'
+                        }
+                        aria-invalid={value === null}
+                        onChange={(e) => editCat(id, e.target.value)}
+                        className={`field field-money nums h-10 min-h-0 w-full text-right text-[15px] ${
+                          value === null ? 'text-negative' : ''
+                        } ${itemized ? 'opacity-70' : ''}`}
+                      />
                     </span>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      autoComplete="off"
-                      value={cats[id] ?? ''}
-                      placeholder={
-                        prev?.categories?.[id] !== undefined ? plain(prev.categories[id]!) : '0'
-                      }
-                      aria-invalid={value === null}
-                      onChange={(e) => editCat(id, e.target.value)}
-                      className={`field field-money nums h-10 min-h-0 w-full text-right text-[15px] ${
-                        value === null ? 'text-negative' : ''
-                      }`}
-                    />
-                  </span>
-                </label>
-              </li>
-            ))}
+                  </div>
+
+                  {isOpen ? (
+                    <ul className="bg-surface-2/50 mt-2 grid grid-cols-1 gap-x-4 gap-y-2 rounded-[12px] p-3 sm:grid-cols-2">
+                      {items.map((item) => (
+                        <li key={item.id}>
+                          <label className="grid grid-cols-[1fr_7.5rem] items-center gap-3">
+                            <span className="text-muted truncate text-[13px]">
+                              {t.track.subcategories[item.id]}
+                            </span>
+                            <span className="relative">
+                              <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs">
+                                $
+                              </span>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                autoComplete="off"
+                                value={subs[item.id] ?? ''}
+                                placeholder={
+                                  prev?.breakdown?.[item.id] !== undefined
+                                    ? plain(prev.breakdown[item.id]!)
+                                    : '0'
+                                }
+                                aria-invalid={item.value === null}
+                                onChange={(e) => editSub(item.id, e.target.value)}
+                                className={`field field-money nums h-9 min-h-0 w-full text-right text-sm ${
+                                  item.value === null ? 'text-negative' : ''
+                                }`}
+                              />
+                            </span>
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
           <p className="rule" />
           <p className="flex items-center justify-between text-[13px]">
