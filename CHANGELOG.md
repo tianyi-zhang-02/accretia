@@ -6,6 +6,29 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Break a category down into line items
+
+The way a professional budget does it: every category opens into its own
+line items — about forty in all.
+
+- **Housing** → mortgage payment, rent, property tax, HOA / building fees,
+  repairs & upkeep. **Insurance** → health, auto, home / renters, life &
+  disability, other. **Car & transport** → payment, fuel, transit, parking,
+  maintenance. And so on for utilities, food, health, kids, fun, debt, other.
+- Tap a category in the check-in to open it. Fill in items and the category
+  becomes their sum (and locks); leave a category closed and type one number
+  as before. Any mix works in the same month — totals always come from the
+  finest level you filled in.
+- Last month's line items show as placeholders, **Fill blanks from last
+  month** copies them, and a month reopens with its itemized categories
+  already expanded.
+- **Where it went** nests the items under each category with their share,
+  and shows what was left un-itemized.
+- **Spreadsheet**: a full-breakdown template whose headers read
+  `housing.hoa (HOA / building fees)` — or the Chinese label — so it's
+  usable in Excel; ids match case-insensitively. Coarser ledgers export
+  exactly as before.
+
 ### A modern, plain look — the pixel styling is gone from the interface
 
 - **One typeface.** Geist for headings, body and the big figures (self-hosted

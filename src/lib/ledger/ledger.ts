@@ -38,10 +38,40 @@ export const CATEGORY_IDS = [
 export type CategoryId = (typeof CATEGORY_IDS)[number];
 export type Categories = Partial<Record<CategoryId, number>>;
 
+/**
+ * The second level: line items inside each category, the way a professional
+ * budget breaks things down (housing → mortgage, property tax, HOA, …). Also
+ * FIXED, for the same reasons. A sub-item's id is `category.item`.
+ */
+export const SUBCATEGORIES = {
+  housing: ['mortgage', 'rent', 'propertyTax', 'hoa', 'maintenance'],
+  utilities: ['energy', 'water', 'internet', 'phone'],
+  food: ['groceries', 'dining'],
+  transport: ['carPayment', 'fuel', 'transit', 'parking', 'carMaintenance'],
+  insurance: ['health', 'auto', 'home', 'life', 'other'],
+  health: ['medical', 'pharmacy', 'dental', 'fitness'],
+  family: ['childcare', 'tuition', 'activities', 'support'],
+  fun: ['travel', 'entertainment', 'shopping', 'subscriptions', 'gifts'],
+  debt: ['studentLoan', 'creditCard', 'personalLoan'],
+  other: ['pets', 'donations', 'taxes', 'fees', 'misc'],
+} as const satisfies Record<CategoryId, readonly string[]>;
+
+export type SubId = {
+  [C in CategoryId]: `${C}.${(typeof SUBCATEGORIES)[C][number]}`;
+}[CategoryId];
+export type Breakdown = Partial<Record<SubId, number>>;
+
+export const subsOf = (c: CategoryId): SubId[] =>
+  SUBCATEGORIES[c].map((item) => `${c}.${item}` as SubId);
+export const SUB_IDS: SubId[] = CATEGORY_IDS.flatMap(subsOf);
+
 const money = z.number().min(0).max(MONEY_CAP);
 const categoriesSchema = z
   .object(Object.fromEntries(CATEGORY_IDS.map((id) => [id, money.optional()])))
   .strict() as z.ZodType<Categories>;
+const breakdownSchema = z
+  .object(Object.fromEntries(SUB_IDS.map((id) => [id, money.optional()])))
+  .strict() as z.ZodType<Breakdown>;
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -51,22 +81,44 @@ export function categoryTotal(c: Categories | undefined): number {
   return round2(CATEGORY_IDS.reduce((s, id) => s + (c[id] ?? 0), 0));
 }
 
+/** Sum of one category's line items (0 for none). */
+export function subTotal(b: Breakdown | undefined, c: CategoryId): number {
+  if (!b) return 0;
+  return round2(subsOf(c).reduce((s, id) => s + (b[id] ?? 0), 0));
+}
+
 /**
- * One rule, enforced wherever an entry enters the system: when a month has
- * categories, `spending` IS their sum. Empty / all-zero categories vanish.
+ * One rule, enforced wherever an entry enters the system — totals are always
+ * DERIVED from the finest level that was filled in:
+ *   a category with line items  = the sum of those items;
+ *   spending, with categories   = the sum of the categories.
+ * Empty / all-zero values vanish at both levels.
  */
-function normalize<T extends { spending: number; categories?: Categories }>(e: T): T {
-  if (!e.categories) return e;
+function normalize<T extends { spending: number; categories?: Categories; breakdown?: Breakdown }>(
+  e: T,
+): T {
+  if (!e.categories && !e.breakdown) return e;
+  const items: Breakdown = {};
+  for (const id of SUB_IDS) {
+    const v = e.breakdown?.[id];
+    if (v !== undefined && v > 0) items[id] = v;
+  }
   const kept: Categories = {};
   for (const id of CATEGORY_IDS) {
-    const v = e.categories[id];
-    if (v !== undefined && v > 0) kept[id] = v;
+    const fromItems = subTotal(items, id);
+    const v = fromItems > 0 ? fromItems : e.categories?.[id];
+    if (v !== undefined && v > 0) kept[id] = Math.min(MONEY_CAP, v);
   }
-  const { categories: _drop, ...rest } = e;
-  void _drop;
-  return Object.keys(kept).length === 0
-    ? (rest as T)
-    : ({ ...rest, categories: kept, spending: Math.min(MONEY_CAP, categoryTotal(kept)) } as T);
+  const { categories: _c, breakdown: _b, ...rest } = e;
+  void _c;
+  void _b;
+  if (Object.keys(kept).length === 0) return rest as T;
+  return {
+    ...rest,
+    categories: kept,
+    ...(Object.keys(items).length ? { breakdown: items } : {}),
+    spending: Math.min(MONEY_CAP, categoryTotal(kept)),
+  } as T;
 }
 
 export const monthEntrySchema = z
@@ -81,6 +133,8 @@ export const monthEntrySchema = z
     netWorth: z.number().min(-MONEY_CAP).max(MONEY_CAP).optional(),
     /** Optional breakdown of `spending`. */
     categories: categoriesSchema.optional(),
+    /** Optional line items inside categories; a category with items is their sum. */
+    breakdown: breakdownSchema.optional(),
   })
   .transform(normalize);
 export type MonthEntry = z.infer<typeof monthEntrySchema>;
@@ -125,6 +179,11 @@ const HEADERS: Record<string, keyof MonthEntry> = {
   'net worth': 'netWorth',
   净资产: 'netWorth',
 };
+
+/** Line-item columns are matched by id (case-insensitively). */
+const SUB_HEADERS: Record<string, SubId> = Object.fromEntries(
+  SUB_IDS.map((id) => [id.toLowerCase(), id]),
+);
 
 /** Category column aliases — the ids themselves plus Chinese names. */
 const CATEGORY_HEADERS: Record<string, CategoryId> = {
@@ -202,14 +261,20 @@ export function parseLedgerCsv(text: string): CsvResult {
 
   const headerIdx = lines.findIndex((l) => l.trim() !== '');
   if (headerIdx < 0) return { entries: [], errors: [], fatal: 'noHeader' };
+  // A header may carry a human label after the id — "housing.hoa (HOA fees)"
+  // — so the template can be readable; only the leading token is matched.
+  const lead = (h: string) => h.split(/[\s(（]/)[0] ?? h;
   const headerCells = splitLine(lines[headerIdx]!).map((h) => h.toLowerCase());
-  const cols = headerCells.map((h) => HEADERS[h]);
+  const cols = headerCells.map((h) => HEADERS[h] ?? HEADERS[lead(h)]);
   const catCols = headerCells
-    .map((h, idx) => ({ id: CATEGORY_HEADERS[h], idx }))
+    .map((h, idx) => ({ id: CATEGORY_HEADERS[h] ?? CATEGORY_HEADERS[lead(h)], idx }))
     .filter((c): c is { id: CategoryId; idx: number } => c.id !== undefined);
+  const subCols = headerCells
+    .map((h, idx) => ({ id: SUB_HEADERS[h] ?? SUB_HEADERS[lead(h)], idx }))
+    .filter((c): c is { id: SubId; idx: number } => c.id !== undefined);
   const at = (f: keyof MonthEntry) => cols.indexOf(f);
   // A detailed file may leave out `spending` — the categories add up to it.
-  const hasSpending = at('spending') >= 0 || catCols.length > 0;
+  const hasSpending = at('spending') >= 0 || catCols.length > 0 || subCols.length > 0;
   if (at('year') < 0 || at('month') < 0 || at('income') < 0 || !hasSpending) {
     return { entries: [], errors: [], fatal: 'noHeader' };
   }
@@ -224,8 +289,15 @@ export function parseLedgerCsv(text: string): CsvResult {
     const spending = at('spending') >= 0 ? (cells[at('spending')] ?? '') : '';
     const nwCell = at('netWorth') >= 0 ? (cells[at('netWorth')] ?? '') : '';
     const catCells = catCols.map((c) => ({ id: c.id, cell: cells[c.idx] ?? '' }));
+    const subCells = subCols.map((c) => ({ id: c.id, cell: cells[c.idx] ?? '' }));
     // A template row the user never filled in is not an error.
-    if (income === '' && spending === '' && nwCell === '' && catCells.every((c) => c.cell === ''))
+    if (
+      income === '' &&
+      spending === '' &&
+      nwCell === '' &&
+      catCells.every((c) => c.cell === '') &&
+      subCells.every((c) => c.cell === '')
+    )
       continue;
 
     const year = cellToNumber(cells[at('year')] ?? '');
@@ -241,6 +313,13 @@ export function parseLedgerCsv(text: string): CsvResult {
       if (n === null || n < 0) badCategory = true;
       // Two columns may alias one category (mortgage + rent) — add them.
       else categories[c.id] = (categories[c.id] ?? 0) + n;
+    }
+    const breakdown: Breakdown = {};
+    for (const c of subCells) {
+      if (c.cell === '') continue;
+      const n = cellToNumber(c.cell);
+      if (n === null || n < 0) badCategory = true;
+      else breakdown[c.id] = n;
     }
     if (
       year === null ||
@@ -260,6 +339,7 @@ export function parseLedgerCsv(text: string): CsvResult {
       spending: spend,
       ...(nw === undefined ? {} : { netWorth: nw }),
       ...(Object.keys(categories).length ? { categories } : {}),
+      ...(Object.keys(breakdown).length ? { breakdown } : {}),
     });
     if (!parsed.success) {
       errors.push({ line: i + 1, reason: 'range' });
@@ -272,14 +352,34 @@ export function parseLedgerCsv(text: string): CsvResult {
 
 const HEADER_ROW = 'year,month,income,spending,net_worth';
 
-const DETAILED_HEADER_ROW = `${HEADER_ROW},${CATEGORY_IDS.join(',')}`;
+/** How fine a CSV is: one total, a column per category, or per line item too. */
+export type CsvDetail = 'simple' | 'category' | 'full';
+
+/** Labels make the header readable — "housing.hoa (HOA fees)". Ids stay the key. */
+export type CsvLabels = Partial<Record<CategoryId | SubId, string>>;
+
+function headerRow(detail: CsvDetail, labels?: CsvLabels): string {
+  const cell = (id: CategoryId | SubId) => {
+    const label = labels?.[id]?.replace(/[",()（）\r\n]/g, ' ').trim();
+    return label ? `${id} (${label})` : id;
+  };
+  return [
+    HEADER_ROW,
+    ...(detail === 'simple' ? [] : CATEGORY_IDS.map(cell)),
+    ...(detail === 'full' ? SUB_IDS.map(cell) : []),
+  ].join(',');
+}
 
 /**
  * Numbers only, so there is nothing for a spreadsheet to execute. Category
- * columns appear only when some month actually uses them.
+ * and line-item columns appear only when some month actually uses them.
  */
 export function toCsv(entries: MonthEntry[]): string {
-  const detailed = entries.some((e) => e.categories);
+  const detail: CsvDetail = entries.some((e) => e.breakdown)
+    ? 'full'
+    : entries.some((e) => e.categories)
+      ? 'category'
+      : 'simple';
   const rows = entries.map((e) =>
     [
       e.year,
@@ -287,21 +387,28 @@ export function toCsv(entries: MonthEntry[]): string {
       e.income,
       e.spending,
       e.netWorth ?? '',
-      ...(detailed ? CATEGORY_IDS.map((id) => e.categories?.[id] ?? '') : []),
+      ...(detail === 'simple' ? [] : CATEGORY_IDS.map((id) => e.categories?.[id] ?? '')),
+      ...(detail === 'full' ? SUB_IDS.map((id) => e.breakdown?.[id] ?? '') : []),
     ].join(','),
   );
-  return [detailed ? DETAILED_HEADER_ROW : HEADER_ROW, ...rows].join('\n') + '\n';
+  return [headerRow(detail), ...rows].join('\n') + '\n';
 }
 
 /**
- * Twelve empty rows for one year — open in Excel, fill, save as CSV. The
- * detailed template adds a column per category; fill those and leave
- * `spending` blank (it's their sum).
+ * Twelve empty rows for one year — open in Excel, fill, save as CSV. Fill the
+ * finest columns you care about and leave the totals blank: a category with
+ * line items is their sum, and `spending` is the sum of the categories.
  */
-export function templateCsv(year: number, detailed = false): string {
-  const blanks = ','.repeat(3 + (detailed ? CATEGORY_IDS.length : 0));
+export function templateCsv(
+  year: number,
+  detail: boolean | CsvDetail = 'simple',
+  labels?: CsvLabels,
+): string {
+  const level: CsvDetail = detail === true ? 'category' : detail === false ? 'simple' : detail;
+  const header = headerRow(level, labels);
+  const blanks = ','.repeat(header.split(',').length - 2);
   const rows = Array.from({ length: 12 }, (_, i) => `${year},${i + 1}${blanks}`);
-  return [detailed ? DETAILED_HEADER_ROW : HEADER_ROW, ...rows].join('\n') + '\n';
+  return [header, ...rows].join('\n') + '\n';
 }
 
 // ---------- Year report ----------
@@ -502,7 +609,16 @@ export function planAt(
 
 export type CategoryBreakdown = {
   /** Categories with spending this year, largest first. */
-  rows: Array<{ id: CategoryId; total: number; sharePct: number; monthlyAvg: number }>;
+  rows: Array<{
+    id: CategoryId;
+    total: number;
+    sharePct: number;
+    monthlyAvg: number;
+    /** Line items inside the category, largest first; share is of the CATEGORY. */
+    items: Array<{ id: SubId; total: number; sharePct: number }>;
+    /** Part of the category that was logged without line items. */
+    unitemized: number;
+  }>;
   /** Spending from months logged as a single total. */
   uncategorized: number;
   /** Months that carry a breakdown. */
@@ -517,11 +633,20 @@ export function categoryBreakdown(entries: MonthEntry[], year: number): Category
   const totalSpending = inYear.reduce((s, e) => s + e.spending, 0);
   const rows = CATEGORY_IDS.map((id) => {
     const total = round2(detailed.reduce((s, e) => s + (e.categories?.[id] ?? 0), 0));
+    const items = subsOf(id)
+      .map((sub) => {
+        const t = round2(detailed.reduce((s, e) => s + (e.breakdown?.[sub] ?? 0), 0));
+        return { id: sub, total: t, sharePct: total > 0 ? (t / total) * 100 : 0 };
+      })
+      .filter((r) => r.total > 0)
+      .sort((a, b) => b.total - a.total);
     return {
       id,
       total,
       sharePct: totalSpending > 0 ? (total / totalSpending) * 100 : 0,
       monthlyAvg: total / detailed.length,
+      items,
+      unitemized: items.length ? round2(total - items.reduce((s, r) => s + r.total, 0)) : 0,
     };
   })
     .filter((r) => r.total > 0)
