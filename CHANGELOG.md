@@ -6,6 +6,30 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Signing in, made obvious
+
+- **A Sign in button in the header** (when sync is enabled), which turns into
+  your email with a green dot once you're in.
+- **Three visible steps**: Email → Open the link → Passphrase, with a ✓ as
+  each one completes.
+- **"Check your inbox"** replaces the wall of text: which address the link
+  went to, a live "waiting for you to open the link…", **Send it again** with
+  a 60-second countdown (the mail service's own limit), *Use another email*,
+  a spam hint, and the code box tucked behind "my email shows a code".
+- **Coming back from the email lands on the account panel**, not the home
+  screen, with "You're signed in — one step left" and the passphrase field
+  already focused. Opening the link in another tab updates the first tab too.
+- **Expired or reused links say so** ("…we'll send a fresh one") instead of
+  failing silently, and the error is cleaned out of the address bar. Too many
+  emails gets its own message rather than "couldn't reach the service".
+- **Passphrase step**: show/hide, a simple strength bar when creating, and the
+  "nobody can reset this" warning only where it applies (creating).
+- **"This device: matches the cloud copy / has changes that aren't
+  uploaded"**, so you know when to press Upload. Sync stays manual.
+- The account panel stays alive while you use other tabs (no re-entering the
+  passphrase after a tab switch), comes first on phones, and phones drop the
+  long tagline from the header.
+
 ### Break a category down into line items
 
 The way a professional budget does it: every category opens into its own

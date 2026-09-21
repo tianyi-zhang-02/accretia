@@ -305,7 +305,7 @@ function Form({
           {prev && prev.income > 0 && income.trim() === '' ? (
             <button
               type="button"
-              className="btn btn-ghost h-7 min-h-0 self-start px-2 text-[11px]"
+              className="btn btn-ghost btn-sm self-start"
               onClick={() => edit(setIncome)(String(prev.income))}
             >
               {C.sameAsLast(monthLabel(shiftMonth(ym, -1), 'short'), fmt.currency0(prev.income))}
@@ -337,11 +337,7 @@ function Form({
           <div className="flex items-end justify-between gap-3">
             <legend className="text-[13px] font-medium">{C.spending}</legend>
             {prev?.categories ? (
-              <button
-                type="button"
-                className="btn btn-ghost h-7 min-h-0 px-2 text-[11px]"
-                onClick={fillFromLast}
-              >
+              <button type="button" className="btn btn-ghost btn-sm" onClick={fillFromLast}>
                 {C.fillFromLast(monthLabel(shiftMonth(ym, -1), 'short'))}
               </button>
             ) : null}
