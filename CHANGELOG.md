@@ -6,6 +6,23 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### The isolation guarantee, as a test (and CI)
+
+"Can one person's numbers reach another person?" No — by construction — and
+now that's pinned rather than promised.
+
+- **Added** `src/lib/isolation.test.ts`: fails if the source gains a network
+  call, an API route / server action / cookie, any storage API besides
+  `localStorage`, a storage key outside the approved list, an env var other
+  than `NODE_ENV`, or mutable module-level state; pins `connect-src 'self'`
+  and the per-request nonce. Mutation-checked: planting a `fetch()` and a
+  third key turned exactly the two relevant tests red.
+- **Added** GitHub Actions CI running the same gate used locally —
+  typecheck, lint, test, build on Node 22 — for every PR and push to main.
+- Verified against production: HTML is `private, no-store` with a different
+  nonce on every request, zero `Set-Cookie`, `connect-src 'self'`.
+- 158 tests.
+
 ## [1.2.0] — 2026-09-21
 
 The long-term release: a guided start, a plan that's five numbers, a
