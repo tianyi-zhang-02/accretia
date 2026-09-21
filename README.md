@@ -8,7 +8,7 @@
 
 _Find out when work becomes optional._ A single-page, **client-side** wealth-projection simulator. Project household net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
 
-Everything runs in the browser. **There is no backend, no database, no account, and nothing is ever sent anywhere.** Your plan — and your monthly ledger, if you keep one — stay on your own device (this browser's local storage) so they're still there tomorrow — untick **"Save on this device"** to keep it memory-only. For the long haul, **Back up everything** downloads one file with every plan and every ledger month; **Restore** brings it back on any device.
+Everything runs in the browser, and **by default nothing is ever sent anywhere — no account needed.** A deployment can optionally enable **sign-in with end-to-end-encrypted sync**: your data is encrypted on your device with a passphrase only you know, so the server (and whoever runs it) stores ciphertext it cannot read. See [`docs/cloud-setup.md`](docs/cloud-setup.md). Your plan — and your monthly ledger, if you keep one — stay on your own device (this browser's local storage) so they're still there tomorrow — untick **"Save on this device"** to keep it memory-only. For the long haul, **Back up everything** downloads one file with every plan and every ledger month; **Restore** brings it back on any device.
 
 > Stack: Next.js 16 (App Router) · TypeScript · Tailwind v4 · Recharts · Zod. No environment variables. No server.
 

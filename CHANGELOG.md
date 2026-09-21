@@ -6,6 +6,42 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Optional accounts with end-to-end-encrypted sync
+
+Owner decision (2026-09): add sign-in so people can move between devices and
+stop sharing data on a shared computer. Built so the privacy promise mostly
+survives: **optional**, and the server only ever holds ciphertext.
+
+- **Added** email one-time-code sign-in (Supabase Auth, no passwords stored
+  by anyone) and a sync panel: choose a sync passphrase → **Upload** /
+  **Download**, each explicit. Download runs the same validation + confirm
+  as restoring a backup file; a write from another device produces a
+  **conflict, never an overwrite**; "Delete cloud copy" removes the server's
+  copy and leaves local data alone.
+- **Added** `lib/cloud/crypto.ts` — WebCrypto only: PBKDF2-SHA256 (600k) →
+  AES-256-GCM, fresh IV per write, non-extractable key, Unicode-normalized
+  passphrase. Envelopes coming back from the server are validated as
+  untrusted (version, KDF, iteration bounds against downgrade *and*
+  browser-freezing counts, base64, size). The passphrase and key are never
+  stored or sent. **A forgotten passphrase is unrecoverable, by design** —
+  the UI says so and points at the backup file.
+- **Dormant by default**: without `NEXT_PUBLIC_SUPABASE_URL` /
+  `_ANON_KEY` there is no account UI, the network code is never loaded, and
+  the CSP stays `connect-src 'self'`. Configured, the CSP adds exactly that
+  one origin and the tagline switches to the honest wording.
+- **Added** `supabase/schema.sql` (one row per user, forced RLS, DB-clock
+  `updated_at`, size check, no anon access) and `docs/cloud-setup.md`.
+- **Guard** `isolation.test.ts` rewritten for the new boundary: one network
+  module, lazy-loaded, rendered only when configured, importing nothing that
+  knows what a plan is; no secret env vars; key/passphrase never persisted;
+  the one module-level singleton allowed only because it refuses to run
+  without `window`.
+- **Not yet verified against a live Supabase project** — that needs the
+  owner's account. The crypto, config parsing, UI states and failure paths
+  are tested; the auth + database round trip is covered by the checklist in
+  `docs/cloud-setup.md` and must be run before inviting users.
+- New dependency: `@supabase/supabase-js`. 179 tests.
+
 ### The isolation guarantee, as a test (and CI)
 
 "Can one person's numbers reach another person?" No — by construction — and

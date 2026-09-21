@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import GuidedSetup from '@/components/agent/guided-setup';
@@ -19,6 +20,7 @@ import FirePanel from '@/components/simulator/fire-panel';
 import GoalSeekPanel from '@/components/simulator/goal-seek-panel';
 import StressPanel from '@/components/simulator/stress-panel';
 import YearTable from '@/components/simulator/year-table';
+import { CLOUD } from '@/lib/cloud/config';
 import { LocaleProvider, useI18n } from '@/lib/i18n/locale';
 import { ledgerSchema, type MonthEntry } from '@/lib/ledger/ledger';
 import { simulate } from '@/lib/simulator/engine';
@@ -71,6 +73,13 @@ function downloadScenarioJson(name: string, assumptions: Assumptions): void {
   // Revoke async so the browser has a chance to start the download.
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
+
+/**
+ * Account + encrypted sync. Loaded lazily and ONLY when the deployment is
+ * configured for it, so an unconfigured build never ships or runs the
+ * network code at all.
+ */
+const CloudSync = dynamic(() => import('@/components/data/cloud-sync'), { ssr: false });
 
 /**
  * Local persistence — ON by default, so the app is still your app tomorrow.
@@ -431,7 +440,7 @@ function SimulatorInner() {
             <LangSwitch />
           </div>
         </div>
-        <p className="text-muted text-[13px]">{t.app.tagline}</p>
+        <p className="text-muted text-[13px]">{CLOUD ? t.app.taglineCloud : t.app.tagline}</p>
       </header>
 
       {/* Scenario bar — pick / name / manage the current scenario. */}
@@ -587,6 +596,19 @@ function SimulatorInner() {
                     setComparing(false);
                   }}
                 />
+                {CLOUD ? (
+                  <CloudSync
+                    scenarios={scenarios}
+                    selectedId={selectedId}
+                    ledger={ledger}
+                    onRestore={(r) => {
+                      setScenarios(r.scenarios);
+                      setSelectedId(r.selectedId);
+                      setLedger(r.ledger);
+                      setComparing(false);
+                    }}
+                  />
+                ) : null}
               </div>
             </div>
 

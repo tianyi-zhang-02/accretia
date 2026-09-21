@@ -23,6 +23,8 @@ const en = {
   app: {
     // Brand name — intentionally NOT translated in either locale.
     title: 'Work Optional',
+    taglineCloud:
+      'Project net worth year by year from your own assumptions and watch it compound. Everything runs in your browser and stays on this device. Nothing is sent anywhere unless you choose to sign in and sync — and then only a copy encrypted with a passphrase we never see.',
     tagline:
       'Project net worth year by year from your own assumptions and watch it compound. Runs entirely in your browser — nothing is ever sent anywhere. Your plan is kept on this device so it’s still here tomorrow; untick “Save on this device” to keep it memory-only, or use Export / Import for a file.',
   },
@@ -389,6 +391,60 @@ const en = {
       finance: 'Finance / Consulting',
     },
   },
+  cloud: {
+    heading: 'Account & sync',
+    pitch:
+      'Optional. Sign in to keep an encrypted copy in the cloud and pick it up on another device. It’s encrypted on this device with a passphrase only you know — we can’t read it, and neither can anyone who breaks in.',
+    emailPlaceholder: 'you@example.com',
+    sendCode: 'Email me a sign-in code',
+    codeSent: (email: string) => `Code sent to ${email}. It can take a minute; check spam too.`,
+    codePlaceholder: '6-digit code',
+    verify: 'Sign in',
+    changeEmail: 'Use another email',
+    signedInAs: (email: string) => `Signed in as ${email}`,
+    signOut: 'Sign out',
+    loading: 'Checking for a cloud copy…',
+    createPass: 'Choose a sync passphrase. It encrypts your data before it leaves this device.',
+    enterPass: 'Enter your sync passphrase to unlock your cloud copy.',
+    passPlaceholder: 'Sync passphrase',
+    passAgain: 'Same passphrase again',
+    passWarning:
+      'Nobody can reset this — not even us. Forget it and the cloud copy is gone for good, so keep a backup file too.',
+    createPassBtn: 'Create passphrase',
+    unlock: 'Unlock',
+    deriving: 'Working…',
+    passCreated: 'Passphrase set. Upload when you’re ready.',
+    unlockedNote: 'Unlocked for this session.',
+    cloudCopy: 'Cloud copy',
+    none: 'none yet',
+    upload: 'Upload this device → cloud',
+    download: 'Download cloud → this device',
+    uploaded: 'Encrypted and uploaded.',
+    downloaded: 'Downloaded and restored.',
+    conflict:
+      'The cloud copy changed since this device last looked — probably from another device. Nothing was overwritten. Refresh, then download it or upload again deliberately.',
+    refresh: 'Refresh',
+    refreshed: 'Up to date. Upload again if you want this device to win.',
+    confirmDownload: (s: number, m: number, curS: number, curM: number) =>
+      `The cloud copy has ${s} ${s === 1 ? 'plan' : 'plans'} and ${m} ledger ${m === 1 ? 'month' : 'months'}. Downloading replaces the ${curS} ${curS === 1 ? 'plan' : 'plans'} and ${curM} ${curM === 1 ? 'month' : 'months'} on this device.`,
+    replace: 'Replace',
+    cancel: 'Cancel',
+    deleteCloud: 'Delete cloud copy',
+    deleteConfirm: 'Delete the cloud copy? This device keeps its data.',
+    deleteYes: 'Delete',
+    deleted: 'Cloud copy deleted.',
+    err: {
+      email: 'That doesn’t look like an email address.',
+      code: 'Enter the digits from the email.',
+      passShort: (n: number) => `Use at least ${n} characters — a few random words works well.`,
+      passMismatch: 'Those two passphrases don’t match.',
+      wrongPass: 'Wrong passphrase (or the cloud copy is damaged). Nothing was changed.',
+      network:
+        'Couldn’t reach the sync service. Your local data is untouched — try again in a moment.',
+      noCloud: 'There’s no cloud copy to download.',
+      unreadable: 'The cloud copy decrypted but didn’t pass validation, so nothing was changed.',
+    },
+  },
   data: {
     heading: 'Your data',
     stored: 'Stored',
@@ -555,6 +611,8 @@ export type Messages = typeof en;
 const zh: Messages = {
   app: {
     title: 'Work Optional',
+    taglineCloud:
+      '按你自己的假设逐年推算净资产，看复利怎么滚起来。所有计算都在你的浏览器里跑，数据留在这台设备上。除非你主动登录并同步，否则什么都不会上传；即使同步，传出去的也只是用你自己的口令加密过的副本，我们看不到内容。',
     tagline:
       '按你自己的假设逐年推算净资产，看复利怎么滚起来。所有计算都在你的浏览器里跑，数据不会传到任何地方。方案默认存在这台设备上，下次打开还在；不想留，把「在本设备保存」的勾去掉就行，也可以用「导出／导入」存成文件。',
   },
@@ -912,6 +970,59 @@ const zh: Messages = {
       swe: '软件 / 机器学习',
       medicine: '医疗',
       finance: '金融 / 咨询',
+    },
+  },
+  cloud: {
+    heading: '账号与同步',
+    pitch:
+      '可选。登录后可以在云端留一份加密副本，换台设备接着用。数据在这台设备上先用只有你知道的口令加密再上传：我们读不了，就算有人攻破服务器也读不了。',
+    emailPlaceholder: 'you@example.com',
+    sendCode: '把登录验证码发到我邮箱',
+    codeSent: (email: string) => `验证码已发到 ${email}。可能要等一分钟，也看看垃圾邮件。`,
+    codePlaceholder: '6 位验证码',
+    verify: '登录',
+    changeEmail: '换个邮箱',
+    signedInAs: (email: string) => `已登录：${email}`,
+    signOut: '退出登录',
+    loading: '正在检查云端有没有副本…',
+    createPass: '设一个同步口令。数据离开这台设备之前，会先用它加密。',
+    enterPass: '输入同步口令，解锁你的云端副本。',
+    passPlaceholder: '同步口令',
+    passAgain: '再输一遍',
+    passWarning:
+      '这个口令谁也重置不了，包括我们。忘了它，云端那份就永远打不开了，所以本地备份文件也要留着。',
+    createPassBtn: '创建口令',
+    unlock: '解锁',
+    deriving: '处理中…',
+    passCreated: '口令已设置。准备好了就上传。',
+    unlockedNote: '本次会话已解锁。',
+    cloudCopy: '云端副本',
+    none: '还没有',
+    upload: '上传：这台设备 → 云端',
+    download: '下载：云端 → 这台设备',
+    uploaded: '已加密并上传。',
+    downloaded: '已下载并恢复。',
+    conflict:
+      '云端副本在这台设备上次查看之后变过了，多半是另一台设备传的。这次什么都没覆盖。先刷新，再决定是下载它，还是确定要用这台设备的数据重新上传。',
+    refresh: '刷新',
+    refreshed: '已是最新。如果确定以这台设备为准，再点一次上传。',
+    confirmDownload: (s: number, m: number, curS: number, curM: number) =>
+      `云端副本里有 ${s} 个方案、${m} 个月的记账。下载会替换掉这台设备上的 ${curS} 个方案和 ${curM} 个月记账。`,
+    replace: '替换',
+    cancel: '取消',
+    deleteCloud: '删除云端副本',
+    deleteConfirm: '确定删除云端副本？这台设备上的数据不受影响。',
+    deleteYes: '删除',
+    deleted: '云端副本已删除。',
+    err: {
+      email: '这看起来不像一个邮箱地址。',
+      code: '请输入邮件里的数字验证码。',
+      passShort: (n: number) => `至少 ${n} 个字符，用几个随机的词就很好。`,
+      passMismatch: '两次输入的口令不一样。',
+      wrongPass: '口令不对（或者云端副本损坏了）。什么都没改。',
+      network: '连不上同步服务。本地数据没受影响，稍后再试。',
+      noCloud: '云端还没有副本可以下载。',
+      unreadable: '云端副本解密成功，但没通过校验，所以什么都没改。',
     },
   },
   data: {
