@@ -6,6 +6,29 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Log coarse or fine: spending by category, mortgage included
+
+- **One total, or By category.** The check-in's "Money out" can be split
+  across ten fixed categories — mortgage/rent, utilities & phone, food, car
+  & transport, insurance, health, kids & education, fun/travel/shopping,
+  other loan payments, everything else. The total is always their sum. A
+  new month opens the way the last one was logged, last month's amounts
+  show as placeholders, and **Fill blanks from last month** copies the
+  fixed bills in one tap.
+- **Where it went.** The year report gains a category breakdown (total,
+  share of spending, monthly average), and says how much came from months
+  logged as a single total.
+- **Mortgage-aware comparisons.** The engine pays for a home outside
+  `expenses`, so plans with a mortgage used to look like you were
+  overspending. The engine now *reports* `housingCosts` and
+  `mortgageBalance` per year (no change to the math), plan-vs-actual adds
+  the home back in, the housing line shows what the plan expects a month,
+  and the status card shows the mortgage left per your plan.
+- **Spreadsheet.** A by-category CSV template; category columns accept
+  English ids or Chinese names (房贷, 保险, …), `mortgage` + `rent` add up,
+  and `spending` may be left out of a detailed file. Simple ledgers export
+  exactly as before.
+
 ### Tracking is the home screen; the projection is one part
 
 The ledger used to be the fourth tab of a chart switcher inside a projection

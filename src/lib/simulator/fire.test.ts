@@ -18,6 +18,8 @@ function row(year: number, realNetWorth: number, homeEquityReal = 0): YearRow {
     netWorth: realNetWorth,
     netWorthRealTodayDollars: realNetWorth,
     homeEquityRealTodayDollars: homeEquityReal,
+    housingCosts: 0,
+    mortgageBalance: 0,
   };
 }
 

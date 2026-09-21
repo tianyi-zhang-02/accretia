@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n/locale';
 import {
   calibrationPatch,
+  categoryBreakdown,
   checkInTarget,
   isAfter,
   parseLedgerCsv,
@@ -51,11 +52,14 @@ function Cell({
   value,
   label,
   allowNegative = false,
+  lockedHint,
   onCommit,
 }: {
   value: number | undefined;
   label: string;
   allowNegative?: boolean;
+  /** Set when the value is derived (a category total) and can't be typed over. */
+  lockedHint?: string;
   onCommit: (n: number | null) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -65,6 +69,8 @@ function Cell({
       type="number"
       inputMode="decimal"
       aria-label={label}
+      readOnly={lockedHint !== undefined}
+      title={lockedHint}
       placeholder="—"
       value={shown}
       min={allowNegative ? undefined : 0}
@@ -125,6 +131,7 @@ export default function LedgerPanel({
   }, [locale]);
 
   const report = useMemo(() => yearReport(entries, year, planRows), [entries, year, planRows]);
+  const breakdown = useMemo(() => categoryBreakdown(entries, year), [entries, year]);
   const patch = useMemo(
     () => calibrationPatch(report, entries, assumptions),
     [report, entries, assumptions],
@@ -195,6 +202,7 @@ export default function LedgerPanel({
           report={report}
           planRows={planRows}
           startingNetWorth={assumptions.startingNetWorth}
+          at={sel}
           fire={fire}
           onOpenPlan={onOpenPlan}
         />
@@ -294,6 +302,41 @@ export default function LedgerPanel({
                 </li>
               ))}
             </ul>
+
+            {/* Where it went — only for people who log by category. */}
+            {breakdown ? (
+              <>
+                <p className="eyebrow mt-5 mb-2">{L.byCategory}</p>
+                <ul className="flex flex-col gap-2">
+                  {breakdown.rows.map((r) => (
+                    <li key={r.id}>
+                      <div className="flex items-baseline justify-between gap-3 text-[13px]">
+                        <span>{t.track.categories[r.id]}</span>
+                        <span className="nums">
+                          <span className="font-medium">{fmt.currency0(r.total)}</span>
+                          <span className="text-muted text-[11px]">
+                            {' '}
+                            · {fmt.pct0(r.sharePct)} · {L.perMonth(fmt.currency0(r.monthlyAvg))}
+                          </span>
+                        </span>
+                      </div>
+                      <span className="bg-surface-2 mt-1 block h-1.5 overflow-hidden rounded-full">
+                        <span
+                          className="bg-accent block h-full rounded-full"
+                          style={{ width: `${Math.max(1, Math.min(100, r.sharePct))}%` }}
+                        />
+                      </span>
+                    </li>
+                  ))}
+                  {breakdown.uncategorized > 0 ? (
+                    <li className="text-muted flex items-baseline justify-between gap-3 text-xs">
+                      <span>{L.uncategorized}</span>
+                      <span className="nums">{fmt.currency0(breakdown.uncategorized)}</span>
+                    </li>
+                  ) : null}
+                </ul>
+              </>
+            ) : null}
 
             {report.plan ? (
               <>
@@ -419,6 +462,7 @@ export default function LedgerPanel({
                   <Cell
                     value={e?.spending}
                     label={`${monthName(mo)} ${L.spending}`}
+                    lockedHint={e?.categories ? L.lockedSpending : undefined}
                     onCommit={(n) => edit(mo, 'spending', n)}
                   />
                   <Cell
@@ -440,6 +484,15 @@ export default function LedgerPanel({
               onClick={() => download(`ledger-template-${year}.csv`, templateCsv(year))}
             >
               {L.template}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={() =>
+                download(`ledger-template-${year}-detailed.csv`, templateCsv(year, true))
+              }
+            >
+              {L.templateDetailed}
             </button>
             <button type="button" className="btn" onClick={() => fileRef.current?.click()}>
               {L.importCsv}
