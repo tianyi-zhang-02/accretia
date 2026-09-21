@@ -1,8 +1,10 @@
 /**
  * Monthly ledger — the "what actually happened" counterpart to the
  * projection. Deliberately LIGHT: three numbers a month (take-home income,
- * spending, month-end net worth), not accounts or transactions. The old
- * full tracker was removed from this repo on purpose; this is not that.
+ * spending, month-end net worth). Spending can OPTIONALLY be broken into a
+ * fixed set of categories (housing, insurance, …) for people who want the
+ * finer picture; the total is then derived from them. Still no accounts and
+ * no transactions — the old full tracker was removed on purpose.
  *
  * Everything here is pure and offline. The CSV reader is hand-rolled (no
  * dependency) and treats the file as untrusted input: size-capped, every
@@ -17,15 +19,70 @@ import type { Assumptions } from '@/lib/validation/scenarios';
 
 const MONEY_CAP = 1e12;
 
-export const monthEntrySchema = z.object({
-  year: z.number().int().min(1900).max(2200),
-  month: z.number().int().min(1).max(12),
-  /** Take-home (after-tax) income that month. */
-  income: z.number().min(0).max(MONEY_CAP),
-  spending: z.number().min(0).max(MONEY_CAP),
-  /** Month-end net worth. Optional — not everyone checks monthly. */
-  netWorth: z.number().min(-MONEY_CAP).max(MONEY_CAP).optional(),
-});
+/**
+ * Spending categories — a FIXED list, so files, translations and reports
+ * stay stable. Order is display order: the big fixed bills first.
+ */
+export const CATEGORY_IDS = [
+  'housing',
+  'utilities',
+  'food',
+  'transport',
+  'insurance',
+  'health',
+  'family',
+  'fun',
+  'debt',
+  'other',
+] as const;
+export type CategoryId = (typeof CATEGORY_IDS)[number];
+export type Categories = Partial<Record<CategoryId, number>>;
+
+const money = z.number().min(0).max(MONEY_CAP);
+const categoriesSchema = z
+  .object(Object.fromEntries(CATEGORY_IDS.map((id) => [id, money.optional()])))
+  .strict() as z.ZodType<Categories>;
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Sum of a month's categories (0 for none). */
+export function categoryTotal(c: Categories | undefined): number {
+  if (!c) return 0;
+  return round2(CATEGORY_IDS.reduce((s, id) => s + (c[id] ?? 0), 0));
+}
+
+/**
+ * One rule, enforced wherever an entry enters the system: when a month has
+ * categories, `spending` IS their sum. Empty / all-zero categories vanish.
+ */
+function normalize<T extends { spending: number; categories?: Categories }>(e: T): T {
+  if (!e.categories) return e;
+  const kept: Categories = {};
+  for (const id of CATEGORY_IDS) {
+    const v = e.categories[id];
+    if (v !== undefined && v > 0) kept[id] = v;
+  }
+  const { categories: _drop, ...rest } = e;
+  void _drop;
+  return Object.keys(kept).length === 0
+    ? (rest as T)
+    : ({ ...rest, categories: kept, spending: Math.min(MONEY_CAP, categoryTotal(kept)) } as T);
+}
+
+export const monthEntrySchema = z
+  .object({
+    year: z.number().int().min(1900).max(2200),
+    month: z.number().int().min(1).max(12),
+    /** Take-home (after-tax) income that month. */
+    income: money,
+    /** Total spending. With `categories`, always their sum (see `normalize`). */
+    spending: money,
+    /** Month-end net worth. Optional — not everyone checks monthly. */
+    netWorth: z.number().min(-MONEY_CAP).max(MONEY_CAP).optional(),
+    /** Optional breakdown of `spending`. */
+    categories: categoriesSchema.optional(),
+  })
+  .transform(normalize);
 export type MonthEntry = z.infer<typeof monthEntrySchema>;
 
 /** 50 years of months is plenty; the cap keeps stored data bounded. */
@@ -36,7 +93,7 @@ const key = (e: Pick<MonthEntry, 'year' | 'month'>) => e.year * 12 + (e.month - 
 /** Insert or replace one month; result stays sorted and de-duplicated. */
 export function upsert(entries: MonthEntry[], entry: MonthEntry): MonthEntry[] {
   const rest = entries.filter((e) => key(e) !== key(entry));
-  return [...rest, entry].sort((a, b) => key(a) - key(b));
+  return [...rest, normalize(entry)].sort((a, b) => key(a) - key(b));
 }
 
 /** Drop a month entirely (all three fields cleared). */
@@ -67,6 +124,28 @@ const HEADERS: Record<string, keyof MonthEntry> = {
   networth: 'netWorth',
   'net worth': 'netWorth',
   净资产: 'netWorth',
+};
+
+/** Category column aliases — the ids themselves plus Chinese names. */
+const CATEGORY_HEADERS: Record<string, CategoryId> = {
+  ...Object.fromEntries(CATEGORY_IDS.map((id) => [id, id])),
+  mortgage: 'housing',
+  rent: 'housing',
+  住房: 'housing',
+  房贷: 'housing',
+  房租: 'housing',
+  水电网: 'utilities',
+  水电: 'utilities',
+  餐饮: 'food',
+  吃饭: 'food',
+  交通: 'transport',
+  保险: 'insurance',
+  医疗: 'health',
+  家庭: 'family',
+  教育: 'family',
+  娱乐: 'fun',
+  贷款: 'debt',
+  其他: 'other',
 };
 
 /** One CSV line → cells. Handles quotes and doubled quotes; nothing else. */
@@ -123,9 +202,15 @@ export function parseLedgerCsv(text: string): CsvResult {
 
   const headerIdx = lines.findIndex((l) => l.trim() !== '');
   if (headerIdx < 0) return { entries: [], errors: [], fatal: 'noHeader' };
-  const cols = splitLine(lines[headerIdx]!).map((h) => HEADERS[h.toLowerCase()]);
+  const headerCells = splitLine(lines[headerIdx]!).map((h) => h.toLowerCase());
+  const cols = headerCells.map((h) => HEADERS[h]);
+  const catCols = headerCells
+    .map((h, idx) => ({ id: CATEGORY_HEADERS[h], idx }))
+    .filter((c): c is { id: CategoryId; idx: number } => c.id !== undefined);
   const at = (f: keyof MonthEntry) => cols.indexOf(f);
-  if (at('year') < 0 || at('month') < 0 || at('income') < 0 || at('spending') < 0) {
+  // A detailed file may leave out `spending` — the categories add up to it.
+  const hasSpending = at('spending') >= 0 || catCols.length > 0;
+  if (at('year') < 0 || at('month') < 0 || at('income') < 0 || !hasSpending) {
     return { entries: [], errors: [], fatal: 'noHeader' };
   }
 
@@ -136,17 +221,35 @@ export function parseLedgerCsv(text: string): CsvResult {
     if (raw.trim() === '') continue;
     const cells = splitLine(raw);
     const income = cells[at('income')] ?? '';
-    const spending = cells[at('spending')] ?? '';
+    const spending = at('spending') >= 0 ? (cells[at('spending')] ?? '') : '';
     const nwCell = at('netWorth') >= 0 ? (cells[at('netWorth')] ?? '') : '';
+    const catCells = catCols.map((c) => ({ id: c.id, cell: cells[c.idx] ?? '' }));
     // A template row the user never filled in is not an error.
-    if (income === '' && spending === '' && nwCell === '') continue;
+    if (income === '' && spending === '' && nwCell === '' && catCells.every((c) => c.cell === ''))
+      continue;
 
     const year = cellToNumber(cells[at('year')] ?? '');
     const month = cellToNumber(cells[at('month')] ?? '');
     const inc = income === '' ? 0 : cellToNumber(income);
     const spend = spending === '' ? 0 : cellToNumber(spending);
     const nw = nwCell === '' ? undefined : cellToNumber(nwCell);
-    if (year === null || month === null || inc === null || spend === null || nw === null) {
+    const categories: Categories = {};
+    let badCategory = false;
+    for (const c of catCells) {
+      if (c.cell === '') continue;
+      const n = cellToNumber(c.cell);
+      if (n === null || n < 0) badCategory = true;
+      // Two columns may alias one category (mortgage + rent) — add them.
+      else categories[c.id] = (categories[c.id] ?? 0) + n;
+    }
+    if (
+      year === null ||
+      month === null ||
+      inc === null ||
+      spend === null ||
+      nw === null ||
+      badCategory
+    ) {
       errors.push({ line: i + 1, reason: 'number' });
       continue;
     }
@@ -156,6 +259,7 @@ export function parseLedgerCsv(text: string): CsvResult {
       income: inc,
       spending: spend,
       ...(nw === undefined ? {} : { netWorth: nw }),
+      ...(Object.keys(categories).length ? { categories } : {}),
     });
     if (!parsed.success) {
       errors.push({ line: i + 1, reason: 'range' });
@@ -168,18 +272,36 @@ export function parseLedgerCsv(text: string): CsvResult {
 
 const HEADER_ROW = 'year,month,income,spending,net_worth';
 
-/** Numbers only, so there is nothing for a spreadsheet to execute. */
+const DETAILED_HEADER_ROW = `${HEADER_ROW},${CATEGORY_IDS.join(',')}`;
+
+/**
+ * Numbers only, so there is nothing for a spreadsheet to execute. Category
+ * columns appear only when some month actually uses them.
+ */
 export function toCsv(entries: MonthEntry[]): string {
+  const detailed = entries.some((e) => e.categories);
   const rows = entries.map((e) =>
-    [e.year, e.month, e.income, e.spending, e.netWorth ?? ''].join(','),
+    [
+      e.year,
+      e.month,
+      e.income,
+      e.spending,
+      e.netWorth ?? '',
+      ...(detailed ? CATEGORY_IDS.map((id) => e.categories?.[id] ?? '') : []),
+    ].join(','),
   );
-  return [HEADER_ROW, ...rows].join('\n') + '\n';
+  return [detailed ? DETAILED_HEADER_ROW : HEADER_ROW, ...rows].join('\n') + '\n';
 }
 
-/** Twelve empty rows for one year — open in Excel, fill, save as CSV. */
-export function templateCsv(year: number): string {
-  const rows = Array.from({ length: 12 }, (_, i) => `${year},${i + 1},,,`);
-  return [HEADER_ROW, ...rows].join('\n') + '\n';
+/**
+ * Twelve empty rows for one year — open in Excel, fill, save as CSV. The
+ * detailed template adds a column per category; fill those and leave
+ * `spending` blank (it's their sum).
+ */
+export function templateCsv(year: number, detailed = false): string {
+  const blanks = ','.repeat(3 + (detailed ? CATEGORY_IDS.length : 0));
+  const rows = Array.from({ length: 12 }, (_, i) => `${year},${i + 1}${blanks}`);
+  return [detailed ? DETAILED_HEADER_ROW : HEADER_ROW, ...rows].join('\n') + '\n';
 }
 
 // ---------- Year report ----------
@@ -247,7 +369,12 @@ export function yearReport(entries: MonthEntry[], year: number, planRows?: YearR
         : null,
     plan:
       planRow && recorded.length > 0
-        ? { spending: planRow.expenses * share, saved: planRow.saved * share }
+        ? {
+            // The engine pays for the home outside `expenses`; a person logging
+            // their month counts the mortgage as spending, so the plan must too.
+            spending: (planRow.expenses + (planRow.housingCosts ?? 0)) * share,
+            saved: (planRow.saved - (planRow.housingCosts ?? 0)) * share,
+          }
         : null,
   };
 }
@@ -343,14 +470,71 @@ export function planAt(
   planRows: YearRow[],
   startingNetWorth: number,
   ym: YearMonth,
-): { monthlySpending: number; monthlySaved: number; netWorth: number } | null {
+): {
+  monthlySpending: number;
+  monthlySaved: number;
+  /** The home's share of `monthlySpending` (payment + tax + upkeep); 0 without one. */
+  monthlyHousing: number;
+  netWorth: number;
+  /** Plan's mortgage balance around this month; 0 without a loan. */
+  mortgageBalance: number;
+} | null {
   const i = planRows.findIndex((r) => r.year === ym.year);
   if (i < 0) return null;
   const row = planRows[i]!;
   const from = i === 0 ? startingNetWorth : planRows[i - 1]!.netWorth;
+  const housing = row.housingCosts ?? 0;
+  const loanEnd = row.mortgageBalance ?? 0;
+  // The year a loan starts there is no earlier balance to interpolate from.
+  const loanFrom =
+    i > 0 && planRows[i - 1]!.mortgageBalance > 0 ? planRows[i - 1]!.mortgageBalance : loanEnd;
   return {
-    monthlySpending: row.expenses / 12,
-    monthlySaved: row.saved / 12,
+    // The engine pays for the home outside `expenses`; people log it as spending.
+    monthlySpending: (row.expenses + housing) / 12,
+    monthlySaved: (row.saved - housing) / 12,
+    monthlyHousing: housing / 12,
     netWorth: from + (row.netWorth - from) * (ym.month / 12),
+    mortgageBalance: loanFrom + (loanEnd - loanFrom) * (ym.month / 12),
   };
+}
+
+// ---------- Category breakdown ----------
+
+export type CategoryBreakdown = {
+  /** Categories with spending this year, largest first. */
+  rows: Array<{ id: CategoryId; total: number; sharePct: number; monthlyAvg: number }>;
+  /** Spending from months logged as a single total. */
+  uncategorized: number;
+  /** Months that carry a breakdown. */
+  detailedMonths: number;
+};
+
+/** Where the year's money went. Null when no month that year has categories. */
+export function categoryBreakdown(entries: MonthEntry[], year: number): CategoryBreakdown | null {
+  const inYear = entries.filter((e) => e.year === year);
+  const detailed = inYear.filter((e) => e.categories);
+  if (detailed.length === 0) return null;
+  const totalSpending = inYear.reduce((s, e) => s + e.spending, 0);
+  const rows = CATEGORY_IDS.map((id) => {
+    const total = round2(detailed.reduce((s, e) => s + (e.categories?.[id] ?? 0), 0));
+    return {
+      id,
+      total,
+      sharePct: totalSpending > 0 ? (total / totalSpending) * 100 : 0,
+      monthlyAvg: total / detailed.length,
+    };
+  })
+    .filter((r) => r.total > 0)
+    .sort((a, b) => b.total - a.total);
+  return {
+    rows,
+    uncategorized: round2(inYear.filter((e) => !e.categories).reduce((s, e) => s + e.spending, 0)),
+    detailedMonths: detailed.length,
+  };
+}
+
+/** Does the most recent logged month before `ym` use categories? (Picks the default mode.) */
+export function prefersDetail(entries: MonthEntry[], ym: YearMonth): boolean {
+  const prior = entries.filter((e) => key(e) < key(ym)).at(-1);
+  return Boolean(prior?.categories);
 }

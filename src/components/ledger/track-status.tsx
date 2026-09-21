@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 
 import { useI18n } from '@/lib/i18n/locale';
-import { planAt, type MonthEntry, type YearReport } from '@/lib/ledger/ledger';
+import { planAt, type MonthEntry, type YearMonth, type YearReport } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
 
 import { PixelLabel } from '../pixel/pixel-icon';
@@ -62,6 +62,7 @@ export default function TrackStatus({
   report,
   planRows,
   startingNetWorth,
+  at,
   fire,
   onOpenPlan,
 }: {
@@ -69,6 +70,8 @@ export default function TrackStatus({
   report: YearReport;
   planRows: YearRow[];
   startingNetWorth: number;
+  /** The month on screen — where the plan's mortgage balance is read. */
+  at: YearMonth;
   fire: { age: number; year: number } | null;
   onOpenPlan: () => void;
 }) {
@@ -80,6 +83,7 @@ export default function TrackStatus({
     [entries],
   );
   const latest = withNw.at(-1);
+  const loanLeft = planAt(planRows, startingNetWorth, at)?.mortgageBalance ?? 0;
   const planNow = latest ? planAt(planRows, startingNetWorth, latest) : null;
   const planLine = useMemo(
     () => withNw.map((e) => planAt(planRows, startingNetWorth, e)?.netWorth ?? null),
@@ -191,6 +195,13 @@ export default function TrackStatus({
           </ul>
         </>
       )}
+
+      {loanLeft > 0 ? (
+        <p className="mt-3 flex items-center justify-between text-[13px]">
+          <span>{S.mortgage}</span>
+          <span className="nums font-medium">{fmt.currency0(loanLeft)}</span>
+        </p>
+      ) : null}
 
       {/* The projection, reduced to its one sentence — the rest lives in Plan. */}
       <hr className="rule my-4" />

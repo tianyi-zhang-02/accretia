@@ -5,11 +5,15 @@ import type { Assumptions } from '@/lib/validation/scenarios';
 
 import {
   calibrationPatch,
+  categoryBreakdown,
+  categoryTotal,
   checkInTarget,
   isAfter,
   ledgerSchema,
+  monthEntrySchema,
   parseLedgerCsv,
   planAt,
+  prefersDetail,
   recentAverage,
   recordedYears,
   shiftMonth,
@@ -228,10 +232,129 @@ describe('monthly check-in', () => {
     expect(planAt(rows, 500_000, { year: 2026, month: 6 })).toEqual({
       monthlySpending: 10_000,
       monthlySaved: 5_000,
+      monthlyHousing: 0,
       netWorth: 560_000,
+      mortgageBalance: 0,
     });
     expect(planAt(rows, 500_000, { year: 2027, month: 12 })?.netWorth).toBe(740_000);
     expect(planAt(rows, 500_000, { year: 2027, month: 3 })?.netWorth).toBe(650_000);
     expect(planAt(rows, 500_000, { year: 2030, month: 1 })).toBeNull();
+  });
+});
+
+describe('spending categories', () => {
+  const detailed = (month: number, categories: MonthEntry['categories']): MonthEntry => ({
+    year: 2026,
+    month,
+    income: 10_000,
+    spending: 0,
+    categories,
+  });
+
+  it('spending is always the sum of the categories, however the entry arrives', () => {
+    const [e] = upsert([], {
+      ...detailed(3, { housing: 3200, insurance: 410.5, food: 900 }),
+      spending: 1,
+    });
+    expect(e!.spending).toBe(4510.5);
+    const parsed = monthEntrySchema.parse({
+      year: 2026,
+      month: 3,
+      income: 1,
+      spending: 999_999,
+      categories: { housing: 2000, other: 50 },
+    });
+    expect(parsed.spending).toBe(2050);
+    expect(categoryTotal(undefined)).toBe(0);
+  });
+
+  it('empty or all-zero categories vanish and leave the typed total alone', () => {
+    const [e] = upsert([], { ...detailed(3, { housing: 0 }), spending: 4000 });
+    expect(e!.categories).toBeUndefined();
+    expect(e!.spending).toBe(4000);
+  });
+
+  it('rejects unknown categories and negative amounts', () => {
+    const base = { year: 2026, month: 1, income: 1, spending: 1 };
+    expect(monthEntrySchema.safeParse({ ...base, categories: { yachts: 5 } }).success).toBe(false);
+    expect(monthEntrySchema.safeParse({ ...base, categories: { food: -5 } }).success).toBe(false);
+  });
+
+  it('CSV: a detailed file round-trips, and may omit the spending column', () => {
+    const entries = [detailed(1, { housing: 3200, insurance: 400 }), m(2, 9000, 4000, 100_000)].map(
+      (e) => upsert([], e)[0]!,
+    );
+    const csv = toCsv(entries);
+    expect(csv.split('\n')[0]).toBe(
+      'year,month,income,spending,net_worth,housing,utilities,food,transport,insurance,health,family,fun,debt,other',
+    );
+    expect(parseLedgerCsv(csv).entries).toEqual(entries);
+
+    const noTotal = parseLedgerCsv('year,month,income,房贷,保险\n2026,1,10000,"3,200",400\n');
+    expect(noTotal.errors).toEqual([]);
+    expect(noTotal.entries[0]).toMatchObject({
+      spending: 3600,
+      categories: { housing: 3200, insurance: 400 },
+    });
+    // A simple-only ledger keeps the simple header.
+    expect(toCsv([m(1, 1, 1)]).split('\n')[0]).toBe('year,month,income,spending,net_worth');
+  });
+
+  it('CSV: aliased columns add up; junk in a category cell skips the line', () => {
+    const r = parseLedgerCsv(
+      'year,month,income,mortgage,rent,food\n2026,1,1,1000,500,=1+1\n2026,2,1,1000,500,\n',
+    );
+    expect(r.errors).toEqual([{ line: 2, reason: 'number' }]);
+    expect(r.entries[0]!.categories).toEqual({ housing: 1500 });
+  });
+
+  it('detailed template has a column per category and twelve blank rows', () => {
+    const lines = templateCsv(2026, true).trim().split('\n');
+    expect(lines).toHaveLength(13);
+    expect(lines[0]!.split(',')).toHaveLength(15);
+    expect(lines[1]!.split(',')).toHaveLength(15);
+    expect(parseLedgerCsv(templateCsv(2026, true)).entries).toEqual([]);
+  });
+
+  it('categoryBreakdown: largest first, shares of ALL spending, simple months counted apart', () => {
+    const entries = [
+      detailed(1, { housing: 3000, food: 1000 }),
+      detailed(2, { housing: 3000, insurance: 1000 }),
+      m(3, 9000, 2000),
+    ].reduce<MonthEntry[]>((acc, e) => upsert(acc, e), []);
+    const b = categoryBreakdown(entries, 2026)!;
+    expect(b.rows.map((r) => r.id)).toEqual(['housing', 'food', 'insurance']);
+    expect(b.rows[0]).toMatchObject({ total: 6000, sharePct: 60, monthlyAvg: 3000 });
+    expect(b.uncategorized).toBe(2000);
+    expect(b.detailedMonths).toBe(2);
+    expect(categoryBreakdown([m(3, 9000, 2000)], 2026)).toBeNull();
+  });
+
+  it('prefersDetail follows the most recent earlier month', () => {
+    const entries = [m(1, 1, 1), upsert([], detailed(2, { food: 5 }))[0]!];
+    expect(prefersDetail(entries, { year: 2026, month: 3 })).toBe(true);
+    expect(prefersDetail(entries, { year: 2026, month: 2 })).toBe(false);
+    expect(prefersDetail([], { year: 2026, month: 3 })).toBe(false);
+  });
+
+  it('plan comparisons count the home as spending, like a person would', () => {
+    const rows = [
+      {
+        year: 2026,
+        expenses: 60_000,
+        saved: 90_000,
+        netWorth: 1,
+        housingCosts: 36_000,
+        mortgageBalance: 400_000,
+      },
+    ] as YearRow[];
+    expect(planAt(rows, 0, { year: 2026, month: 12 })).toMatchObject({
+      monthlySpending: 8_000,
+      monthlySaved: 4_500,
+      monthlyHousing: 3_000,
+      mortgageBalance: 400_000,
+    });
+    const report = yearReport([m(1, 10_000, 8_000)], 2026, rows);
+    expect(report.plan).toEqual({ spending: 8_000, saved: 4_500 });
   });
 });

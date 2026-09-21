@@ -136,6 +136,15 @@ export type YearRow = {
    * can't withdraw 4% of a house.
    */
   homeEquityRealTodayDollars: number;
+  /**
+   * Cash that went to the home this year: mortgage payment (interest +
+   * principal) + property tax + upkeep. NOT part of `expenses` or `saved` —
+   * the engine pays it from the pools separately — and excludes the down
+   * payment, which is a transfer into equity. Reporting only; 0 with no home.
+   */
+  housingCosts: number;
+  /** End-of-year mortgage balance (nominal). Reporting only; 0 with no loan. */
+  mortgageBalance: number;
 };
 
 export type SimulationResult = {
@@ -360,6 +369,7 @@ export function simulateScenario(
 
     // 6. Home + mortgage (assumption #4). Housing costs are bills — they
     // draw cash first, then investments. Only active when `a.mortgage` is set.
+    let housingCosts = 0;
     if (m && year >= m.purchaseYear) {
       if (year === m.purchaseYear) {
         // Down payment: out of the pools, into home equity (net-worth-neutral).
@@ -378,7 +388,8 @@ export function simulateScenario(
         mortgageBalance -= principal;
         payment = interest + principal;
       }
-      payFromPools(payment + propertyTax + maintenance);
+      housingCosts = payment + propertyTax + maintenance;
+      payFromPools(housingCosts);
       // Appreciate the home at year end.
       homeValue *= 1 + (m.homeAppreciationPct ?? 0) / 100;
     }
@@ -402,6 +413,8 @@ export function simulateScenario(
       netWorth,
       netWorthRealTodayDollars,
       homeEquityRealTodayDollars: homeEquity / expenseInflationFactor,
+      housingCosts,
+      mortgageBalance,
     });
 
     // Carry forward for the next year of incomeScaled mode.
