@@ -1,23 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, IBM_Plex_Sans, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 
 import ServiceWorkerRegister from '@/components/pwa/sw-register';
 
 import './globals.css';
 
-const sans = IBM_Plex_Sans({
-  variable: '--font-ibm-plex',
+// One family for everything — headings, body and the hero figures. Self-hosted
+// by next/font at build time (no runtime request to a font CDN).
+const sans = Geist({
+  variable: '--font-geist',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-});
-
-const serif = Fraunces({
-  variable: '--font-fraunces',
-  subsets: ['latin'],
-  // Variable font: omit `weight` so all weights stream as a single file;
-  // axes can then customize the optical-size axis used by `.serif-display`.
-  axes: ['opsz'],
   display: 'swap',
 });
 
@@ -50,7 +42,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0a0a0a',
+  themeColor: '#0b0b0c',
   width: 'device-width',
   initialScale: 1,
   // Disable user scaling so the bottom nav stays where it belongs on iOS.
@@ -64,10 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${sans.variable} ${serif.variable} ${mono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${sans.variable} ${mono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         {children}
         <ServiceWorkerRegister />

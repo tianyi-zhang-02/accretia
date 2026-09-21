@@ -6,7 +6,7 @@ import { useI18n } from '@/lib/i18n/locale';
 import { planAt, type MonthEntry, type YearMonth, type YearReport } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
 
-import { PixelLabel } from '../pixel/pixel-icon';
+import { SectionLabel } from '../ui/icon';
 
 /**
  * "Am I on track?" — what was logged, set against what the plan expected
@@ -112,7 +112,7 @@ export default function TrackStatus({
 
   return (
     <section className="card">
-      <PixelLabel icon="flag">{S.heading}</PixelLabel>
+      <SectionLabel icon="flag">{S.heading}</SectionLabel>
 
       {entries.length === 0 ? (
         <ol className="text-muted mt-3 flex flex-col gap-2 text-[13px]">

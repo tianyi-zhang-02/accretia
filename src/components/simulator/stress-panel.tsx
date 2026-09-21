@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { useI18n } from '@/lib/i18n/locale';
 import { simulate, type YearRow } from '@/lib/simulator/engine';
 import type { Assumptions, StressConfig } from '@/lib/validation/scenarios';
-import { PixelLabel } from '../pixel/pixel-icon';
+import { SectionLabel } from '../ui/icon';
 
 function NumField({
   label,
@@ -108,7 +108,7 @@ export default function StressPanel({
 
   return (
     <section className="card">
-      <PixelLabel icon="cloud">{t.stress.heading}</PixelLabel>
+      <SectionLabel icon="cloud">{t.stress.heading}</SectionLabel>
       <p className="text-muted mt-1 text-[13px]">{t.stress.intro}</p>
 
       {/* Quick presets. */}

@@ -18,7 +18,7 @@ import {
 } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
 
-import { PixelLabel } from '../pixel/pixel-icon';
+import { SectionLabel } from '../ui/icon';
 
 /**
  * The monthly check-in — the app's home screen. One month at a time, three
@@ -432,13 +432,13 @@ export default function MonthCheckIn({
   return (
     <section className="card">
       <div className="flex items-center justify-between gap-3">
-        <PixelLabel icon="coins">{C.eyebrow}</PixelLabel>
+        <SectionLabel icon="coins">{C.eyebrow}</SectionLabel>
         {run >= 2 ? <span className="text-accent nums text-xs">{C.streak(run)}</span> : null}
       </div>
 
       <div className="mt-2 mb-4 flex items-center justify-between gap-2">
         <div>
-          <h2 className="serif-display text-[26px] leading-tight">{monthLabel(sel, 'long')}</h2>
+          <h2 className="display text-[26px] leading-tight">{monthLabel(sel, 'long')}</h2>
           <p className={`text-[13px] ${entry ? 'text-positive' : 'text-muted'}`}>
             {entry ? `✓ ${C.logged}` : C.notLogged}
           </p>

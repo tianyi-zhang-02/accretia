@@ -6,8 +6,7 @@ import { useI18n } from '@/lib/i18n/locale';
 import { assumptionsSchema, type Assumptions } from '@/lib/validation/scenarios';
 
 import { newId } from '../simulator/default-assumptions';
-import PixelIcon, { PixelLabel } from '../pixel/pixel-icon';
-import PixelGuide from './pixel-guide';
+import { SectionLabel } from '../ui/icon';
 
 /**
  * Guided setup — the "simple" half of the local agent.
@@ -112,11 +111,9 @@ export function buildFromAnswers(raw: Answers): Assumptions {
 export default function GuidedSetup({
   onComplete,
   onCancel,
-  theme = 'dark',
 }: {
   onComplete: (a: Assumptions) => void;
   onCancel: () => void;
-  theme?: 'dark' | 'light';
 }) {
   const { t, fmt } = useI18n();
   const [step, setStep] = useState(0);
@@ -149,7 +146,7 @@ export default function GuidedSetup({
   return (
     <section className="card">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <PixelLabel icon="spark">{g.heading}</PixelLabel>
+        <SectionLabel icon="spark">{g.heading}</SectionLabel>
         <button type="button" onClick={onCancel} className="btn btn-ghost">
           {g.skip}
         </button>
@@ -165,15 +162,12 @@ export default function GuidedSetup({
         ))}
       </div>
 
-      {/* The guide asks; you answer. It waves on each new question, and the
-          little arrow points from the guide at what it's asking about. */}
-      <div className="mb-4 flex items-start gap-2">
-        <PixelGuide theme={theme} step={step} />
-        <PixelIcon name="arrow" size={14} className="text-accent mt-3 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="serif-display mb-1 text-lg leading-snug sm:text-xl">{current.question}</p>
-          <p className="text-muted text-[13px]">{current.hint}</p>
-        </div>
+      <div className="mb-5">
+        <p className="text-muted nums mb-1 text-xs">
+          {step + 1} / {steps.length}
+        </p>
+        <p className="display mb-1 text-xl leading-snug sm:text-2xl">{current.question}</p>
+        <p className="text-muted text-[13px]">{current.hint}</p>
       </div>
 
       <form
@@ -287,7 +281,7 @@ function BigNumber({
 
   return (
     <div className="flex items-center gap-2">
-      {prefix ? <span className="text-muted serif-display text-2xl">{prefix}</span> : null}
+      {prefix ? <span className="text-muted display text-2xl">{prefix}</span> : null}
       <input
         type="number"
         // Numeric keypad on phones, and 16px+ text so iOS doesn't zoom in.

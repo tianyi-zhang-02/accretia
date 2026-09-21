@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { useI18n } from '@/lib/i18n/locale';
 
-import PixelIcon, { type PixelIconName } from '../pixel/pixel-icon';
+import Icon, { type IconName } from '../ui/icon';
 import { CAREER_PRESETS } from '@/lib/simulator/career-presets';
 import {
   ROLE_PRESETS,
@@ -29,7 +29,6 @@ import type {
   Windfall,
 } from '@/lib/validation/scenarios';
 
-
 type Setter = (next: Assumptions) => void;
 
 function Section({
@@ -39,7 +38,7 @@ function Section({
   children,
 }: {
   title: string;
-  icon: PixelIconName;
+  icon: IconName;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
@@ -51,8 +50,8 @@ function Section({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-3 py-1 text-left"
       >
-        <span className="flex items-center gap-2.5 text-xs tracking-[0.2em] uppercase">
-          <PixelIcon name={icon} size={13} className={open ? 'text-foreground' : 'text-muted'} />
+        <span className="flex items-center gap-2.5 text-[13px] font-medium">
+          <Icon name={icon} size={13} className={open ? 'text-foreground' : 'text-muted'} />
           {title}
         </span>
         <span className="text-muted text-base leading-none">{open ? '−' : '+'}</span>
@@ -175,7 +174,7 @@ function RoleSearchBox({ onPick }: { onPick: (preset: RolePreset) => void }) {
           ) : (
             groups.map(([track, roles]) => (
               <div key={track}>
-                <p className="text-muted bg-background/95 sticky top-0 px-3 py-1.5 text-[11px] font-medium tracking-[0.16em] uppercase backdrop-blur">
+                <p className="text-muted bg-background/95 sticky top-0 px-3 py-1.5 text-xs font-medium backdrop-blur">
                   {t.presets.track[track]}
                 </p>
                 <ul>
@@ -336,9 +335,7 @@ function TaxEstimator({
 
   return (
     <div className="bg-surface-2 flex flex-col gap-2 rounded-[10px] p-3">
-      <p className="text-muted text-[11px] tracking-[0.18em] uppercase">
-        {t.form.taxes.estimateHeading}
-      </p>
+      <p className="text-muted text-xs font-medium">{t.form.taxes.estimateHeading}</p>
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1">
           <span className="text-muted text-[13px]">{t.form.taxes.state}</span>
@@ -419,9 +416,7 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
 
   return (
     <div className="bg-surface-2 flex flex-col gap-2 rounded-[10px] p-3">
-      <p className="text-muted text-[11px] tracking-[0.18em] uppercase">
-        {t.form.allocation.heading}
-      </p>
+      <p className="text-muted text-xs font-medium">{t.form.allocation.heading}</p>
       <div className="flex flex-col gap-2">
         {buckets.map((b, i) => (
           <div key={i} className="border-border rounded border p-2">
@@ -900,7 +895,7 @@ export default function AssumptionsForm({
               </div>
 
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-muted text-[11px] tracking-[0.18em] uppercase">
+                <span className="text-muted text-xs font-medium">
                   {t.form.person.careerStages(p.careerStages.length)}
                 </span>
                 <div className="flex items-center gap-2">
@@ -940,7 +935,7 @@ export default function AssumptionsForm({
                   {p.careerStages.map((s, i) => (
                     <li key={i} className="bg-surface-2 rounded-[10px] p-3">
                       <div className="mb-3 flex flex-col gap-1">
-                        <span className="text-muted text-[11px] tracking-[0.18em] uppercase">
+                        <span className="text-muted text-xs font-medium">
                           {t.form.person.roleLibrary}
                         </span>
                         <RoleSearchBox
@@ -1113,7 +1108,7 @@ export default function AssumptionsForm({
             return (
               <div key={i} className="bg-surface-2 rounded-[10px] p-3">
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="text-muted text-[11px] tracking-[0.18em] uppercase">
+                  <span className="text-muted text-xs font-medium">
                     {isRecurring ? t.form.major.recurring : t.form.major.oneTime}
                   </span>
                   <button
@@ -1333,9 +1328,7 @@ export default function AssumptionsForm({
           </div>
           <p className="text-muted text-[11px]">{t.form.retirement.note}</p>
 
-          <p className="text-muted text-[11px] tracking-[0.18em] uppercase">
-            {t.form.retirement.incomes}
-          </p>
+          <p className="text-muted text-xs font-medium">{t.form.retirement.incomes}</p>
           {(value.otherIncomes ?? []).map((inc, i) => {
             const incomes = value.otherIncomes ?? [];
             const setIncomes = (list: OtherIncome[]) =>

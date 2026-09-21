@@ -6,7 +6,7 @@ import { useI18n } from '@/lib/i18n/locale';
 import type { YearRow } from '@/lib/simulator/engine';
 import { computeFire, type FireMilestone } from '@/lib/simulator/fire';
 import type { Assumptions, FireConfig } from '@/lib/validation/scenarios';
-import { PixelLabel } from '../pixel/pixel-icon';
+import { SectionLabel } from '../ui/icon';
 
 function NumField({
   label,
@@ -126,7 +126,7 @@ export default function FirePanel({
 
   return (
     <section className="card">
-      <PixelLabel icon="house">{t.fire.heading}</PixelLabel>
+      <SectionLabel icon="house">{t.fire.heading}</SectionLabel>
       <p className="text-muted mt-1 text-[13px]">{t.fire.intro}</p>
 
       <div className="mt-3 grid grid-cols-3 gap-3">
