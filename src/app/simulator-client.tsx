@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import GuidedSetup from '@/components/agent/guided-setup';
 import DataCard from '@/components/data/data-card';
-import { PixelLabel } from '@/components/pixel/pixel-icon';
+import PixelIcon, { PixelLabel } from '@/components/pixel/pixel-icon';
 import InsightsPanel from '@/components/agent/insights-panel';
 import MonteCarloChart from '@/components/charts/montecarlo-chart';
 import SimulatorChart, { type DisplayMode, type Marker } from '@/components/charts/simulator-chart';
@@ -24,6 +24,7 @@ import { CLOUD } from '@/lib/cloud/config';
 import { LocaleProvider, useI18n } from '@/lib/i18n/locale';
 import { ledgerSchema, type MonthEntry } from '@/lib/ledger/ledger';
 import { simulate } from '@/lib/simulator/engine';
+import { fireHeadline } from '@/lib/simulator/insights';
 import { runMonteCarlo } from '@/lib/simulator/montecarlo';
 import { assumptionsSchema, type Assumptions } from '@/lib/validation/scenarios';
 
@@ -129,7 +130,11 @@ function SimulatorInner() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [guiding, setGuiding] = useState(false);
   // One panel, three views — the home screen keeps to a single visual.
-  const [view, setView] = useState<'chart' | 'world' | 'table' | 'ledger'>('chart');
+  const [view, setView] = useState<'chart' | 'world' | 'table'>('chart');
+  // Top-level sections. Tracking is home: the projection is one part of the
+  // app, the yardstick the monthly numbers are held against.
+  const [tab, setTab] = useState<'track' | 'plan' | 'data'>('track');
+  const [managing, setManaging] = useState(false);
   const [ledger, setLedger] = useState<MonthEntry[]>([]);
   // When the last whole-app backup was downloaded. Rides inside the plan's
   // storage blob — NOT a third key — so the two-key rule still holds.
@@ -341,6 +346,8 @@ function SimulatorInner() {
     }
   }, [chartEngine, assumptions, volatilityPct]);
 
+  const fire = useMemo(() => fireHeadline(assumptions), [assumptions]);
+
   const lastNominal = result?.rows[result.rows.length - 1]?.netWorth ?? 0;
   const lastReal = result?.rows[result.rows.length - 1]?.netWorthRealTodayDollars ?? 0;
   const firstNominal = result?.rows[0]?.netWorth ?? 0;
@@ -443,116 +450,30 @@ function SimulatorInner() {
         <p className="text-muted text-[13px]">{CLOUD ? t.app.taglineCloud : t.app.tagline}</p>
       </header>
 
-      {/* Scenario bar — pick / name / manage the current scenario. */}
-      <section className="card card-tight flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <select
-            aria-label={t.scenarioBar.scenarioAria}
-            className="border-border bg-background min-w-0 flex-1 rounded border px-3 py-2 text-sm"
-            value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
-          >
-            {scenarios.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+      {/* Sections: a segmented control on desktop, a bottom tab bar on phones. */}
+      <nav aria-label={t.nav.aria} className="tabbar print-hide">
+        {(
+          [
+            ['track', 'coins'],
+            ['plan', 'chart'],
+            ['data', 'shield'],
+          ] as const
+        ).map(([id, icon]) => (
           <button
+            key={id}
             type="button"
-            onClick={addScenario}
-            className="border-border hover:bg-foreground/5 shrink-0 rounded border px-3 py-2 text-[13px]"
-          >
-            {t.scenarioBar.newScenario}
-          </button>
-        </div>
-
-        <input
-          type="text"
-          aria-label={t.scenarioBar.nameAria}
-          value={current.name}
-          maxLength={80}
-          onChange={(e) => renameCurrent(e.target.value)}
-          className="border-border focus:border-foreground rounded border bg-transparent px-3 py-2 text-sm outline-none"
-        />
-
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={duplicateCurrent} className="btn">
-            {t.scenarioBar.duplicate}
-          </button>
-          <button type="button" onClick={exportCurrent} className="btn">
-            {t.scenarioBar.exportJson}
-          </button>
-          <button type="button" onClick={() => fileInputRef.current?.click()} className="btn">
-            {t.scenarioBar.importJson}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            onChange={onImportFile}
-            className="hidden"
-          />
-          <label
-            className="text-muted flex cursor-pointer items-center gap-1.5 text-xs"
-            title={t.scenarioBar.saveLocalHint}
-          >
-            <input
-              type="checkbox"
-              checked={saveLocal}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setSaveLocal(true);
-                } else {
-                  setSaveLocal(false);
-                  try {
-                    localStorage.removeItem(STORAGE_KEY);
-                    localStorage.removeItem(LEDGER_KEY);
-                  } catch {
-                    // ignore
-                  }
-                }
-              }}
-            />
-            {t.scenarioBar.saveLocal}
-          </label>
-          <button
-            type="button"
+            aria-current={tab === id ? 'page' : undefined}
             onClick={() => {
-              setGuiding((v) => !v);
-              setComparing(false);
+              setTab(id);
+              window.scrollTo({ top: 0 });
             }}
-            title={t.guided.startHint}
-            className={`rounded border px-3 py-1.5 text-[13px] ${
-              guiding ? 'border-accent text-accent' : 'border-border hover:bg-foreground/5'
-            }`}
+            className="tabbar-item"
           >
-            {t.guided.start}
+            <PixelIcon name={icon} size={14} />
+            {t.nav[id]}
           </button>
-          {scenarios.length >= 2 ? (
-            <button
-              type="button"
-              onClick={() => setComparing((v) => !v)}
-              className={`rounded border px-3 py-1.5 text-[13px] ${
-                comparing ? 'border-accent text-accent' : 'border-border hover:bg-foreground/5'
-              }`}
-            >
-              {comparing ? t.scenarioBar.backToEditor : t.scenarioBar.compare}
-            </button>
-          ) : null}
-          {scenarios.length > 1 ? (
-            <button
-              type="button"
-              onClick={removeCurrent}
-              className="text-muted hover:text-negative ml-auto text-[13px]"
-            >
-              {t.scenarioBar.remove}
-            </button>
-          ) : null}
-        </div>
-        {note ? <p className="text-positive text-xs">{note}</p> : null}
-        {importError ? <p className="text-negative text-xs">{importError}</p> : null}
-      </section>
+        ))}
+      </nav>
 
       {guiding ? (
         <GuidedSetup
@@ -560,302 +481,456 @@ function SimulatorInner() {
           onComplete={(a) => {
             patchCurrent(a);
             setGuiding(false);
+            setTab('plan');
           }}
           onCancel={() => setGuiding(false)}
         />
       ) : null}
 
-      {comparing ? (
-        <CompareView scenarios={scenarios} onExit={() => setComparing(false)} />
-      ) : (
-        <>
-          {/* Side-by-side: assumptions (left) + live projection (right, sticky
-              on desktop so edits update the chart in real time). On mobile it
-              stacks — projection on top, assumptions below. */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Assumptions — edit here, watch the projection move. */}
-            <div className="order-2 lg:order-1">
-              {/* The summary card carries its own heading — an "Assumptions"
-                  eyebrow on top of "Your plan" was two labels for one thing. */}
-              <div className="flex flex-col gap-4">
-                <PlanSummary assumptions={assumptions} onChange={patchCurrent}>
-                  <AssumptionsForm value={assumptions} onChange={patchCurrent} />
-                </PlanSummary>
-                {/* Long-term use needs a copy the browser can't lose. */}
-                <DataCard
-                  scenarios={scenarios}
-                  selectedId={selectedId}
-                  ledger={ledger}
-                  saveLocal={saveLocal}
-                  lastBackupAt={lastBackupAt}
-                  onBackedUp={setLastBackupAt}
-                  onRestore={(r) => {
-                    setScenarios(r.scenarios);
-                    setSelectedId(r.selectedId);
-                    setLedger(r.ledger);
-                    setComparing(false);
+      {tab === 'track' ? (
+        <LedgerPanel
+          entries={ledger}
+          onChange={setLedger}
+          assumptions={assumptions}
+          planRows={result?.rows ?? []}
+          fire={fire}
+          onOpenPlan={() => {
+            setTab('plan');
+            window.scrollTo({ top: 0 });
+          }}
+          onCalibrate={(patch) => patchCurrent({ ...assumptions, ...patch })}
+        />
+      ) : null}
+
+      {tab === 'data' ? (
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+          <div className="flex flex-col gap-4">
+            <section className="card">
+              <label className="flex cursor-pointer items-start justify-between gap-4">
+                <span>
+                  <span className="block text-sm font-medium">{t.track.data.saveLocalHeading}</span>
+                  <span className="text-muted mt-1 block text-xs">
+                    {t.track.data.saveLocalBody}
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  className="mt-1 h-5 w-5 shrink-0"
+                  checked={saveLocal}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSaveLocal(true);
+                    } else {
+                      setSaveLocal(false);
+                      try {
+                        localStorage.removeItem(STORAGE_KEY);
+                        localStorage.removeItem(LEDGER_KEY);
+                      } catch {
+                        // ignore
+                      }
+                    }
                   }}
                 />
-                {CLOUD ? (
-                  <CloudSync
-                    scenarios={scenarios}
-                    selectedId={selectedId}
-                    ledger={ledger}
-                    onRestore={(r) => {
-                      setScenarios(r.scenarios);
-                      setSelectedId(r.selectedId);
-                      setLedger(r.ledger);
-                      setComparing(false);
-                    }}
-                  />
-                ) : null}
-              </div>
+              </label>
+            </section>
+            {/* Long-term use needs a copy the browser can't lose. */}
+            <DataCard
+              scenarios={scenarios}
+              selectedId={selectedId}
+              ledger={ledger}
+              saveLocal={saveLocal}
+              lastBackupAt={lastBackupAt}
+              onBackedUp={setLastBackupAt}
+              onRestore={(r) => {
+                setScenarios(r.scenarios);
+                setSelectedId(r.selectedId);
+                setLedger(r.ledger);
+                setComparing(false);
+              }}
+            />
+          </div>
+          {CLOUD ? (
+            <CloudSync
+              scenarios={scenarios}
+              selectedId={selectedId}
+              ledger={ledger}
+              onRestore={(r) => {
+                setScenarios(r.scenarios);
+                setSelectedId(r.selectedId);
+                setLedger(r.ledger);
+                setComparing(false);
+              }}
+            />
+          ) : null}
+        </div>
+      ) : null}
+
+      {tab === 'plan' ? (
+        <>
+          {/* Scenario bar — pick / name / manage the current scenario. */}
+          <section className="card card-tight flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <select
+                aria-label={t.scenarioBar.scenarioAria}
+                className="border-border bg-background min-w-0 flex-1 rounded border px-3 py-2 text-sm"
+                value={selectedId}
+                onChange={(e) => setSelectedId(e.target.value)}
+              >
+                {scenarios.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={addScenario}
+                className="border-border hover:bg-foreground/5 shrink-0 rounded border px-3 py-2 text-[13px]"
+              >
+                {t.scenarioBar.newScenario}
+              </button>
             </div>
 
-            {/* Projection — pinned on desktop. */}
-            <div
-              className={`order-1 flex flex-col gap-6 lg:order-2 lg:self-start ${
-                // Sticky only in the simple view. With advanced tools open the
-                // column is taller than the viewport — pinning it would make
-                // its lower panels unreachable while the form scrolls.
-                advanced ? '' : 'lg:sticky lg:top-6'
-              }`}
-            >
-              {/* The answer first. The product is named after this sentence,
-                  so it outranks the balance — a number nobody can feel. */}
-              <InsightsPanel assumptions={assumptions} onChange={patchCurrent} />
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setGuiding((v) => !v);
+                  setComparing(false);
+                }}
+                title={t.guided.startHint}
+                className={`btn ${guiding ? 'text-accent' : ''}`}
+              >
+                {t.guided.start}
+              </button>
+              {scenarios.length >= 2 ? (
+                <button
+                  type="button"
+                  onClick={() => setComparing((v) => !v)}
+                  className={`btn ${comparing ? 'text-accent' : ''}`}
+                >
+                  {comparing ? t.scenarioBar.backToEditor : t.scenarioBar.compare}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                aria-expanded={managing}
+                onClick={() => setManaging((v) => !v)}
+                className="btn btn-ghost ml-auto"
+              >
+                {t.scenarioBar.manage} {managing ? '−' : '+'}
+              </button>
+            </div>
 
-              {/* The balance behind it: supporting evidence, not the point.
+            {managing ? (
+              <div className="flex flex-col gap-3">
+                <input
+                  type="text"
+                  aria-label={t.scenarioBar.nameAria}
+                  value={current.name}
+                  maxLength={80}
+                  onChange={(e) => renameCurrent(e.target.value)}
+                  className="field"
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <button type="button" onClick={duplicateCurrent} className="btn">
+                    {t.scenarioBar.duplicate}
+                  </button>
+                  <button type="button" onClick={exportCurrent} className="btn">
+                    {t.scenarioBar.exportJson}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="btn"
+                  >
+                    {t.scenarioBar.importJson}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/json,.json"
+                    onChange={onImportFile}
+                    className="hidden"
+                  />
+                  {scenarios.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={removeCurrent}
+                      className="text-muted hover:text-negative ml-auto text-[13px]"
+                    >
+                      {t.scenarioBar.remove}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+            {note ? <p className="text-positive text-xs">{note}</p> : null}
+            {importError ? <p className="text-negative text-xs">{importError}</p> : null}
+          </section>
+
+          {comparing ? (
+            <CompareView scenarios={scenarios} onExit={() => setComparing(false)} />
+          ) : (
+            <>
+              {/* Side-by-side: assumptions (left) + live projection (right, sticky
+              on desktop so edits update the chart in real time). On mobile it
+              stacks — projection on top, assumptions below. */}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* Assumptions — edit here, watch the projection move. */}
+                <div className="order-2 lg:order-1">
+                  {/* The summary card carries its own heading — an "Assumptions"
+                  eyebrow on top of "Your plan" was two labels for one thing. */}
+                  <div className="flex flex-col gap-4">
+                    <PlanSummary assumptions={assumptions} onChange={patchCurrent}>
+                      <AssumptionsForm value={assumptions} onChange={patchCurrent} />
+                    </PlanSummary>
+                  </div>
+                </div>
+
+                {/* Projection — pinned on desktop. */}
+                <div
+                  className={`order-1 flex flex-col gap-6 lg:order-2 lg:self-start ${
+                    // Sticky only in the simple view. With advanced tools open the
+                    // column is taller than the viewport — pinning it would make
+                    // its lower panels unreachable while the form scrolls.
+                    advanced ? '' : 'lg:sticky lg:top-6'
+                  }`}
+                >
+                  {/* The answer first. The product is named after this sentence,
+                  so it outranks the balance — a number nobody can feel. */}
+                  <InsightsPanel assumptions={assumptions} onChange={patchCurrent} />
+
+                  {/* The balance behind it: supporting evidence, not the point.
                   REAL leads. Over a long horizon the nominal figure is
                   inflated several times over and reads as a fantasy — the
                   today's-dollar number is the only one a human can judge. */}
-              <section className="card">
-                <PixelLabel icon="coins">
-                  {t.projection.finalBalance(assumptions.horizonEndYear)}
-                </PixelLabel>
-                <p className="figure mt-2 text-[30px]">{fmt.currency0(lastReal)}</p>
-                <p className="text-muted nums mt-1 text-[13px]">
-                  {t.projection.nominalNote(
-                    fmt.currency0(lastNominal),
-                    fmt.signedPct1(totalGrowth),
-                  )}
-                </p>
-                {impliedSavingsRate !== null ? (
-                  <p className="text-muted nums mt-1 text-xs">
-                    {t.projection.impliedSavings(fmt.pct0(impliedSavingsRate))}
-                  </p>
-                ) : null}
-              </section>
+                  <section className="card">
+                    <PixelLabel icon="coins">
+                      {t.projection.finalBalance(assumptions.horizonEndYear)}
+                    </PixelLabel>
+                    <p className="figure mt-2 text-[30px]">{fmt.currency0(lastReal)}</p>
+                    <p className="text-muted nums mt-1 text-[13px]">
+                      {t.projection.nominalNote(
+                        fmt.currency0(lastNominal),
+                        fmt.signedPct1(totalGrowth),
+                      )}
+                    </p>
+                    {impliedSavingsRate !== null ? (
+                      <p className="text-muted nums mt-1 text-xs">
+                        {t.projection.impliedSavings(fmt.pct0(impliedSavingsRate))}
+                      </p>
+                    ) : null}
+                  </section>
 
-              {/* View switcher: chart / pixel world / year table. Tabs, not
+                  {/* View switcher: chart / pixel world / year table. Tabs, not
                   three stacked panels with their own show/hide buttons. */}
-              <div className="bg-surface-2 flex w-fit overflow-hidden rounded-[10px] text-xs">
-                {(['chart', 'world', 'table', 'ledger'] as const).map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setView(v)}
-                    className={`min-h-9 px-3.5 font-medium transition-colors ${
-                      view === v
-                        ? 'bg-foreground text-background'
-                        : 'text-muted hover:text-foreground'
-                    }`}
-                  >
-                    {t.views[v]}
-                  </button>
-                ))}
-              </div>
+                  <div className="bg-surface-2 flex w-fit overflow-hidden rounded-[10px] text-xs">
+                    {(['chart', 'world', 'table'] as const).map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setView(v)}
+                        className={`min-h-9 px-3.5 font-medium transition-colors ${
+                          view === v
+                            ? 'bg-foreground text-background'
+                            : 'text-muted hover:text-foreground'
+                        }`}
+                      >
+                        {t.views[v]}
+                      </button>
+                    ))}
+                  </div>
 
-              {/* Pixel journey — the projection as a tiny living world. */}
-              {view === 'world' ? (
-                <section className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <PixelLabel icon="house">{t.pixel.heading}</PixelLabel>
-                    <div className="flex items-center gap-2">
-                      {
+                  {/* Pixel journey — the projection as a tiny living world. */}
+                  {view === 'world' ? (
+                    <section className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <PixelLabel icon="house">{t.pixel.heading}</PixelLabel>
+                        <div className="flex items-center gap-2">
+                          {
+                            <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
+                              {(['meadow', 'seaside', 'snow'] as const).map((s) => (
+                                <button
+                                  key={s}
+                                  type="button"
+                                  onClick={() => setPixelScene(s)}
+                                  className={`px-2 py-0.5 ${
+                                    pixelScene === s
+                                      ? 'bg-foreground/10 text-foreground'
+                                      : 'text-muted'
+                                  }`}
+                                >
+                                  {t.pixel.scenes[s]}
+                                </button>
+                              ))}
+                            </div>
+                          }
+                        </div>
+                      </div>
+                      {result ? (
+                        <>
+                          <PixelJourney
+                            rows={result.rows}
+                            assumptions={assumptions}
+                            theme={theme}
+                            scene={pixelScene}
+                          />
+                          <p className="text-muted text-[11px]">{t.pixel.caption}</p>
+                        </>
+                      ) : null}
+                    </section>
+                  ) : null}
+
+                  {/* Chart — deterministic band or probabilistic (Monte-Carlo) fan. */}
+                  {view === 'chart' ? (
+                    <section className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <PixelLabel icon="chart">
+                          {chartEngine === 'probabilistic'
+                            ? t.projection.mcHeading
+                            : displayMode === 'both'
+                              ? t.projection.bothHeading
+                              : t.projection.bandHeading}
+                        </PixelLabel>
                         <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
-                          {(['meadow', 'seaside', 'snow'] as const).map((s) => (
+                          {(['deterministic', 'probabilistic'] as const).map((e) => (
                             <button
-                              key={s}
+                              key={e}
                               type="button"
-                              onClick={() => setPixelScene(s)}
-                              className={`px-2 py-0.5 ${
-                                pixelScene === s ? 'bg-foreground/10 text-foreground' : 'text-muted'
+                              onClick={() => setChartEngine(e)}
+                              className={`px-2.5 py-1 ${
+                                chartEngine === e
+                                  ? 'bg-foreground/10 text-foreground'
+                                  : 'text-muted'
                               }`}
                             >
-                              {t.pixel.scenes[s]}
+                              {e === 'deterministic' ? t.projection.detMode : t.projection.probMode}
                             </button>
                           ))}
                         </div>
-                      }
-                    </div>
-                  </div>
-                  {result ? (
+                      </div>
+
+                      {/* Secondary controls: nominal/real (deterministic) or volatility (probabilistic). */}
+                      <div className="flex items-center justify-between gap-2">
+                        {chartEngine === 'deterministic' ? (
+                          <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
+                            {(['nominal', 'real', 'both'] as const).map((m) => (
+                              <button
+                                key={m}
+                                type="button"
+                                onClick={() => setDisplayMode(m)}
+                                className={`px-2.5 py-1 ${
+                                  displayMode === m
+                                    ? 'bg-foreground/10 text-foreground'
+                                    : 'text-muted'
+                                }`}
+                              >
+                                {t.projection[m]}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <label className="text-muted flex items-center gap-1.5 text-xs">
+                            {t.projection.volatility}
+                            <input
+                              type="number"
+                              value={volatilityPct}
+                              min={0}
+                              max={60}
+                              step={1}
+                              onChange={(e) =>
+                                setVolatilityPct(
+                                  Math.max(0, Math.min(60, Number(e.target.value) || 0)),
+                                )
+                              }
+                              className="border-border focus:border-foreground nums w-14 rounded border bg-transparent px-2 py-1 text-right outline-none"
+                            />
+                            %
+                          </label>
+                        )}
+                        {chartEngine === 'probabilistic' && mc?.successProbability != null ? (
+                          <span className="text-positive nums text-xs">
+                            {t.projection.successProb(fmt.pct0(mc.successProbability * 100))}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {chartEngine === 'probabilistic' ? (
+                        mc ? (
+                          <MonteCarloChart mc={mc} />
+                        ) : (
+                          <p className="text-negative text-[13px]">{t.projection.computeError}</p>
+                        )
+                      ) : result ? (
+                        <SimulatorChart result={result} mode={displayMode} markers={markers} />
+                      ) : (
+                        <p className="text-negative text-[13px]">{t.projection.computeError}</p>
+                      )}
+
+                      <p className="text-muted text-[11px]">
+                        {chartEngine === 'probabilistic'
+                          ? mc?.successProbability == null
+                            ? `${t.projection.mcCaption} ${t.projection.mcNeedTarget}`
+                            : t.projection.mcCaption
+                          : displayMode === 'both'
+                            ? t.projection.gapCaption
+                            : t.projection.bandCaption}
+                      </p>
+                    </section>
+                  ) : null}
+
+                  {/* Year-by-year table — scrolls sideways inside the column. */}
+                  {view === 'table' && result ? (
+                    <YearTable
+                      rows={result.rows}
+                      people={assumptions.people}
+                      highlightYears={highlightYears}
+                    />
+                  ) : null}
+
+                  {/* Advanced tools — collapsed by default (progressive disclosure). */}
+                  <button
+                    type="button"
+                    onClick={() => setAdvanced((v) => !v)}
+                    className="btn w-full justify-between"
+                  >
+                    <span>{advanced ? t.advanced.hide : t.advanced.show}</span>
+                    <span className="text-muted text-[11px]">
+                      {advanced ? '−' : `+ ${t.advanced.hint}`}
+                    </span>
+                  </button>
+
+                  {advanced ? (
                     <>
-                      <PixelJourney
-                        rows={result.rows}
-                        assumptions={assumptions}
-                        theme={theme}
-                        scene={pixelScene}
-                      />
-                      <p className="text-muted text-[11px]">{t.pixel.caption}</p>
+                      {/* Goal-seek. */}
+                      <GoalSeekPanel assumptions={assumptions} onChange={patchCurrent} />
+
+                      {/* FIRE — the year work becomes optional. */}
+                      {result ? (
+                        <FirePanel
+                          assumptions={assumptions}
+                          rows={result.rows}
+                          onChange={patchCurrent}
+                        />
+                      ) : null}
+
+                      {/* Stress test — job loss + market crash what-ifs. */}
+                      {result ? (
+                        <StressPanel
+                          assumptions={assumptions}
+                          rows={result.rows}
+                          onChange={patchCurrent}
+                        />
+                      ) : null}
                     </>
                   ) : null}
-                </section>
-              ) : null}
-
-              {/* Chart — deterministic band or probabilistic (Monte-Carlo) fan. */}
-              {view === 'chart' ? (
-                <section className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <PixelLabel icon="chart">
-                      {chartEngine === 'probabilistic'
-                        ? t.projection.mcHeading
-                        : displayMode === 'both'
-                          ? t.projection.bothHeading
-                          : t.projection.bandHeading}
-                    </PixelLabel>
-                    <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
-                      {(['deterministic', 'probabilistic'] as const).map((e) => (
-                        <button
-                          key={e}
-                          type="button"
-                          onClick={() => setChartEngine(e)}
-                          className={`px-2.5 py-1 ${
-                            chartEngine === e ? 'bg-foreground/10 text-foreground' : 'text-muted'
-                          }`}
-                        >
-                          {e === 'deterministic' ? t.projection.detMode : t.projection.probMode}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Secondary controls: nominal/real (deterministic) or volatility (probabilistic). */}
-                  <div className="flex items-center justify-between gap-2">
-                    {chartEngine === 'deterministic' ? (
-                      <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
-                        {(['nominal', 'real', 'both'] as const).map((m) => (
-                          <button
-                            key={m}
-                            type="button"
-                            onClick={() => setDisplayMode(m)}
-                            className={`px-2.5 py-1 ${
-                              displayMode === m ? 'bg-foreground/10 text-foreground' : 'text-muted'
-                            }`}
-                          >
-                            {t.projection[m]}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <label className="text-muted flex items-center gap-1.5 text-xs">
-                        {t.projection.volatility}
-                        <input
-                          type="number"
-                          value={volatilityPct}
-                          min={0}
-                          max={60}
-                          step={1}
-                          onChange={(e) =>
-                            setVolatilityPct(Math.max(0, Math.min(60, Number(e.target.value) || 0)))
-                          }
-                          className="border-border focus:border-foreground nums w-14 rounded border bg-transparent px-2 py-1 text-right outline-none"
-                        />
-                        %
-                      </label>
-                    )}
-                    {chartEngine === 'probabilistic' && mc?.successProbability != null ? (
-                      <span className="text-positive nums text-xs">
-                        {t.projection.successProb(fmt.pct0(mc.successProbability * 100))}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {chartEngine === 'probabilistic' ? (
-                    mc ? (
-                      <MonteCarloChart mc={mc} />
-                    ) : (
-                      <p className="text-negative text-[13px]">{t.projection.computeError}</p>
-                    )
-                  ) : result ? (
-                    <SimulatorChart result={result} mode={displayMode} markers={markers} />
-                  ) : (
-                    <p className="text-negative text-[13px]">{t.projection.computeError}</p>
-                  )}
-
-                  <p className="text-muted text-[11px]">
-                    {chartEngine === 'probabilistic'
-                      ? mc?.successProbability == null
-                        ? `${t.projection.mcCaption} ${t.projection.mcNeedTarget}`
-                        : t.projection.mcCaption
-                      : displayMode === 'both'
-                        ? t.projection.gapCaption
-                        : t.projection.bandCaption}
-                  </p>
-                </section>
-              ) : null}
-
-              {/* Year-by-year table — scrolls sideways inside the column. */}
-              {view === 'table' && result ? (
-                <YearTable
-                  rows={result.rows}
-                  people={assumptions.people}
-                  highlightYears={highlightYears}
-                />
-              ) : null}
-
-              {/* Monthly ledger + year-end report — what actually happened. */}
-              {view === 'ledger' ? (
-                <LedgerPanel
-                  entries={ledger}
-                  onChange={setLedger}
-                  assumptions={assumptions}
-                  planRows={result?.rows ?? []}
-                  onCalibrate={(patch) => patchCurrent({ ...assumptions, ...patch })}
-                />
-              ) : null}
-
-              {/* Advanced tools — collapsed by default (progressive disclosure). */}
-              <button
-                type="button"
-                onClick={() => setAdvanced((v) => !v)}
-                className="btn w-full justify-between"
-              >
-                <span>{advanced ? t.advanced.hide : t.advanced.show}</span>
-                <span className="text-muted text-[11px]">
-                  {advanced ? '−' : `+ ${t.advanced.hint}`}
-                </span>
-              </button>
-
-              {advanced ? (
-                <>
-                  {/* Goal-seek. */}
-                  <GoalSeekPanel assumptions={assumptions} onChange={patchCurrent} />
-
-                  {/* FIRE — the year work becomes optional. */}
-                  {result ? (
-                    <FirePanel
-                      assumptions={assumptions}
-                      rows={result.rows}
-                      onChange={patchCurrent}
-                    />
-                  ) : null}
-
-                  {/* Stress test — job loss + market crash what-ifs. */}
-                  {result ? (
-                    <StressPanel
-                      assumptions={assumptions}
-                      rows={result.rows}
-                      onChange={patchCurrent}
-                    />
-                  ) : null}
-                </>
-              ) : null}
-            </div>
-          </div>
+                </div>
+              </div>
+            </>
+          )}
         </>
-      )}
+      ) : null}
 
       <p className="text-muted text-[11px] italic">{t.footer.disclaimer}</p>
     </div>

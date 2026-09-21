@@ -279,3 +279,78 @@ export function calibrationPatch(
   }
   return patch;
 }
+
+// ---------- Monthly check-in ----------
+
+export type YearMonth = { year: number; month: number };
+
+const has = (entries: MonthEntry[], ym: YearMonth) => entries.some((e) => key(e) === key(ym));
+
+const fromKey = (k: number): YearMonth => ({ year: Math.floor(k / 12), month: (k % 12) + 1 });
+
+/** Step a month forwards or backwards across year boundaries. */
+export function shiftMonth(ym: YearMonth, by: number): YearMonth {
+  return fromKey(key(ym) + by);
+}
+
+/** True when `a` is a later month than `b`. */
+export function isAfter(a: YearMonth, b: YearMonth): boolean {
+  return key(a) > key(b);
+}
+
+/**
+ * The month the check-in should open on. Last month is finished, so its
+ * numbers are final — log that first; once it's in, move on to this month.
+ */
+export function checkInTarget(entries: MonthEntry[], today: YearMonth): YearMonth {
+  const last = shiftMonth(today, -1);
+  return has(entries, last) ? today : last;
+}
+
+/**
+ * Consecutive logged months, counted back from this month (if logged) or
+ * from last month — not having logged a month that isn't over yet must not
+ * break a streak.
+ */
+export function streak(entries: MonthEntry[], today: YearMonth): number {
+  let at = has(entries, today) ? today : shiftMonth(today, -1);
+  let n = 0;
+  while (has(entries, at) && n < 600) {
+    n += 1;
+    at = shiftMonth(at, -1);
+  }
+  return n;
+}
+
+/** Typical income / spending over the (up to) `n` logged months before `ym`. */
+export function recentAverage(
+  entries: MonthEntry[],
+  ym: YearMonth,
+  n = 3,
+): { income: number; spending: number } | null {
+  const prior = entries.filter((e) => key(e) < key(ym)).slice(-n);
+  if (prior.length === 0) return null;
+  const sum = (f: 'income' | 'spending') => prior.reduce((s, e) => s + e[f], 0) / prior.length;
+  return { income: Math.round(sum('income')), spending: Math.round(sum('spending')) };
+}
+
+/**
+ * What the plan expects around a given month. Engine rows are year-END
+ * values, so net worth is interpolated along the year from the previous
+ * year-end (or the plan's starting net worth in the first year).
+ */
+export function planAt(
+  planRows: YearRow[],
+  startingNetWorth: number,
+  ym: YearMonth,
+): { monthlySpending: number; monthlySaved: number; netWorth: number } | null {
+  const i = planRows.findIndex((r) => r.year === ym.year);
+  if (i < 0) return null;
+  const row = planRows[i]!;
+  const from = i === 0 ? startingNetWorth : planRows[i - 1]!.netWorth;
+  return {
+    monthlySpending: row.expenses / 12,
+    monthlySaved: row.saved / 12,
+    netWorth: from + (row.netWorth - from) * (ym.month / 12),
+  };
+}

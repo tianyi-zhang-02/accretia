@@ -5,9 +5,15 @@ import type { Assumptions } from '@/lib/validation/scenarios';
 
 import {
   calibrationPatch,
+  checkInTarget,
+  isAfter,
   ledgerSchema,
   parseLedgerCsv,
+  planAt,
+  recentAverage,
   recordedYears,
+  shiftMonth,
+  streak,
   templateCsv,
   toCsv,
   upsert,
@@ -177,5 +183,55 @@ describe('calibrationPatch', () => {
     const patch = calibrationPatch(yearReport(list, 2026), list, a)!;
     expect(patch.startingNetWorth).toBe(-20_000);
     expect(patch.startingInvested).toBe(0);
+  });
+});
+
+describe('monthly check-in', () => {
+  const sep = { year: 2026, month: 9 };
+
+  it('shiftMonth crosses year boundaries both ways', () => {
+    expect(shiftMonth({ year: 2026, month: 1 }, -1)).toEqual({ year: 2025, month: 12 });
+    expect(shiftMonth({ year: 2025, month: 12 }, 1)).toEqual({ year: 2026, month: 1 });
+    expect(shiftMonth(sep, -12)).toEqual({ year: 2025, month: 9 });
+    expect(isAfter({ year: 2026, month: 10 }, sep)).toBe(true);
+    expect(isAfter(sep, sep)).toBe(false);
+  });
+
+  it('opens on last month until it is logged, then on this month', () => {
+    expect(checkInTarget([], sep)).toEqual({ year: 2026, month: 8 });
+    expect(checkInTarget([m(8, 1, 1)], sep)).toEqual(sep);
+    // January looks back into the previous year.
+    expect(checkInTarget([], { year: 2026, month: 1 })).toEqual({ year: 2025, month: 12 });
+  });
+
+  it('streak: an unfinished current month does not break it, a gap does', () => {
+    expect(streak([], sep)).toBe(0);
+    expect(streak([m(6, 1, 1), m(7, 1, 1), m(8, 1, 1)], sep)).toBe(3);
+    expect(streak([m(6, 1, 1), m(7, 1, 1), m(8, 1, 1), m(9, 1, 1)], sep)).toBe(4);
+    expect(streak([m(5, 1, 1), m(7, 1, 1), m(8, 1, 1)], sep)).toBe(2);
+    expect(streak([m(6, 1, 1), m(7, 1, 1)], sep)).toBe(0); // last month missing
+    const dec: MonthEntry = { year: 2025, month: 12, income: 1, spending: 1 };
+    expect(streak([dec, m(1, 1, 1)], { year: 2026, month: 2 })).toBe(2);
+  });
+
+  it('recentAverage uses only earlier months, at most three', () => {
+    expect(recentAverage([], sep)).toBeNull();
+    const e = [m(4, 1000, 100), m(5, 9000, 600), m(6, 9000, 900), m(7, 12000, 1500), m(9, 1, 1)];
+    expect(recentAverage(e, { year: 2026, month: 8 })).toEqual({ income: 10000, spending: 1000 });
+    expect(recentAverage(e, { year: 2026, month: 4 })).toBeNull();
+  });
+
+  it('planAt interpolates net worth along the year from the previous year-end', () => {
+    const row = (year: number, netWorth: number): YearRow =>
+      ({ year, expenses: 120_000, saved: 60_000, netWorth }) as YearRow;
+    const rows = [row(2026, 620_000), row(2027, 740_000)];
+    expect(planAt(rows, 500_000, { year: 2026, month: 6 })).toEqual({
+      monthlySpending: 10_000,
+      monthlySaved: 5_000,
+      netWorth: 560_000,
+    });
+    expect(planAt(rows, 500_000, { year: 2027, month: 12 })?.netWorth).toBe(740_000);
+    expect(planAt(rows, 500_000, { year: 2027, month: 3 })?.netWorth).toBe(650_000);
+    expect(planAt(rows, 500_000, { year: 2030, month: 1 })).toBeNull();
   });
 });

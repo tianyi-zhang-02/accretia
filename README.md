@@ -6,7 +6,9 @@
 
 > **On the two names:** the app calls itself **Work Optional** — that's what it tells you, and what people see. The repo and the site keep the original **Accretia** (from _accretion_: growth by accumulation), because a US wealth-management firm already trades as Work Optional and we're not competing for that ground.
 
-_Find out when work becomes optional._ A single-page, **client-side** wealth-projection simulator. Project household net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
+_Find out when work becomes optional — and keep track of whether you're getting there._ A single-page, **client-side** app with three sections: **Track** (the home screen: a one-minute monthly check-in — money in, money out, net worth — answered on the spot with "you kept $X; your plan expected $Y", an *Am I on track?* card holding your real net worth against the plan, and a printable year report), **Plan** (the wealth-projection simulator) and **Data** (backup, restore, optional encrypted sync). The projection is the yardstick; tracking is the habit.
+
+In **Plan**, project net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
 
 Everything runs in the browser, and **by default nothing is ever sent anywhere — no account needed.** A deployment can optionally enable **sign-in with end-to-end-encrypted sync**: your data is encrypted on your device with a passphrase only you know, so the server (and whoever runs it) stores ciphertext it cannot read. See [`docs/cloud-setup.md`](docs/cloud-setup.md). Your plan — and your monthly ledger, if you keep one — stay on your own device (this browser's local storage) so they're still there tomorrow — untick **"Save on this device"** to keep it memory-only. For the long haul, **Back up everything** downloads one file with every plan and every ledger month; **Restore** brings it back on any device.
 
@@ -43,7 +45,7 @@ Everything runs in the browser, and **by default nothing is ever sent anywhere �
 - **Bilingual** (English / 简体中文, native — not machine-translated), **light/dark theme**, **font zoom**, and **simple by default** with an "advanced tools" toggle.
 - **Installable PWA**, works offline.
 
-The layout is a **live side-by-side editor**: assumptions on the left, the projection (final balance + chart + advanced tools) pinned on the right, so editing an assumption updates the chart in real time. On mobile it stacks (projection on top).
+Navigation is three sections — **Track · Plan · Data** — a segmented control on desktop and a bottom tab bar on phones. **Plan** is a **live side-by-side editor**: assumptions on the left, the projection (final balance + chart + advanced tools) pinned on the right, so editing an assumption updates the chart in real time. On mobile it stacks (projection on top).
 
 ---
 

@@ -6,6 +6,35 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Tracking is the home screen; the projection is one part
+
+The ledger used to be the fourth tab of a chart switcher inside a projection
+tool — 36 empty cells, found only by people who went looking. The owner's
+call: keeping track is the main thing. So the app is reorganized around it.
+
+- **Three sections: Track · Plan · Data.** A segmented control on desktop, a
+  fixed **bottom tab bar on phones**. Track is where the app opens.
+- **Monthly check-in.** One month at a time, three plainly-labeled fields
+  (money in, money out, net worth at month end), placeholders showing your
+  usual amounts, a "same as last month" chip for income, and the answer as
+  you type: *"You kept $8,200 · 66% of what came in. Your plan expects about
+  $14,122 a month — $5,922 short."* Explicit **Save**, then **Log next
+  month ›**. Opens on last month until it's logged, then on this month. A
+  12-dot strip shows the year and jumps between months; a streak counter
+  shows up from two months in a row.
+- **Am I on track?** Your latest real net worth against what the plan
+  expected *for that month* (year-end rows interpolated), an actual-vs-plan
+  sparkline, year-to-date kept and spent vs plan, and the projection's one
+  sentence ("work becomes optional at 44") with a link into Plan.
+- **Plan is calmer.** The scenario bar shows the picker, + New, Guide me
+  (Compare with 2+); rename / duplicate / export / import / remove moved
+  behind **Manage**. Backup, the save-on-device switch and sync moved to
+  **Data**.
+- The full-year grid and the Excel/CSV tools are still there, behind **All
+  months & spreadsheet**. Still three numbers a month, no new storage, no
+  new dependencies. New pure helpers (`checkInTarget`, `streak`,
+  `recentAverage`, `planAt`, `shiftMonth`) are unit-tested.
+
 ### Fixed: sign-in works with Supabase's stock email; tighter table grants
 
 Found while doing the real Supabase + Vercel setup, not on paper:

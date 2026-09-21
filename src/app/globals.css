@@ -155,6 +155,69 @@ body {
   filter: none;
 }
 
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* Section navigation. Desktop: a segmented control in the page flow.
+   Phones: a fixed bottom tab bar, the way an app does it — thumbs live at
+   the bottom of the screen. `main` reserves the space (see `.has-tabbar`). */
+.tabbar {
+  display: flex;
+  width: fit-content;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+.tabbar-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color 120ms ease;
+}
+.tabbar-item:hover {
+  color: var(--foreground);
+}
+.tabbar-item[aria-current='page'] {
+  background: var(--foreground);
+  color: var(--background);
+}
+@media (max-width: 639px) {
+  .tabbar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 40;
+    width: 100%;
+    border-radius: 0;
+    background: var(--surface);
+    box-shadow: 0 -1px 0 var(--hairline);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tabbar-item {
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    min-height: 54px;
+    padding: 0;
+    font-size: 11px;
+  }
+  .tabbar-item[aria-current='page'] {
+    background: transparent;
+    color: var(--accent);
+  }
+  .has-tabbar {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+}
+
 /* Inputs: filled, not outlined — an outline next to a card border was the
    worst of the nesting. 16px keeps iOS from zooming on focus. */
 .field {
@@ -171,6 +234,10 @@ body {
 }
 .field:focus {
   border-color: var(--accent);
+}
+/* Room for a leading currency mark; a utility class can't out-rank .field. */
+.field-money {
+  padding-left: 28px;
 }
 
 /* Section eyebrow — the small uppercase label above a block. */

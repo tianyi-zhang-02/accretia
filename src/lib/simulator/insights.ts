@@ -97,6 +97,13 @@ function fireAgeFor(a: Assumptions): number | null {
   return fire.full.reached ? fire.full.age : null;
 }
 
+/** Just the headline — the age and year work becomes optional — without the lever search. */
+export function fireHeadline(a: Assumptions): { age: number; year: number } | null {
+  const primary = a.people[0];
+  const age = fireAgeFor(a);
+  return primary && age !== null ? { age, year: primary.birthYear + age } : null;
+}
+
 /** Implied year-1 savings rate (saved ÷ after-tax income), % — an OUTPUT. */
 function impliedSavingsRatePct(a: Assumptions): number | null {
   const { rows } = simulate(a);
@@ -114,7 +121,13 @@ export function buildInsights(a: Assumptions): Insight[] {
 
   // --- Headline -----------------------------------------------------------
   if (base !== null) {
-    out.push({ id: 'fireAge', tone: 'good', rank: 1000, age: base, year: primary.birthYear + base });
+    out.push({
+      id: 'fireAge',
+      tone: 'good',
+      rank: 1000,
+      age: base,
+      year: primary.birthYear + base,
+    });
   } else {
     out.push({ id: 'fireNever', tone: 'warn', rank: 1000 });
   }
@@ -154,7 +167,9 @@ export function buildInsights(a: Assumptions): Insight[] {
     ((a.lifestyle.mode === 'flat' && a.lifestyle.lifestyleCreepPct > 0) ||
       (a.lifestyle.mode === 'incomeScaled' && a.lifestyle.creepShareOfRaisePct > 0))
   ) {
-    lever('dropCreep', { lifestyle: { mode: 'flat', lifestyleCreepPct: 0, creepShareOfRaisePct: 0 } });
+    lever('dropCreep', {
+      lifestyle: { mode: 'flat', lifestyleCreepPct: 0, creepShareOfRaisePct: 0 },
+    });
   }
 
   // Un-invested surplus earns nothing in this model — is that costing years?
@@ -171,7 +186,12 @@ export function buildInsights(a: Assumptions): Insight[] {
     out.push({ id: 'savingsRateHigh', tone: 'warn', rank: 200, ratePct: Math.round(rate) });
   }
   if (a.investment.returnPct > 8) {
-    out.push({ id: 'returnOptimistic', tone: 'warn', rank: 180, returnPct: a.investment.returnPct });
+    out.push({
+      id: 'returnOptimistic',
+      tone: 'warn',
+      rank: 180,
+      returnPct: a.investment.returnPct,
+    });
   }
 
   const cash = Math.max(0, a.startingNetWorth - a.startingInvested);
