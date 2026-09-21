@@ -8,7 +8,7 @@
 
 _Find out when work becomes optional._ A single-page, **client-side** wealth-projection simulator. Project household net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
 
-Everything runs in the browser. **There is no backend, no database, no account, and nothing is ever sent anywhere.** Your plan — and your monthly ledger, if you keep one — stay on your own device (this browser's local storage) so they're still there tomorrow — untick **"Save on this device"** to keep it memory-only, or use Export / Import for a file.
+Everything runs in the browser. **There is no backend, no database, no account, and nothing is ever sent anywhere.** Your plan — and your monthly ledger, if you keep one — stay on your own device (this browser's local storage) so they're still there tomorrow — untick **"Save on this device"** to keep it memory-only. For the long haul, **Back up everything** downloads one file with every plan and every ledger month; **Restore** brings it back on any device.
 
 > Stack: Next.js 16 (App Router) · TypeScript · Tailwind v4 · Recharts · Zod. No environment variables. No server.
 
