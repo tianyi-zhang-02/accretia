@@ -34,7 +34,7 @@ The owner explicitly approved accounts + sync, with these constraints — they a
 - **End-to-end encrypted.** `lib/cloud/crypto.ts` (WebCrypto: PBKDF2-SHA256 600k → AES-256-GCM, fresh IV per write, non-extractable key). The passphrase and key live in memory only — never storage, never the network. A forgotten passphrase is unrecoverable by design; the UI says so and points at the backup file.
 - **One network module.** `lib/cloud/client.ts` is the only code that touches the network; it may import only `./config`, `./crypto` and the SDK, so it can only ever be handed ciphertext. supabase-js is a dynamic import; the panel is an `ssr: false` dynamic component rendered only under `CLOUD ?`. The client singleton refuses to run without `window`.
 - **Manual sync with optimistic concurrency.** Upload / Download are explicit; download goes through `parseBackup` and a confirm; a write from another device yields a conflict, never an overwrite. Do not add auto-merge.
-- **Email OTP, no passwords.** Auth is Supabase's; we store no credentials. RLS in `supabase/schema.sql` scopes every row to its owner; `updated_at` is set by the database. **No `service_role` key, ever** — there is no server code to hold one.
+- **Email sign-in link (or code), no passwords.** The stock Supabase email is link-only; `detectSessionInUrl` completes it. Auth is Supabase's; we store no credentials. RLS in `supabase/schema.sql` scopes every row to its owner; `updated_at` is set by the database. **No `service_role` key, ever** — there is no server code to hold one.
 - Storage keys are now three: scenarios, ledger, and `workoptional:session:v1` (session tokens, owned by supabase-js).
 
 All of the above is pinned by `src/lib/isolation.test.ts`.

@@ -28,8 +28,11 @@ create policy "vault: owner can insert" on public.vaults for insert to authentic
 create policy "vault: owner can update" on public.vaults for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "vault: owner can delete" on public.vaults for delete to authenticated using (auth.uid() = user_id);
 
--- Signed-out visitors get nothing at all.
+-- Signed-out visitors get nothing at all. Signed-in users get exactly the
+-- four row operations: Supabase's default grants also include TRUNCATE, which
+-- row-level security does not cover, so everything is revoked first.
 revoke all on public.vaults from anon;
+revoke all on public.vaults from authenticated;
 grant select, insert, update, delete on public.vaults to authenticated;
 
 -- updated_at is set by the DATABASE clock, never the client's: it's the

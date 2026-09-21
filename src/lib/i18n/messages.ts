@@ -396,9 +396,10 @@ const en = {
     pitch:
       'Optional. Sign in to keep an encrypted copy in the cloud and pick it up on another device. It’s encrypted on this device with a passphrase only you know — we can’t read it, and neither can anyone who breaks in.',
     emailPlaceholder: 'you@example.com',
-    sendCode: 'Email me a sign-in code',
-    codeSent: (email: string) => `Code sent to ${email}. It can take a minute; check spam too.`,
-    codePlaceholder: '6-digit code',
+    sendCode: 'Email me a sign-in link',
+    codeSent: (email: string) =>
+      `Email sent to ${email}. Open the link in it on this device and you’re signed in. If the email shows a code instead, type it below. It can take a minute; check spam too.`,
+    codePlaceholder: 'Code from the email, if it has one',
     verify: 'Sign in',
     changeEmail: 'Use another email',
     signedInAs: (email: string) => `Signed in as ${email}`,
@@ -977,9 +978,10 @@ const zh: Messages = {
     pitch:
       '可选。登录后可以在云端留一份加密副本，换台设备接着用。数据在这台设备上先用只有你知道的口令加密再上传：我们读不了，就算有人攻破服务器也读不了。',
     emailPlaceholder: 'you@example.com',
-    sendCode: '把登录验证码发到我邮箱',
-    codeSent: (email: string) => `验证码已发到 ${email}。可能要等一分钟，也看看垃圾邮件。`,
-    codePlaceholder: '6 位验证码',
+    sendCode: '把登录链接发到我邮箱',
+    codeSent: (email: string) =>
+      `邮件已发到 ${email}。在这台设备上点开邮件里的链接就登录了；如果邮件里给的是验证码，填在下面。可能要等一分钟，也看看垃圾邮件。`,
+    codePlaceholder: '邮件里的验证码（如果有）',
     verify: '登录',
     changeEmail: '换个邮箱',
     signedInAs: (email: string) => `已登录：${email}`,
