@@ -5,6 +5,9 @@ variables below, the account UI never renders and the app is exactly the
 local-only app. These steps need *your* Supabase and Vercel logins — nobody
 can do them on your behalf.
 
+## 0. Clear out the old variables first
+This Vercel project still has `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` (and possibly others) from the app's earlier, deleted Supabase backend. They're inert now — sync needs `NEXT_PUBLIC_CLOUD_SYNC=on` — but **delete them** in Vercel → Settings → Environment Variables before adding the new project's values, so an old key can't be paired with a new URL.
+
 ## 1. Create the Supabase project
 1. https://supabase.com → **New project** (free tier is fine). Pick a region
    near your users and let it generate the database password — the app never
@@ -36,6 +39,7 @@ In **Vercel → Project → Settings → Environment Variables** add, for Produc
 
 | Name | Value |
 |---|---|
+| `NEXT_PUBLIC_CLOUD_SYNC` | `on` — the explicit switch; without it the other two are ignored |
 | `NEXT_PUBLIC_SUPABASE_URL` | the Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | the anon key |
 
