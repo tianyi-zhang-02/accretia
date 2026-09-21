@@ -234,3 +234,33 @@ body {
 .toast-in {
   animation: toast-in 220ms ease-out;
 }
+
+/* ---------------------------------------------------------------------
+   Printing the year-end report: only `.print-area` makes it to paper, in
+   plain black on white regardless of theme. `visibility` (not `display`)
+   so the area keeps its own layout while everything around it vanishes.
+   --------------------------------------------------------------------- */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    background: #fff;
+    color: #000;
+    --foreground: #000;
+    --muted: #444;
+    --surface-2: #e6e6e6;
+    --hairline: #ccc;
+  }
+  .print-hide,
+  .print-hide * {
+    display: none !important;
+  }
+}

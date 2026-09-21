@@ -14,6 +14,8 @@
 
 **There is no backend, no database, no authentication, and nothing is ever sent anywhere** — no server, no network calls, no cookies. Scenarios live in React state, mirrored to ONE `localStorage` key on the user's own device (`workoptional:saved:v1`) so the app behaves like an app across visits; the **"Save on this device"** checkbox is on by default and unticking it erases the key immediately. Beyond that, persistence is manual **Export / Import** of a scenario as a JSON file.
 
+**Monthly ledger (owner-approved, deliberately light).** A fourth view tab records three numbers a month — take-home income, spending, month-end net worth — typed in or imported from a CSV template, and produces a year report (totals, savings rate, plan vs actual, print-to-PDF) plus a one-click "use these numbers in my plan" calibration. Logic is pure and tested in `src/lib/ledger/ledger.ts`. This is NOT the old tracker coming back: no accounts, no transactions, no categories. Keep it at three numbers.
+
 The repo was formerly a full net-worth tracker (Supabase + auth + accounts/transactions/holdings/portfolio). All of that was deliberately removed — the owner uses a real brokerage for tracking and wanted just the projection tool. The old code is preserved in git history; do not resurrect it.
 
 **Live:** https://accretia.vercel.app
@@ -26,12 +28,12 @@ Do not add, or propose without flagging loudly, any of:
 
 - A backend, API route, database, or auth of any kind.
 - Network requests to anything (no `fetch`, no third-party APIs, no analytics, no telemetry, no fonts/CDNs beyond what `next/font` self-hosts at build time).
-- Persistent storage — no `sessionStorage`, cookies, or IndexedDB. Persistence is file export/import, plus ONE owner-approved exception: the "Save on this device" toggle (`localStorage` key `workoptional:saved:v1`, **default ON** since v1.2, validated on load, erased on untick). Any storage beyond that key still requires flagging. Note the write gate: nothing may be written until the restore attempt finishes, or the default scenario clobbers a saved session.
+- Persistent storage — no `sessionStorage`, cookies, or IndexedDB. Persistence is file export/import, plus the owner-approved exception: the "Save on this device" toggle, which governs exactly TWO `localStorage` keys — `workoptional:saved:v1` (scenarios) and `workoptional:ledger:v1` (the monthly ledger). **Default ON** since v1.2, both schema-validated on load, both erased on untick. Any storage beyond those two keys still requires flagging. Note the write gate: nothing may be written until the restore attempt finishes, or the default scenario clobbers a saved session.
 - Environment variables / secrets. There are none, and there should be none.
 
 If a requested feature seems to need any of the above, **stop and flag it** — it changes the entire nature of the project.
 
-Untrusted input surface: **imported JSON files.** Always validate imported data against `assumptionsSchema` (`src/lib/validation/scenarios.ts`) before using it. Never `eval` or trust file contents.
+Untrusted input surface: **imported JSON files and imported ledger CSVs.** The CSV reader is hand-rolled on purpose (no spreadsheet dependency — `.xlsx` support was considered and declined): size-capped, every cell must be a plain decimal after stripping currency marks (so formulas, text and `1e999` are rejected), every row schema-validated, bad lines reported by number. The template uses numeric `year,month` columns because Excel rewrites `2026-01` into a date. Always validate imported data against `assumptionsSchema` (`src/lib/validation/scenarios.ts`) before using it. Never `eval` or trust file contents.
 
 Security posture (for such a simple app): strict CSP with per-request nonce in `src/proxy.ts` (no `unsafe-inline`/`unsafe-eval` for scripts; `connect-src 'self'`), plus static hardening headers in `next.config.ts`. Keep both.
 
@@ -86,12 +88,14 @@ src/
     manifest.ts, icon*.tsx, apple-icon.tsx
   proxy.ts                per-request CSP nonce (the only server-touching code)
   components/
+    ledger/               ledger-panel — monthly entry grid, CSV template/import/export, year report (the print area)
     agent/                guided-setup (4-question onboarding), insights-panel, pixel-guide — the LOCAL agent: no LLM, no network
     simulator/            assumptions-form, compare-view, goal-seek-panel, year-table, default-assumptions
     charts/simulator-chart.tsx
     i18n/lang-switch.tsx  EN · 中文 toggle
     pwa/sw-register.tsx
   lib/
+    ledger/               ledger.ts — month entries, CSV in/out, year report, calibration patch (+ tests)
     simulator/            engine, goalSeek, insights (perturb-the-engine findings), career-presets, rolePresets (+ tests)
     i18n/                 messages.ts (EN/中文 catalog) + locale.tsx (LocaleProvider/useI18n)
     validation/scenarios.ts
@@ -102,7 +106,7 @@ src/
 
 UI is answer-first. The left column opens as a **plan summary** (`plan-summary.tsx`) — five inline-editable rows (age / income / spending / saved / retire age) — with the full eight-section `AssumptionsForm` behind an **All details** disclosure. That keeps a first load at ~3 visible inputs instead of 23; don't re-expand the form by default. Summary write-back stays conservative: rows that can't map to a single field (income for a multi-person or multi-stage household) go read-only rather than guessing.
 
-The right column shows **one visual at a time** — a Chart · Pixel world · Year by year segmented switcher (`view` state), chart by default. Don't stack them again.
+The right column shows **one visual at a time** — a Chart · Pixel world · Year by year · Ledger segmented switcher (`view` state), chart by default. Don't stack them again.
 
 Underneath it is still a live side-by-side editor: **Assumptions** (the form) on the left, **Projection** (final balance + chart + goal-seek) pinned on the right so edits update it in real time — with a scenario bar (select / name / duplicate / export / import / compare / remove) on top and the year-by-year table full-width below. **Compare** is a toggle in the scenario bar that swaps the editor for the compare view. On mobile it stacks (projection on top, assumptions below).
 

@@ -6,6 +6,36 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Monthly ledger and a year-end report
+
+The projection says what *should* happen; this records what *did*. Kept
+deliberately light — three numbers a month, not accounts and transactions
+(that tracker was removed from this repo on purpose, and this isn't it).
+
+- **Added** a **Ledger** tab: take-home income, spending and month-end net
+  worth for each month of a year. Type them in, or **download the CSV
+  template**, fill it in Excel/Numbers and **import** it. Export any time.
+- **Added** a **year report**: total saved and savings rate, income,
+  spending, net-worth change, best and worst month, a saved-per-month bar
+  strip, and **actual vs plan** against the projection for that year —
+  scaled to the months recorded, so a half-filled year compares fairly.
+  **Print / save PDF** prints just the report, black on white.
+- **Added** **"Use these numbers in my plan"**: annualized actual spending
+  becomes the plan's baseline and the latest recorded net worth its
+  starting point. Needs three months — one odd month shouldn't rewrite a
+  plan — and clamps `startingInvested` so the schema invariant holds.
+- **Storage** a second device-only key, `workoptional:ledger:v1`, under the
+  same "Save on this device" checkbox: schema-validated on restore, behind
+  the same hydration gate, erased together with the plan on untick.
+- **Security** no spreadsheet dependency (`.xlsx` was considered and
+  declined). The hand-rolled CSV reader size-caps the file, requires every
+  cell to be a plain decimal once currency marks are stripped — so
+  `=FORMULA()`, text and `1e999` are rejected — schema-validates each row
+  and reports bad lines by number. Export writes numbers only. The template
+  uses numeric `year,month` columns because Excel rewrites `2026-01` into a
+  date.
+- 141 tests (19 new).
+
 ### One panel, three views
 
 The right column stacked three visuals — pixel world, chart, and (below the
