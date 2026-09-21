@@ -8,6 +8,7 @@ import InsightsPanel from '@/components/agent/insights-panel';
 import MonteCarloChart from '@/components/charts/montecarlo-chart';
 import SimulatorChart, { type DisplayMode, type Marker } from '@/components/charts/simulator-chart';
 import LangSwitch from '@/components/i18n/lang-switch';
+import LedgerPanel from '@/components/ledger/ledger-panel';
 import AssumptionsForm from '@/components/simulator/assumptions-form';
 import PlanSummary from '@/components/simulator/plan-summary';
 import CompareView, { type ComparableScenario } from '@/components/simulator/compare-view';
@@ -18,6 +19,7 @@ import GoalSeekPanel from '@/components/simulator/goal-seek-panel';
 import StressPanel from '@/components/simulator/stress-panel';
 import YearTable from '@/components/simulator/year-table';
 import { LocaleProvider, useI18n } from '@/lib/i18n/locale';
+import { ledgerSchema, type MonthEntry } from '@/lib/ledger/ledger';
 import { simulate } from '@/lib/simulator/engine';
 import { runMonteCarlo } from '@/lib/simulator/montecarlo';
 import { assumptionsSchema, type Assumptions } from '@/lib/validation/scenarios';
@@ -77,6 +79,13 @@ function downloadScenarioJson(name: string, assumptions: Assumptions): void {
  * `assumptionsSchema` like any other untrusted input.
  */
 const STORAGE_KEY = 'workoptional:saved:v1';
+/**
+ * The monthly ledger — the second (and last) approved key. Same rules as the
+ * plan: device-only, schema-validated on restore, governed by the same
+ * checkbox and erased with it. It's separate from the scenarios because
+ * actuals are reality, not a what-if: they don't fork per scenario.
+ */
+const LEDGER_KEY = 'workoptional:ledger:v1';
 /** Pre-rename key. Read once so an existing plan survives the rename. */
 const LEGACY_STORAGE_KEY = 'accretia:saved:v1';
 
@@ -110,7 +119,8 @@ function SimulatorInner() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [guiding, setGuiding] = useState(false);
   // One panel, three views — the home screen keeps to a single visual.
-  const [view, setView] = useState<'chart' | 'world' | 'table'>('chart');
+  const [view, setView] = useState<'chart' | 'world' | 'table' | 'ledger'>('chart');
+  const [ledger, setLedger] = useState<MonthEntry[]>([]);
   const [pixelScene, setPixelScene] = useState<PixelScene>('meadow');
   // On by default so the app behaves like an app — your plan is still there
   // tomorrow. It never leaves the device (single localStorage key), and one
@@ -127,6 +137,14 @@ function SimulatorInner() {
   useEffect(() => {
     const id = window.setTimeout(() => {
       try {
+        // Ledger first — it's independent of whether a plan was saved.
+        try {
+          const rawLedger = localStorage.getItem(LEDGER_KEY);
+          const parsedLedger = rawLedger ? ledgerSchema.safeParse(JSON.parse(rawLedger)) : null;
+          if (parsedLedger?.success) setLedger(parsedLedger.data);
+        } catch {
+          // Corrupted ledger → start empty; never block the plan restore.
+        }
         // Fall back to the pre-rename key so an existing plan isn't lost;
         // it's migrated to the current key on the next write.
         const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
@@ -171,10 +189,12 @@ function SimulatorInner() {
     if (!saveLocal || !hydrated.current) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ scenarios, selectedId }));
+      if (ledger.length > 0) localStorage.setItem(LEDGER_KEY, JSON.stringify(ledger));
+      else localStorage.removeItem(LEDGER_KEY);
     } catch {
       // Storage full/blocked — silently keep running in-memory.
     }
-  }, [saveLocal, scenarios, selectedId]);
+  }, [saveLocal, scenarios, selectedId, ledger]);
   const [fontScale, setFontScale] = useState(1);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -464,6 +484,7 @@ function SimulatorInner() {
                   setSaveLocal(false);
                   try {
                     localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(LEDGER_KEY);
                   } catch {
                     // ignore
                   }
@@ -576,7 +597,7 @@ function SimulatorInner() {
               {/* View switcher: chart / pixel world / year table. Tabs, not
                   three stacked panels with their own show/hide buttons. */}
               <div className="bg-surface-2 flex w-fit overflow-hidden rounded-[10px] text-xs">
-                {(['chart', 'world', 'table'] as const).map((v) => (
+                {(['chart', 'world', 'table', 'ledger'] as const).map((v) => (
                   <button
                     key={v}
                     type="button"
@@ -728,6 +749,17 @@ function SimulatorInner() {
                   rows={result.rows}
                   people={assumptions.people}
                   highlightYears={highlightYears}
+                />
+              ) : null}
+
+              {/* Monthly ledger + year-end report — what actually happened. */}
+              {view === 'ledger' ? (
+                <LedgerPanel
+                  entries={ledger}
+                  onChange={setLedger}
+                  assumptions={assumptions}
+                  planRows={result?.rows ?? []}
+                  onCalibrate={(patch) => patchCurrent({ ...assumptions, ...patch })}
                 />
               ) : null}
 
