@@ -95,6 +95,7 @@ describe('data isolation — nothing can leave the browser', () => {
     // app must never have.
     const env = files.flatMap((f) => f.code.match(/process\.env\.\w+/g) ?? []);
     expect([...new Set(env)].sort()).toEqual([
+      'process.env.NEXT_PUBLIC_CLOUD_SYNC',
       'process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY',
       'process.env.NEXT_PUBLIC_SUPABASE_URL',
       'process.env.NODE_ENV',

@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: sync switched itself on in production
+
+The sync feature shipped as "dormant unless two Supabase variables are set".
+Production already had both — **left over from this app's earlier, deleted
+Supabase backend** — so the account panel went live pointing at a dead
+project, and the privacy tagline changed with it. No data was at risk (the
+project is unreachable, and only an email + ciphertext can ever be sent),
+but the live site showed a broken feature and the wrong promise.
+
+- **Fixed** sync now requires an explicit `NEXT_PUBLIC_CLOUD_SYNC=on`
+  (exact match). Leftover variables can no longer change behavior.
+- **Lesson recorded**: "dormant" was verified against a clean local
+  environment, not against the real deployment. Presence is not intent.
+- Setup guide gained a step 0: delete the stale variables first.
+
 ### Optional accounts with end-to-end-encrypted sync
 
 Owner decision (2026-09): add sign-in so people can move between devices and
