@@ -6,6 +6,22 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: sign-in works with Supabase's stock email; tighter table grants
+
+Found while doing the real Supabase + Vercel setup, not on paper:
+
+- **Sign-in is link-first.** Supabase locks email templates until custom SMTP
+  is configured, and the stock email carries a link, not a code — so the
+  "type your 6-digit code" flow had nothing to type. The link already worked
+  (`detectSessionInUrl`); the copy (EN + 中文) now says so, and the code box
+  stays for deployments whose template includes `{{ .Token }}`.
+- **`schema.sql` revokes before it grants.** Supabase's default grants gave
+  `authenticated` TRUNCATE / REFERENCES / TRIGGER on the new table; TRUNCATE is
+  not covered by row-level security. Now exactly select/insert/update/delete.
+- Setup guide: templates step rewritten; notes that stale `NEXT_PUBLIC_*`
+  variables saved as Vercel **Secret** must be deleted and re-created as
+  **Config** (Vercel refuses to edit them in place).
+
 ### Fixed: sync switched itself on in production
 
 The sync feature shipped as "dormant unless two Supabase variables are set".

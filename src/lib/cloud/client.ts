@@ -45,7 +45,12 @@ function client(): Promise<SupabaseClient> {
 const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,255}$/;
 export const isEmail = (s: string) => s.length <= 254 && EMAIL.test(s);
 
-/** Email a one-time code (creates the account on first use). */
+/**
+ * Email a sign-in link (creates the account on first use). Supabase's default
+ * email carries only the link — templates can't be edited without custom SMTP
+ * — and `detectSessionInUrl` signs the user in when they land back here. A
+ * template that includes `{{ .Token }}` also works, via `verifyCode`.
+ */
 export async function sendCode(email: string): Promise<void> {
   const sb = await client();
   const { error } = await sb.auth.signInWithOtp({
