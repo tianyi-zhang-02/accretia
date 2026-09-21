@@ -89,7 +89,7 @@ All of this is covered by unit tests (`npm test`). If you change engine behavior
 
 - Files: `kebab-case.tsx`. Components: `PascalCase`. Functions: `camelCase`. Types: `type` over `interface`.
 - `strict: true`, no `any` (use `unknown` + narrow).
-- Tailwind utility-first, but **chrome goes through the component layer in `globals.css`, not ad-hoc utilities**: `.card` / `.card-tight`, `.rows` + `.row` (hairline between siblings), `.rule`, `.btn` / `.btn-primary` / `.btn-ghost`, `.field`, `.eyebrow`, `.figure`. Depth is **surface + space, never a border** — `--surface` / `--surface-2` / `--hairline`. The UI previously had 83 borders, 12 padding values and boxes inside boxes; if you find yourself writing `rounded border p-3` again, use `.card` instead. Numbers use `.nums` (tabular); hero figures use `.figure`.
+- Tailwind utility-first, but **chrome goes through the component layer in `globals.css`, not ad-hoc utilities**: `.card` / `.card-tight`, `.rows` + `.row` (hairline between siblings), `.rule`, `.btn` / `.btn-primary` / `.btn-ghost`, `.field`, `.eyebrow`, `.figure`. Depth is **surface + space, never a border** — `--surface` / `--surface-2` / `--hairline`. The UI previously had 83 borders, 12 padding values and boxes inside boxes; if you find yourself writing `rounded border p-3` again, use `.card` instead. Numbers use `.nums` (tabular); hero figures use `.figure`; headings use `.display`. **Visual language (owner's call, 2026-09: modern, clean, no pixel style):** one sans family (Geist, self-hosted by `next/font`) for everything — no serif, no uppercase letter-spaced labels; line icons from `components/ui/icon.tsx` (24px grid, 1.75 stroke, `currentColor`) — no pixel icons, pixel rules or notched frames in the chrome; neutral surfaces with ONE accent (green) used sparingly; primary buttons are foreground-on-background, not accent-colored. The Pixel world view in Plan is content, not chrome — it stays pixel art, last in the view switcher.
 - Dark theme by default (`--background`, `--foreground`, `--accent`, etc. in `globals.css`).
 - Mobile-first; centered in a `max-w-6xl` column. On large screens the editor is two columns (assumptions left, projection right); on mobile it stacks.
 - **i18n**: the app is bilingual (English / 简体中文). All user-facing copy goes through `src/lib/i18n/messages.ts` via `useI18n()` — **never hard-code a display string**; add every new key to both `en` and `zh` (the `Messages` type makes a missing zh key a compile error), and write the Chinese natively, not as a literal translation. Locale is the `?lang` URL param (no storage). Currency stays USD. Keep `README.zh-CN.md` in sync when the README changes.
@@ -109,7 +109,8 @@ src/
   components/
     data/                 cloud-sync — optional account + encrypted upload/download (lazy, configured-only); data-card — where data lives, last backup, back up / restore everything, cleanup protection
     ledger/               ledger-panel — the Track section (check-in + status + year report, grid/CSV behind a disclosure); month-check-in — one-month entry form + year strip; track-status — actual vs plan
-    agent/                guided-setup (4-question onboarding), insights-panel, pixel-guide — the LOCAL agent: no LLM, no network
+    agent/                guided-setup (4-question onboarding), insights-panel — the LOCAL agent: no LLM, no network
+    ui/                   icon — the line-icon set + SectionLabel (the only icons in the app)
     simulator/            assumptions-form, compare-view, goal-seek-panel, year-table, default-assumptions
     charts/simulator-chart.tsx
     i18n/lang-switch.tsx  EN · 中文 toggle

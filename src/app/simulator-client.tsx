@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import GuidedSetup from '@/components/agent/guided-setup';
 import DataCard from '@/components/data/data-card';
-import PixelIcon, { PixelLabel } from '@/components/pixel/pixel-icon';
+import Icon, { SectionLabel } from '@/components/ui/icon';
 import InsightsPanel from '@/components/agent/insights-panel';
 import MonteCarloChart from '@/components/charts/montecarlo-chart';
 import SimulatorChart, { type DisplayMode, type Marker } from '@/components/charts/simulator-chart';
@@ -414,7 +414,7 @@ function SimulatorInner() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
         <div className="flex items-start justify-between gap-3">
-          <h1 className="serif-display text-2xl">{t.app.title}</h1>
+          <h1 className="display text-2xl">{t.app.title}</h1>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {/* Font size */}
             <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
@@ -469,7 +469,7 @@ function SimulatorInner() {
             }}
             className="tabbar-item"
           >
-            <PixelIcon name={icon} size={14} />
+            <Icon name={icon} size={14} />
             {t.nav[id]}
           </button>
         ))}
@@ -477,7 +477,6 @@ function SimulatorInner() {
 
       {guiding ? (
         <GuidedSetup
-          theme={theme}
           onComplete={(a) => {
             patchCurrent(a);
             setGuiding(false);
@@ -706,9 +705,9 @@ function SimulatorInner() {
                   inflated several times over and reads as a fantasy — the
                   today's-dollar number is the only one a human can judge. */}
                   <section className="card">
-                    <PixelLabel icon="coins">
+                    <SectionLabel icon="coins">
                       {t.projection.finalBalance(assumptions.horizonEndYear)}
-                    </PixelLabel>
+                    </SectionLabel>
                     <p className="figure mt-2 text-[30px]">{fmt.currency0(lastReal)}</p>
                     <p className="text-muted nums mt-1 text-[13px]">
                       {t.projection.nominalNote(
@@ -726,7 +725,7 @@ function SimulatorInner() {
                   {/* View switcher: chart / pixel world / year table. Tabs, not
                   three stacked panels with their own show/hide buttons. */}
                   <div className="bg-surface-2 flex w-fit overflow-hidden rounded-[10px] text-xs">
-                    {(['chart', 'world', 'table'] as const).map((v) => (
+                    {(['chart', 'table', 'world'] as const).map((v) => (
                       <button
                         key={v}
                         type="button"
@@ -746,7 +745,7 @@ function SimulatorInner() {
                   {view === 'world' ? (
                     <section className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <PixelLabel icon="house">{t.pixel.heading}</PixelLabel>
+                        <SectionLabel icon="house">{t.pixel.heading}</SectionLabel>
                         <div className="flex items-center gap-2">
                           {
                             <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
@@ -786,13 +785,13 @@ function SimulatorInner() {
                   {view === 'chart' ? (
                     <section className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <PixelLabel icon="chart">
+                        <SectionLabel icon="chart">
                           {chartEngine === 'probabilistic'
                             ? t.projection.mcHeading
                             : displayMode === 'both'
                               ? t.projection.bothHeading
                               : t.projection.bandHeading}
-                        </PixelLabel>
+                        </SectionLabel>
                         <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
                           {(['deterministic', 'probabilistic'] as const).map((e) => (
                             <button

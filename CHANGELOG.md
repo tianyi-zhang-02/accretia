@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### A modern, plain look — the pixel styling is gone from the interface
+
+- **One typeface.** Geist for headings, body and the big figures (self-hosted
+  at build time, as before). The serif display face and the uppercase,
+  letter-spaced section labels are gone; labels are small sentence-case.
+- **Line icons.** The 8×8 pixel icons, the pixel divider, the notched hero
+  frame and the pixel guide character in the setup are removed. A single
+  set of thin line icons (`components/ui/icon.tsx`) replaces them; the setup
+  shows a plain "2 / 4" step count.
+- **Calmer color.** Neutral near-black / off-white surfaces, one green
+  accent used sparingly, primary buttons in plain foreground-on-background.
+  Light theme retuned to match. App icon updated.
+- The Pixel world view is still available in Plan (it's content, not
+  chrome), now last in the view switcher.
+
 ### Log coarse or fine: spending by category, mortgage included
 
 - **One total, or By category.** The check-in's "Money out" can be split

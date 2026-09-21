@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useI18n } from '@/lib/i18n/locale';
 import { solveGoalSeek, type GoalSeekResult, type SolveResult } from '@/lib/simulator/goalSeek';
 import type { Assumptions, SimTarget } from '@/lib/validation/scenarios';
-import { PixelLabel } from '../pixel/pixel-icon';
+import { SectionLabel } from '../ui/icon';
 
 /**
  * Goal-seek display panel. Spec contract:
@@ -124,7 +124,7 @@ export default function GoalSeekPanel({
   return (
     <section className="card">
       <div className="flex items-center justify-between gap-2">
-        <PixelLabel icon="flag">{t.goalSeek.heading}</PixelLabel>
+        <SectionLabel icon="flag">{t.goalSeek.heading}</SectionLabel>
         <button
           type="button"
           onClick={() => {

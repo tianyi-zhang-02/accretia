@@ -104,7 +104,7 @@ export default function CompareView({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <p className="text-muted text-[11px] tracking-[0.18em] uppercase">{t.compare.heading}</p>
+        <p className="text-muted text-xs font-medium">{t.compare.heading}</p>
         <button type="button" onClick={onExit} className="btn">
           {t.compare.backToEditor}
         </button>

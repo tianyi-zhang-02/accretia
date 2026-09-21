@@ -32,7 +32,7 @@ import {
 import { useI18n } from '@/lib/i18n/locale';
 import type { MonthEntry } from '@/lib/ledger/ledger';
 
-import PixelIcon from '../pixel/pixel-icon';
+import Icon from '../ui/icon';
 
 /**
  * Optional account + end-to-end-encrypted sync.
@@ -420,7 +420,7 @@ export default function CloudSync({
 function Header({ title }: { title: string }) {
   return (
     <span className="eyebrow mb-1">
-      <PixelIcon name="spark" size={12} />
+      <Icon name="spark" size={12} />
       {title}
     </span>
   );

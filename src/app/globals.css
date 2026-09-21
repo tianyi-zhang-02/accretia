@@ -1,8 +1,8 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #f5f1ea;
+  --background: #0b0b0c;
+  --foreground: #f4f4f5;
   /* Lifted from #a1a1aa: secondary copy is small AND grey, and that
      combination is where readability actually dies. ~9:1 on the dark bg. */
   --muted: #b5b5c0;
@@ -10,28 +10,30 @@
   /* Cards are a lighter SURFACE, not a bordered box. Robinhood-style depth
      comes from elevation, not outlines — which is why 83 borders read as
      clutter. --hairline is the only line we draw, and only between rows. */
-  --surface: #141417;
-  --surface-2: #1c1c20;
-  --hairline: #232327;
-  --accent: #d4a574;
-  --positive: #7ab8a4;
-  --negative: #e08884;
+  --surface: #151517;
+  --surface-2: #1f1f23;
+  --hairline: #26262b;
+  /* One accent, used sparingly: progress, the actual-line, the active tab on
+     phones. Primary buttons are foreground-on-background, not accent. */
+  --accent: #4ade80;
+  --positive: #4ade80;
+  --negative: #f87171;
 }
 
 /* Light theme — opt-in via <html data-theme="light">. Warm off-white with
    darker accent/positive/negative for readable contrast on a light surface. */
 :root[data-theme='light'] {
-  --background: #faf9f6;
-  --foreground: #1c1917;
+  --background: #f6f6f7;
+  --foreground: #111113;
   /* Darkened from #6b6b74 for the same reason on the light theme. */
   --muted: #57575f;
-  --border: #e5e2db;
+  --border: #e4e4e7;
   --surface: #ffffff;
-  --surface-2: #f4f2ed;
-  --hairline: #eceae4;
-  --accent: #a06a2c;
-  --positive: #2f7d64;
-  --negative: #b8443e;
+  --surface-2: #f0f0f2;
+  --hairline: #ececef;
+  --accent: #15803d;
+  --positive: #15803d;
+  --negative: #dc2626;
 }
 
 @theme inline {
@@ -46,8 +48,7 @@
   --color-positive: var(--positive);
   --color-negative: var(--negative);
 
-  --font-sans: var(--font-ibm-plex);
-  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-geist);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -75,10 +76,10 @@ body {
   font-feature-settings: 'tnum';
 }
 
-/* Optical-size hint for Fraunces, used on hero numbers. */
-.serif-display {
-  font-family: var(--font-serif), Georgia, serif;
-  font-optical-sizing: auto;
+/* Headings: same family as the body, heavier and tighter. */
+.display {
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 /* ---------------------------------------------------------------------
@@ -91,7 +92,7 @@ body {
 /* The one card. No border — a lighter surface and real padding. */
 .card {
   background: var(--surface);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 20px;
 }
 .card-tight {
@@ -143,8 +144,9 @@ body {
   filter: brightness(1.25);
 }
 .btn-primary {
-  background: var(--accent);
+  background: var(--foreground);
   color: var(--background);
+  font-weight: 600;
 }
 .btn-ghost {
   background: transparent;
@@ -246,45 +248,16 @@ body {
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 /* The hero number. Robinhood's whole design is one enormous figure. */
 .figure {
-  font-family: var(--font-serif), Georgia, serif;
   font-variant-numeric: tabular-nums;
-  font-optical-sizing: auto;
+  font-weight: 600;
   line-height: 1.05;
-  letter-spacing: -0.02em;
-}
-
-/* ---------------------------------------------------------------------
-   Pixel accents. The journey strip taught the UI its own visual language;
-   these utilities carry it into the rest of the page WITHOUT touching
-   legibility — the type stays editorial, only the edges get pixelated.
-   --------------------------------------------------------------------- */
-
-/* Dashed rule drawn on a 4px grid — a divider made of pixels. */
-.pixel-rule {
-  height: 2px;
-  background-image: repeating-linear-gradient(90deg, var(--border) 0 4px, transparent 4px 8px);
-}
-
-/* Stepped corner treatment for the hero: a notch out of each corner, the
-   way an 8-bit dialog box is drawn. */
-.pixel-frame {
-  clip-path: polygon(
-    4px 0,
-    calc(100% - 4px) 0,
-    100% 4px,
-    100% calc(100% - 4px),
-    calc(100% - 4px) 100%,
-    4px 100%,
-    0 calc(100% - 4px),
-    0 4px
-  );
+  letter-spacing: -0.03em;
 }
 
 /* Slide-in for toast notifications (subtle, finishes in 220ms). */

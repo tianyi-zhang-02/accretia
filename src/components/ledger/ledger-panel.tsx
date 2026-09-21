@@ -20,7 +20,7 @@ import {
 import type { YearRow } from '@/lib/simulator/engine';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
-import PixelIcon, { PixelLabel } from '../pixel/pixel-icon';
+import Icon, { SectionLabel } from '../ui/icon';
 import MonthCheckIn from './month-check-in';
 import TrackStatus from './track-status';
 
@@ -211,7 +211,7 @@ export default function LedgerPanel({
       {/* Year-end report — also the print area. */}
       <div className="card print-area">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <PixelLabel icon="chart">{L.reportHeading(year)}</PixelLabel>
+          <SectionLabel icon="chart">{L.reportHeading(year)}</SectionLabel>
           <div className="print-hide flex items-center gap-1">
             <button
               type="button"
@@ -415,7 +415,7 @@ export default function LedgerPanel({
       {showAll ? (
         <div className="card">
           <div className="mb-1 flex items-center justify-between gap-3">
-            <PixelLabel icon="coins">{L.heading}</PixelLabel>
+            <SectionLabel icon="coins">{L.heading}</SectionLabel>
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -523,7 +523,7 @@ export default function LedgerPanel({
             </p>
           ) : null}
           <p className="text-muted mt-3 flex items-start gap-2 text-[11px] italic">
-            <PixelIcon name="shield" size={11} className="mt-px shrink-0" />
+            <Icon name="shield" size={11} className="mt-px shrink-0" />
             {L.privacy}
           </p>
         </div>

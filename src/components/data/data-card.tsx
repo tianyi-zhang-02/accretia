@@ -14,7 +14,7 @@ import {
 import { useI18n } from '@/lib/i18n/locale';
 import type { MonthEntry } from '@/lib/ledger/ledger';
 
-import PixelIcon from '../pixel/pixel-icon';
+import Icon from '../ui/icon';
 
 /**
  * "Your data" — where it lives, when it was last backed up, and the two
@@ -105,7 +105,7 @@ export default function DataCard({
   return (
     <section className="card">
       <span className="eyebrow mb-1">
-        <PixelIcon name="shield" size={12} />
+        <Icon name="shield" size={12} />
         {D.heading}
       </span>
 

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useI18n } from '@/lib/i18n/locale';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
-import PixelIcon, { type PixelIconName } from '../pixel/pixel-icon';
+import Icon, { type IconName } from '../ui/icon';
 
 /**
  * The plan, as five numbers.
@@ -26,7 +26,7 @@ type Field = 'age' | 'income' | 'spending' | 'netWorth' | 'retireAge';
 
 type Line = {
   key: Field;
-  icon: PixelIconName;
+  icon: IconName;
   label: string;
   value: number;
   /** Rendered as currency when true, a plain count otherwise. */
@@ -165,7 +165,7 @@ export default function PlanSummary({
     <div className="flex flex-col gap-4">
       <section className="card">
         <span className="eyebrow mb-1">
-          <PixelIcon name="clock" size={12} />
+          <Icon name="clock" size={12} />
           {t.summary.heading}
         </span>
 
@@ -173,7 +173,7 @@ export default function PlanSummary({
           {lines.map((l) => (
             <li key={l.key} className="row items-center">
               <span className="flex items-center gap-2.5 text-[13px]">
-                <PixelIcon name={l.icon} size={13} className="text-muted" />
+                <Icon name={l.icon} size={13} className="text-muted" />
                 <span>
                   {l.label}
                   {l.hint ? <span className="text-muted block text-[11px]">{l.hint}</span> : null}

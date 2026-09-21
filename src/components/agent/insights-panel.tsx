@@ -6,10 +6,10 @@ import { useI18n } from '@/lib/i18n/locale';
 import { buildInsights, type Insight } from '@/lib/simulator/insights';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
-import PixelIcon, { PixelLabel, type PixelIconName } from '../pixel/pixel-icon';
+import Icon, { SectionLabel, type IconName } from '../ui/icon';
 
 /** Each finding gets the icon of the thing it's about. */
-const ICON_FOR: Record<Insight['id'], PixelIconName> = {
+const ICON_FOR: Record<Insight['id'], IconName> = {
   fireAge: 'house',
   fireNever: 'cloud',
   spendLess: 'coins',
@@ -46,9 +46,9 @@ export default function InsightsPanel({
 
   return (
     <section className="card">
-      <PixelLabel icon="gem" className="mb-4">
+      <SectionLabel icon="gem" className="mb-4">
         {t.insights.heading}
-      </PixelLabel>
+      </SectionLabel>
 
       {headline ? <Headline insight={headline} /> : null}
 
@@ -59,7 +59,7 @@ export default function InsightsPanel({
         {rest.map((ins, i) => (
           <li key={`${ins.id}-${i}`} className="row">
             <span className="flex items-start gap-3 text-[13px] leading-relaxed">
-              <PixelIcon
+              <Icon
                 name={ICON_FOR[ins.id]}
                 size={14}
                 className={`mt-0.5 ${ins.tone === 'warn' ? 'text-negative' : 'text-muted'}`}
@@ -80,7 +80,7 @@ export default function InsightsPanel({
       </ul>
 
       <p className="text-muted mt-5 flex items-start gap-2 text-[11px] italic">
-        <PixelIcon name="shield" size={11} className="mt-px shrink-0" />
+        <Icon name="shield" size={11} className="mt-px shrink-0" />
         {t.insights.disclaimer}
       </p>
     </section>
@@ -97,7 +97,7 @@ function Headline({ insight }: { insight: Insight }) {
   if (insight.id === 'fireAge') {
     return (
       <div className="flex items-start gap-3">
-        <PixelIcon name="house" size={34} className="text-foreground mt-1" />
+        <Icon name="house" size={34} className="text-foreground mt-1" />
         <div className="min-w-0">
           <p className="figure text-[30px] text-balance sm:text-[38px]">
             {t.insights.fireAge(insight.age)}
@@ -110,7 +110,7 @@ function Headline({ insight }: { insight: Insight }) {
   if (insight.id === 'fireNever') {
     return (
       <div className="flex items-start gap-3">
-        <PixelIcon name="cloud" size={30} className="text-negative mt-0.5" />
+        <Icon name="cloud" size={30} className="text-negative mt-0.5" />
         <p className="text-negative text-sm leading-relaxed">{t.insights.fireNever}</p>
       </div>
     );
