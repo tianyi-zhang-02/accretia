@@ -135,6 +135,43 @@ function SimulatorInner() {
   // app, the yardstick the monthly numbers are held against.
   const [tab, setTab] = useState<'track' | 'plan' | 'data'>('track');
   const [managing, setManaging] = useState(false);
+  // The Data section stays mounted (hidden) once opened, so the sync panel
+  // keeps its unlocked key and its auth listener while you use other tabs.
+  // It is NOT mounted before that: a visitor who never opens it never loads
+  // the network code.
+  const [dataMounted, setDataMounted] = useState(false);
+  // Opened from a sign-in email? ('ok' = the link carried a session,
+  // 'failed' = it was expired or already used.)
+  const [arrival, setArrival] = useState<'ok' | 'failed' | null>(null);
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+
+  function openData() {
+    setDataMounted(true);
+    setTab('data');
+    window.scrollTo({ top: 0 });
+  }
+
+  // Arriving from the sign-in email: go straight to the account panel rather
+  // than leaving someone on the home screen wondering whether it worked.
+  useEffect(() => {
+    if (!CLOUD) return;
+    const id = window.setTimeout(() => {
+      const { hash, search, pathname } = window.location;
+      const params = `${hash}&${search}`;
+      if (!/[#&?](access_token|code|error|error_code)=/.test(params)) return;
+      const failed = /[#&?]error(_code)?=/.test(params);
+      setArrival(failed ? 'failed' : 'ok');
+      setDataMounted(true);
+      setTab('data');
+      if (failed) {
+        // Nothing will consume a dead link's parameters — tidy the address
+        // bar ourselves, keeping only the language choice.
+        const lang = new URLSearchParams(search).get('lang');
+        window.history.replaceState(null, '', pathname + (lang ? `?lang=${lang}` : ''));
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
   const [ledger, setLedger] = useState<MonthEntry[]>([]);
   // When the last whole-app backup was downloaded. Rides inside the plan's
   // storage blob — NOT a third key — so the two-key rule still holds.
@@ -445,9 +482,29 @@ function SimulatorInner() {
               {theme === 'dark' ? '☀' : '☾'}
             </button>
             <LangSwitch />
+            {CLOUD ? (
+              <button
+                type="button"
+                onClick={openData}
+                title={accountEmail ?? undefined}
+                className="btn btn-sm max-w-40 gap-1.5"
+              >
+                {accountEmail ? (
+                  <>
+                    <span className="bg-positive inline-block h-1.5 w-1.5 shrink-0 rounded-full" />
+                    <span className="truncate">{accountEmail}</span>
+                  </>
+                ) : (
+                  t.cloud.signIn
+                )}
+              </button>
+            ) : null}
           </div>
         </div>
-        <p className="text-muted text-[13px]">{CLOUD ? t.app.taglineCloud : t.app.tagline}</p>
+        {/* Phones get the app, not the brochure — the promise is restated in Data. */}
+        <p className="text-muted hidden text-[13px] sm:block">
+          {CLOUD ? t.app.taglineCloud : t.app.tagline}
+        </p>
       </header>
 
       {/* Sections: a segmented control on desktop, a bottom tab bar on phones. */}
@@ -464,6 +521,7 @@ function SimulatorInner() {
             type="button"
             aria-current={tab === id ? 'page' : undefined}
             onClick={() => {
+              if (id === 'data') return openData();
               setTab(id);
               window.scrollTo({ top: 0 });
             }}
@@ -501,8 +559,12 @@ function SimulatorInner() {
         />
       ) : null}
 
-      {tab === 'data' ? (
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+      {dataMounted ? (
+        <div
+          className={
+            tab === 'data' ? 'grid grid-cols-1 items-start gap-4 lg:grid-cols-2' : 'hidden'
+          }
+        >
           <div className="flex flex-col gap-4">
             <section className="card">
               <label className="flex cursor-pointer items-start justify-between gap-4">
@@ -548,19 +610,24 @@ function SimulatorInner() {
               }}
             />
           </div>
-          {CLOUD ? (
-            <CloudSync
-              scenarios={scenarios}
-              selectedId={selectedId}
-              ledger={ledger}
-              onRestore={(r) => {
-                setScenarios(r.scenarios);
-                setSelectedId(r.selectedId);
-                setLedger(r.ledger);
-                setComparing(false);
-              }}
-            />
-          ) : null}
+          {/* Signing in is what people come here for — first on a phone. */}
+          <div className="order-first lg:order-last">
+            {CLOUD ? (
+              <CloudSync
+                scenarios={scenarios}
+                selectedId={selectedId}
+                ledger={ledger}
+                arrival={arrival}
+                onAuth={setAccountEmail}
+                onRestore={(r) => {
+                  setScenarios(r.scenarios);
+                  setSelectedId(r.selectedId);
+                  setLedger(r.ledger);
+                  setComparing(false);
+                }}
+              />
+            ) : null}
+          </div>
         </div>
       ) : null}
 

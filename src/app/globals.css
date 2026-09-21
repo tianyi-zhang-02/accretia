@@ -143,6 +143,14 @@ body {
 .btn:hover {
   filter: brightness(1.25);
 }
+/* Compact variant — header controls and inline chips. (A utility class
+   can't shrink `.btn`; it isn't layered.) */
+.btn-sm {
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 8px;
+}
 .btn-primary {
   background: var(--foreground);
   color: var(--background);

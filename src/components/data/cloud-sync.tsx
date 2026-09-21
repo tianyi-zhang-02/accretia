@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   buildBackup,
@@ -48,15 +48,32 @@ import Icon from '../ui/icon';
 type Ok = Extract<RestoreResult, { ok: true }>;
 type Unlocked = { key: CryptoKey; salt: string; iter: number };
 
+/** Supabase throttles sign-in emails to one a minute per address. */
+const RESEND_SECONDS = 60;
+
+/** What "the same data" means for the upload-needed indicator. */
+const signature = (scenarios: BackupScenario[], ledger: MonthEntry[]) =>
+  JSON.stringify({ scenarios, ledger });
+
+/** 0 too short · 1 okay · 2 strong. Length is what matters for a passphrase. */
+const strengthOf = (pass: string) =>
+  pass.length < MIN_PASSPHRASE_LENGTH ? 0 : pass.length < 20 ? 1 : 2;
+
 export default function CloudSync({
   scenarios,
   selectedId,
   ledger,
+  arrival,
+  onAuth,
   onRestore,
 }: {
   scenarios: BackupScenario[];
   selectedId: string;
   ledger: MonthEntry[];
+  /** Set when the page was opened from a sign-in email: it worked, or the link was dead. */
+  arrival: 'ok' | 'failed' | null;
+  /** Tells the app shell who is signed in (for the header), or null. */
+  onAuth: (email: string | null) => void;
   onRestore: (r: Ok) => void;
 }) {
   const { t, locale } = useI18n();
@@ -74,6 +91,14 @@ export default function CloudSync({
   const [conflict, setConflict] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
+  const [useCode, setUseCode] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [showPass, setShowPass] = useState(false);
+  // Signature of the data as of the last upload / download, to say whether
+  // this device has anything the cloud doesn't. Memory only, like the key.
+  const [syncedSig, setSyncedSig] = useState<string | null>(null);
+  const passRef = useRef<HTMLInputElement>(null);
+  const currentSig = useMemo(() => signature(scenarios, ledger), [scenarios, ledger]);
 
   const bad = (text: string) => setNote({ tone: 'bad', text });
   const good = (text: string) => setNote({ tone: 'ok', text });
@@ -82,16 +107,28 @@ export default function CloudSync({
     let off: (() => void) | undefined;
     let alive = true;
     void currentEmail()
-      .then((e) => alive && setEmail(e))
+      .then((e) => {
+        if (!alive) return;
+        setEmail(e);
+        onAuth(e);
+      })
       .catch(() => alive && setEmail(null));
     void onAuthChange((e) => {
       if (!alive) return;
       setEmail(e);
+      onAuth(e);
+      if (e) {
+        // Signed in (here, or by opening the link in another tab).
+        setCodeSent(false);
+        setUseCode(false);
+        setCode('');
+      }
       if (!e) {
         // Signed out: forget the key and everything derived from the account.
         setUnlocked(null);
         setRemote(undefined);
         setPending(null);
+        setSyncedSig(null);
       }
     }).then((fn) => {
       if (alive) off = fn;
@@ -101,7 +138,21 @@ export default function CloudSync({
       alive = false;
       off?.();
     };
+    // `onAuth` is a state setter from the shell — stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // One tick a second while the resend button is cooling down.
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = window.setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [cooldown]);
+
+  // Straight from the email to the next thing to do.
+  useEffect(() => {
+    if (email && remote !== undefined && !unlocked) passRef.current?.focus();
+  }, [email, remote, unlocked]);
 
   useEffect(() => {
     if (!email) return;
@@ -122,7 +173,14 @@ export default function CloudSync({
     try {
       await fn();
     } catch (e) {
-      bad(e instanceof WrongPassphraseError ? C.err.wrongPass : C.err.network);
+      const status = (e as { status?: unknown } | null)?.status;
+      bad(
+        e instanceof WrongPassphraseError
+          ? C.err.wrongPass
+          : status === 429
+            ? C.err.rate
+            : C.err.network,
+      );
     } finally {
       setBusy(false);
     }
@@ -137,10 +195,18 @@ export default function CloudSync({
   // ---------- signed out ----------
   if (email === undefined) return null;
   if (email === null) {
+    const send = (addr: string, again: boolean) =>
+      run(async () => {
+        await sendCode(addr);
+        setEmailInput(addr);
+        setCodeSent(true);
+        setCooldown(RESEND_SECONDS);
+        if (again) good(C.resent);
+      });
     return (
       <section className="card">
         <Header title={C.heading} />
-        <p className="text-muted mb-3 text-xs">{C.pitch}</p>
+        <Steps labels={C.steps} current={codeSent ? 1 : 0} />
         {!codeSent ? (
           <form
             className="flex flex-col gap-2"
@@ -148,59 +214,105 @@ export default function CloudSync({
               e.preventDefault();
               const addr = emailInput.trim().toLowerCase();
               if (!isEmail(addr)) return bad(C.err.email);
-              void run(async () => {
-                await sendCode(addr);
-                setEmailInput(addr);
-                setCodeSent(true);
-                good(C.codeSent(addr));
-              });
+              void send(addr, false);
             }}
           >
-            <input
-              type="email"
-              autoComplete="email"
-              inputMode="email"
-              placeholder={C.emailPlaceholder}
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              className="field"
-            />
-            <button type="submit" className="btn btn-primary" disabled={busy}>
-              {C.sendCode}
+            {arrival === 'failed' && !note ? (
+              <p className="text-negative text-[13px]">{C.err.linkExpired}</p>
+            ) : (
+              <p className="text-muted text-[13px]">{C.pitch}</p>
+            )}
+            <label className="mt-1 flex flex-col gap-1">
+              <span className="text-[13px] font-medium">{C.emailLabel}</span>
+              <input
+                type="email"
+                name="email"
+                autoComplete="email"
+                inputMode="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder={C.emailPlaceholder}
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                className="field h-12"
+              />
+            </label>
+            <button type="submit" className="btn btn-primary h-11" disabled={busy}>
+              {busy ? C.deriving : C.sendCode}
             </button>
+            <p className="text-muted text-xs">{C.noPassword}</p>
           </form>
         ) : (
-          <form
-            className="flex flex-col gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const c = code.replace(/\s/g, '');
-              if (!/^\d{6,10}$/.test(c)) return bad(C.err.code);
-              void run(async () => {
-                await verifyCode(emailInput, c);
-                setCode('');
-                setCodeSent(false);
-              });
-            }}
-          >
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder={C.codePlaceholder}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="field nums tracking-[0.3em]"
-            />
-            <div className="flex gap-2">
-              <button type="submit" className="btn btn-primary flex-1" disabled={busy}>
-                {C.verify}
+          <div className="flex flex-col gap-3">
+            <div>
+              <p className="display text-lg">{C.inboxTitle}</p>
+              <p className="text-muted mt-1 text-[13px]">{C.inboxBody(emailInput)}</p>
+            </div>
+            <p className="text-muted flex items-center gap-2 text-xs">
+              <span className="bg-accent inline-block h-2 w-2 animate-pulse rounded-full" />
+              {C.waiting}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="btn"
+                disabled={busy || cooldown > 0}
+                onClick={() => void send(emailInput, true)}
+              >
+                {cooldown > 0 ? C.resendIn(cooldown) : C.resend}
               </button>
-              <button type="button" className="btn btn-ghost" onClick={() => setCodeSent(false)}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => {
+                  setCodeSent(false);
+                  setUseCode(false);
+                  setNote(null);
+                }}
+              >
                 {C.changeEmail}
               </button>
             </div>
-          </form>
+            <p className="text-muted text-xs">{C.spamHint}</p>
+
+            {!useCode ? (
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm self-start px-0"
+                onClick={() => setUseCode(true)}
+              >
+                {C.haveCode} ›
+              </button>
+            ) : (
+              <form
+                className="flex gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const c = code.replace(/\s/g, '');
+                  if (!/^\d{6,10}$/.test(c)) return bad(C.err.code);
+                  setBusy(true);
+                  setNote(null);
+                  verifyCode(emailInput, c)
+                    .then(() => setCode(''))
+                    .catch(() => bad(C.err.codeWrong))
+                    .finally(() => setBusy(false));
+                }}
+              >
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder={C.codePlaceholder}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="field nums min-w-0 flex-1 tracking-[0.3em]"
+                />
+                <button type="submit" className="btn btn-primary" disabled={busy}>
+                  {C.verify}
+                </button>
+              </form>
+            )}
+          </div>
         )}
         <Note note={note} />
       </section>
@@ -223,6 +335,7 @@ export default function CloudSync({
         </button>
       </div>
       <p className="text-muted mb-3 truncate text-xs">{C.signedInAs(email)}</p>
+      {!unlocked ? <Steps labels={C.steps} current={2} /> : null}
 
       {remote === undefined ? (
         <p className="text-muted text-xs">{C.loading}</p>
@@ -239,7 +352,12 @@ export default function CloudSync({
               const iter = remote ? remote.envelope.iter : KDF_ITERATIONS;
               const key = await deriveKey(pass, salt, iter);
               // Existing vault: prove the passphrase before calling it unlocked.
-              if (remote) await decrypt(remote.envelope, key);
+              if (remote) {
+                // …and while the plaintext is in hand, note whether this device
+                // already matches it.
+                const r = parseBackup(await decrypt(remote.envelope, key));
+                setSyncedSig(r.ok ? signature(r.scenarios, r.ledger) : null);
+              }
               setUnlocked({ key, salt, iter });
               setPass('');
               setPass2('');
@@ -247,26 +365,59 @@ export default function CloudSync({
             });
           }}
         >
+          {arrival === 'ok' ? (
+            <p className="text-positive text-[13px]">{creating ? C.welcome : C.welcomeBack}</p>
+          ) : null}
           <p className="text-[13px]">{creating ? C.createPass : C.enterPass}</p>
           <input
-            type="password"
+            ref={passRef}
+            type={showPass ? 'text' : 'password'}
             autoComplete={creating ? 'new-password' : 'current-password'}
             placeholder={C.passPlaceholder}
             value={pass}
             onChange={(e) => setPass(e.target.value)}
-            className="field"
+            className="field h-12"
           />
           {creating ? (
-            <input
-              type="password"
-              autoComplete="new-password"
-              placeholder={C.passAgain}
-              value={pass2}
-              onChange={(e) => setPass2(e.target.value)}
-              className="field"
-            />
+            <>
+              <input
+                type={showPass ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder={C.passAgain}
+                value={pass2}
+                onChange={(e) => setPass2(e.target.value)}
+                className="field h-12"
+              />
+              {pass ? (
+                <div className="flex items-center gap-2">
+                  <span className="bg-surface-2 flex h-1.5 flex-1 gap-0.5 overflow-hidden rounded-full">
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        className={`h-full flex-1 ${
+                          i <= strengthOf(pass)
+                            ? strengthOf(pass) === 0
+                              ? 'bg-negative'
+                              : 'bg-positive'
+                            : ''
+                        }`}
+                      />
+                    ))}
+                  </span>
+                  <span className="text-muted text-[11px]">{C.strength[strengthOf(pass)]}</span>
+                </div>
+              ) : null}
+            </>
           ) : null}
-          <p className="text-negative text-xs">{C.passWarning}</p>
+          <label className="text-muted flex cursor-pointer items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={showPass}
+              onChange={(e) => setShowPass(e.target.checked)}
+            />
+            {C.showPass}
+          </label>
+          {creating ? <p className="text-negative text-xs">{C.passWarning}</p> : null}
           <button type="submit" className="btn btn-primary" disabled={busy}>
             {busy ? C.deriving : creating ? C.createPassBtn : C.unlock}
           </button>
@@ -278,6 +429,16 @@ export default function CloudSync({
               <span className="text-[13px]">{C.cloudCopy}</span>
               <span className="nums text-right text-[13px]">
                 {remote ? when(remote.updatedAt) : C.none}
+              </span>
+            </li>
+            <li className="row items-center">
+              <span className="text-[13px]">{C.thisDevice}</span>
+              <span
+                className={`text-right text-[13px] ${
+                  remote && syncedSig === currentSig ? 'text-positive' : 'text-muted'
+                }`}
+              >
+                {!remote ? C.neverUploaded : syncedSig === currentSig ? C.inSync : C.needsUpload}
               </span>
             </li>
           </ul>
@@ -294,6 +455,7 @@ export default function CloudSync({
                   const res = await saveVault(env, remote?.updatedAt ?? null);
                   if (!res.ok) return setConflict(true);
                   setRemote({ envelope: env, updatedAt: res.updatedAt });
+                  setSyncedSig(currentSig);
                   good(C.uploaded);
                 })
               }
@@ -360,6 +522,7 @@ export default function CloudSync({
                   className="btn btn-primary"
                   onClick={() => {
                     onRestore(pending);
+                    setSyncedSig(signature(pending.scenarios, pending.ledger));
                     setPending(null);
                     good(C.downloaded);
                   }}
@@ -394,6 +557,7 @@ export default function CloudSync({
                     await deleteVault();
                     setRemote(null);
                     setUnlocked(null);
+                    setSyncedSig(null);
                     setConfirmDelete(false);
                     good(C.deleted);
                   })
@@ -423,6 +587,37 @@ function Header({ title }: { title: string }) {
       <Icon name="spark" size={12} />
       {title}
     </span>
+  );
+}
+
+/** Where you are in signing in: email → open the link → passphrase. */
+function Steps({ labels, current }: { labels: readonly string[]; current: number }) {
+  return (
+    <ol className="mt-2 mb-4 flex items-center gap-2 text-[11px]">
+      {labels.map((label, i) => (
+        <li
+          key={label}
+          aria-current={i === current ? 'step' : undefined}
+          className={`flex min-w-0 items-center gap-1.5 ${
+            i === current ? 'text-foreground' : 'text-muted'
+          }`}
+        >
+          <span
+            className={`nums flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
+              i < current
+                ? 'bg-positive text-background'
+                : i === current
+                  ? 'bg-foreground text-background'
+                  : 'bg-surface-2'
+            }`}
+          >
+            {i < current ? '✓' : i + 1}
+          </span>
+          <span className="truncate">{label}</span>
+          {i < labels.length - 1 ? <span className="text-muted pl-0.5">›</span> : null}
+        </li>
+      ))}
+    </ol>
   );
 }
 
