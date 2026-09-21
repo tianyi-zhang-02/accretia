@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import GuidedSetup from '@/components/agent/guided-setup';
+import DataCard from '@/components/data/data-card';
 import { PixelLabel } from '@/components/pixel/pixel-icon';
 import InsightsPanel from '@/components/agent/insights-panel';
 import MonteCarloChart from '@/components/charts/montecarlo-chart';
@@ -121,6 +122,9 @@ function SimulatorInner() {
   // One panel, three views — the home screen keeps to a single visual.
   const [view, setView] = useState<'chart' | 'world' | 'table' | 'ledger'>('chart');
   const [ledger, setLedger] = useState<MonthEntry[]>([]);
+  // When the last whole-app backup was downloaded. Rides inside the plan's
+  // storage blob — NOT a third key — so the two-key rule still holds.
+  const [lastBackupAt, setLastBackupAt] = useState<string | null>(null);
   const [pixelScene, setPixelScene] = useState<PixelScene>('meadow');
   // On by default so the app behaves like an app — your plan is still there
   // tomorrow. It never leaves the device (single localStorage key), and one
@@ -156,7 +160,17 @@ function SimulatorInner() {
           return;
         }
         if (legacy !== null) localStorage.removeItem(LEGACY_STORAGE_KEY);
-        const parsed = JSON.parse(raw) as { scenarios?: unknown; selectedId?: unknown };
+        const parsed = JSON.parse(raw) as {
+          scenarios?: unknown;
+          selectedId?: unknown;
+          lastBackupAt?: unknown;
+        };
+        if (
+          typeof parsed.lastBackupAt === 'string' &&
+          Number.isFinite(Date.parse(parsed.lastBackupAt))
+        ) {
+          setLastBackupAt(parsed.lastBackupAt.slice(0, 40));
+        }
         if (!Array.isArray(parsed.scenarios)) return;
         const restored: ComparableScenario[] = [];
         for (const s of parsed.scenarios) {
@@ -188,13 +202,13 @@ function SimulatorInner() {
   useEffect(() => {
     if (!saveLocal || !hydrated.current) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ scenarios, selectedId }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ scenarios, selectedId, lastBackupAt }));
       if (ledger.length > 0) localStorage.setItem(LEDGER_KEY, JSON.stringify(ledger));
       else localStorage.removeItem(LEDGER_KEY);
     } catch {
       // Storage full/blocked — silently keep running in-memory.
     }
-  }, [saveLocal, scenarios, selectedId, ledger]);
+  }, [saveLocal, scenarios, selectedId, ledger, lastBackupAt]);
   const [fontScale, setFontScale] = useState(1);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -554,9 +568,26 @@ function SimulatorInner() {
             <div className="order-2 lg:order-1">
               {/* The summary card carries its own heading — an "Assumptions"
                   eyebrow on top of "Your plan" was two labels for one thing. */}
-              <PlanSummary assumptions={assumptions} onChange={patchCurrent}>
-                <AssumptionsForm value={assumptions} onChange={patchCurrent} />
-              </PlanSummary>
+              <div className="flex flex-col gap-4">
+                <PlanSummary assumptions={assumptions} onChange={patchCurrent}>
+                  <AssumptionsForm value={assumptions} onChange={patchCurrent} />
+                </PlanSummary>
+                {/* Long-term use needs a copy the browser can't lose. */}
+                <DataCard
+                  scenarios={scenarios}
+                  selectedId={selectedId}
+                  ledger={ledger}
+                  saveLocal={saveLocal}
+                  lastBackupAt={lastBackupAt}
+                  onBackedUp={setLastBackupAt}
+                  onRestore={(r) => {
+                    setScenarios(r.scenarios);
+                    setSelectedId(r.selectedId);
+                    setLedger(r.ledger);
+                    setComparing(false);
+                  }}
+                />
+              </div>
             </div>
 
             {/* Projection — pinned on desktop. */}

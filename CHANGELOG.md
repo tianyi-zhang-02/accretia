@@ -6,6 +6,33 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-09-21
+
+The long-term release: a guided start, a plan that's five numbers, a
+monthly ledger with a year-end report, and a backup you actually own.
+
+### Built to last: back up everything, restore anywhere
+
+A ledger is only worth keeping if it's still there in five years, and
+browser storage is not a vault — clearing site data, a new computer, or
+Safari's seven-day eviction erases it silently. With no backend, the only
+durable copy is a file the user owns, so it's now one click.
+
+- **Added** a **Your data** card: where the data lives, days since the last
+  backup (flagged after 30, or when there's never been one), and two
+  buttons — **Back up everything** (every plan + every ledger month in one
+  versioned JSON, dated filename) and **Restore from backup**.
+- Restore treats the file as untrusted: 2 MB cap, must be this app's
+  format, refuses a *newer* format rather than silently dropping its
+  fields, validates every scenario and the ledger, reports damaged plans,
+  and **replaces nothing until you confirm**. A corrupt ledger costs the
+  ledger, not the plans.
+- **Added** optional **cleanup protection** via `navigator.storage.persist()`
+  — requested only from a click, because Firefox prompts for it.
+- The last-backup timestamp rides inside the existing scenarios blob, so the
+  app still uses exactly two storage keys.
+- 151 tests (10 new).
+
 ### Monthly ledger and a year-end report
 
 The projection says what *should* happen; this records what *did*. Kept
@@ -987,6 +1014,7 @@ deleted and there are no DB changes; this is a reversible re-focus.**
 
 - Next.js 16 App Router scaffold, TypeScript strict, Tailwind v4, npm.
 
-[Unreleased]: https://github.com/tianyi-zhang-02/accretia/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/tianyi-zhang-02/accretia/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/tianyi-zhang-02/accretia/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/tianyi-zhang-02/accretia/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/tianyi-zhang-02/accretia/compare/02542b7...v1.0.0

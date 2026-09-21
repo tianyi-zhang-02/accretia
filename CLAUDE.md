@@ -14,6 +14,8 @@
 
 **There is no backend, no database, no authentication, and nothing is ever sent anywhere** — no server, no network calls, no cookies. Scenarios live in React state, mirrored to ONE `localStorage` key on the user's own device (`workoptional:saved:v1`) so the app behaves like an app across visits; the **"Save on this device"** checkbox is on by default and unticking it erases the key immediately. Beyond that, persistence is manual **Export / Import** of a scenario as a JSON file.
 
+**Built for long-term use without a backend.** Browser storage is not a vault (clearing site data, a new machine, Safari's 7-day eviction), so the durable copy is a file the user owns: the **Your data** card (`components/data/data-card.tsx`, logic in `lib/backup/backup.ts`) does one-click **Back up everything** / **Restore** (all scenarios + the ledger in one versioned JSON, restored as untrusted input with an explicit confirm), shows days since the last backup and nags after 30, and offers `navigator.storage.persist()` — **only from a click**, because Firefox prompts for it. `lastBackupAt` rides inside the scenarios blob; it is NOT a third storage key. Cross-device sync would need accounts + a server holding people's finances — that is the hard rule below, not a feature request to slip in.
+
 **Monthly ledger (owner-approved, deliberately light).** A fourth view tab records three numbers a month — take-home income, spending, month-end net worth — typed in or imported from a CSV template, and produces a year report (totals, savings rate, plan vs actual, print-to-PDF) plus a one-click "use these numbers in my plan" calibration. Logic is pure and tested in `src/lib/ledger/ledger.ts`. This is NOT the old tracker coming back: no accounts, no transactions, no categories. Keep it at three numbers.
 
 The repo was formerly a full net-worth tracker (Supabase + auth + accounts/transactions/holdings/portfolio). All of that was deliberately removed — the owner uses a real brokerage for tracking and wanted just the projection tool. The old code is preserved in git history; do not resurrect it.
@@ -88,6 +90,7 @@ src/
     manifest.ts, icon*.tsx, apple-icon.tsx
   proxy.ts                per-request CSP nonce (the only server-touching code)
   components/
+    data/                 data-card — where data lives, last backup, back up / restore everything, cleanup protection
     ledger/               ledger-panel — monthly entry grid, CSV template/import/export, year report (the print area)
     agent/                guided-setup (4-question onboarding), insights-panel, pixel-guide — the LOCAL agent: no LLM, no network
     simulator/            assumptions-form, compare-view, goal-seek-panel, year-table, default-assumptions
@@ -95,6 +98,7 @@ src/
     i18n/lang-switch.tsx  EN · 中文 toggle
     pwa/sw-register.tsx
   lib/
+    backup/               backup.ts — whole-app backup file: build, parse-as-untrusted, staleness (+ tests)
     ledger/               ledger.ts — month entries, CSV in/out, year report, calibration patch (+ tests)
     simulator/            engine, goalSeek, insights (perturb-the-engine findings), career-presets, rolePresets (+ tests)
     i18n/                 messages.ts (EN/中文 catalog) + locale.tsx (LocaleProvider/useI18n)
