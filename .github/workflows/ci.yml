@@ -1,0 +1,28 @@
+name: CI
+
+# The same gate used locally before every merge: if any of these fail, the
+# change doesn't go in. The test suite includes src/lib/isolation.test.ts,
+# which pins the "nothing leaves the browser / two storage keys" guarantee.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
