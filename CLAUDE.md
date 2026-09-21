@@ -8,7 +8,7 @@
 
 ## What this is
 
-**Work Optional** is a **purely client-side** wealth-projection simulator. One page. Runs entirely in the browser.
+**Work Optional** is a **local-first** wealth-projection simulator. One page. All computation runs in the browser, and by default nothing leaves it. An **optional account** adds end-to-end-encrypted sync (owner-approved, 2026-09) — see "Optional cloud sync" below.
 
 **Two names, on purpose — do not "fix" this.** The APP is **Work Optional** (page `<title>`, PWA manifest, in-app header, `package.json`): it's the product's own headline — it tells you the year work becomes optional. The REPO and the DEPLOYED SITE stay **Accretia** (`accretia.vercel.app`, from _accretion_: growth by accumulation), because a long-established US wealth-management firm already trades as Work Optional and owns workoptional.com; we deliberately don't compete for that ground.
 
@@ -24,14 +24,29 @@ The repo was formerly a full net-worth tracker (Supabase + auth + accounts/trans
 
 ---
 
-## 🔒 The one hard rule: keep it client-only
+## 🔒 The hard rule: local-first, and the server never sees plaintext
+
+### Optional cloud sync (the ONE approved exception)
+
+The owner explicitly approved accounts + sync, with these constraints — they are the rule now:
+
+- **Optional.** Signed out, the app is exactly the local app. Off entirely unless the deployment sets `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (see `docs/cloud-setup.md`); then the account UI doesn't render, the network code isn't loaded, and the CSP stays `connect-src 'self'`.
+- **End-to-end encrypted.** `lib/cloud/crypto.ts` (WebCrypto: PBKDF2-SHA256 600k → AES-256-GCM, fresh IV per write, non-extractable key). The passphrase and key live in memory only — never storage, never the network. A forgotten passphrase is unrecoverable by design; the UI says so and points at the backup file.
+- **One network module.** `lib/cloud/client.ts` is the only code that touches the network; it may import only `./config`, `./crypto` and the SDK, so it can only ever be handed ciphertext. supabase-js is a dynamic import; the panel is an `ssr: false` dynamic component rendered only under `CLOUD ?`. The client singleton refuses to run without `window`.
+- **Manual sync with optimistic concurrency.** Upload / Download are explicit; download goes through `parseBackup` and a confirm; a write from another device yields a conflict, never an overwrite. Do not add auto-merge.
+- **Email OTP, no passwords.** Auth is Supabase's; we store no credentials. RLS in `supabase/schema.sql` scopes every row to its owner; `updated_at` is set by the database. **No `service_role` key, ever** — there is no server code to hold one.
+- Storage keys are now three: scenarios, ledger, and `workoptional:session:v1` (session tokens, owned by supabase-js).
+
+All of the above is pinned by `src/lib/isolation.test.ts`.
+
+### Everything else is still off-limits
 
 Do not add, or propose without flagging loudly, any of:
 
 - A backend, API route, database, or auth of any kind.
-- Network requests to anything (no `fetch`, no third-party APIs, no analytics, no telemetry, no fonts/CDNs beyond what `next/font` self-hosts at build time).
+- Network requests to anything other than the sync module above (no `fetch`, no third-party APIs, no analytics, no telemetry, no fonts/CDNs beyond what `next/font` self-hosts at build time).
 - Persistent storage — no `sessionStorage`, cookies, or IndexedDB. Persistence is file export/import, plus the owner-approved exception: the "Save on this device" toggle, which governs exactly TWO `localStorage` keys — `workoptional:saved:v1` (scenarios) and `workoptional:ledger:v1` (the monthly ledger). **Default ON** since v1.2, both schema-validated on load, both erased on untick. Any storage beyond those two keys still requires flagging. Note the write gate: nothing may be written until the restore attempt finishes, or the default scenario clobbers a saved session.
-- Environment variables / secrets. There are none, and there should be none.
+- Environment variables beyond the two PUBLIC sync settings, and **secrets of any kind**. There are none, and there should be none.
 
 **This rule is enforced, not just written down.** `src/lib/isolation.test.ts` scans the source tree and fails if anything adds a network call, an API route / server action / cookie, a storage API other than `localStorage`, a storage key outside the approved list, an env var other than `NODE_ENV`, or module-level mutable state; it also pins `connect-src 'self'` and the per-request nonce in `proxy.ts`. It runs in CI (`.github/workflows/ci.yml`) on every PR. If it goes red, the answer is almost never "relax the test". This is also why users' data can't cross: there is no server-side data path, the HTML is `private, no-store` with a fresh nonce per request, and no cookies are set — each person's plan exists only in their own browser profile for this origin. The one real way two people share data is sharing one browser profile; separate profiles (or untick "Save on this device" + a backup file each) is the answer.
 
@@ -58,7 +73,7 @@ Security posture (for such a simple app): strict CSP with per-request nonce in `
 
 **Node runtime: 22 (see `.nvmrc`); Next 16 needs ≥20.19.** On this Mac `/opt/anaconda3/bin/node` (20.12) can shadow `/usr/local/bin/node` (22) on PATH; `npm run build` then dies with a cryptic `Unexpected token 'export'` from a mis-compiled `next.config`. A `prebuild` guard now fails fast with the real reason. Separately, if `node_modules/@next/swc-darwin-arm64/` exists but has no `.node` file, Turbopack falls back to WASM and refuses to build — `npm install` with the right Node restores it (no dependency changes).
 
-Runtime deps are only: `next`, `react`, `react-dom`, `recharts`, `zod`. **Do not add dependencies without asking.** The whole point is a tiny, dependency-light, backend-free app.
+Runtime deps are only: `next`, `react`, `react-dom`, `recharts`, `zod`, and `@supabase/supabase-js` (owner-approved for sync; lazy-loaded, never in the signed-out path). **Do not add dependencies without asking.** The whole point is a tiny, dependency-light, backend-free app.
 
 ---
 
@@ -92,7 +107,7 @@ src/
     manifest.ts, icon*.tsx, apple-icon.tsx
   proxy.ts                per-request CSP nonce (the only server-touching code)
   components/
-    data/                 data-card — where data lives, last backup, back up / restore everything, cleanup protection
+    data/                 cloud-sync — optional account + encrypted upload/download (lazy, configured-only); data-card — where data lives, last backup, back up / restore everything, cleanup protection
     ledger/               ledger-panel — monthly entry grid, CSV template/import/export, year report (the print area)
     agent/                guided-setup (4-question onboarding), insights-panel, pixel-guide — the LOCAL agent: no LLM, no network
     simulator/            assumptions-form, compare-view, goal-seek-panel, year-table, default-assumptions
@@ -100,6 +115,7 @@ src/
     i18n/lang-switch.tsx  EN · 中文 toggle
     pwa/sw-register.tsx
   lib/
+    cloud/                config (env → on/off), crypto (E2EE, tested), client (the only network module)
     backup/               backup.ts — whole-app backup file: build, parse-as-untrusted, staleness (+ tests)
     ledger/               ledger.ts — month entries, CSV in/out, year report, calibration patch (+ tests)
     simulator/            engine, goalSeek, insights (perturb-the-engine findings), career-presets, rolePresets (+ tests)

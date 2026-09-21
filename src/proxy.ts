@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { readCloudConfig } from '@/lib/cloud/config';
+
 /**
  * Next.js 16 proxy (the renamed `middleware`). This app has no backend,
  * no database, and no auth — so the proxy's only job is to attach a
@@ -27,6 +29,7 @@ function generateNonce(): string {
  */
 function buildCsp(nonce: string): string {
   const isDev = process.env.NODE_ENV === 'development';
+  const cloudOrigin = readCloudConfig()?.url ?? null;
   return [
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
@@ -34,7 +37,9 @@ function buildCsp(nonce: string): string {
     `style-src-attr 'unsafe-inline'`,
     `img-src 'self' data: blob:`,
     `font-src 'self' data:`,
-    `connect-src 'self'`,
+    // 'self' only — plus the Supabase origin when (and only when) the
+    // deployment has cloud sync configured. Never a wildcard.
+    `connect-src 'self'${cloudOrigin ? ` ${cloudOrigin}` : ''}`,
     `worker-src 'self'`,
     `manifest-src 'self'`,
     `object-src 'none'`,
