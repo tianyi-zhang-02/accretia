@@ -19,7 +19,7 @@
  * caches on activate.
  */
 
-const CACHE_VERSION = 'workoptional-v2';
+const CACHE_VERSION = 'workoptional-v3';
 const SHELL = '/';
 
 self.addEventListener('install', (event) => {
@@ -37,6 +37,28 @@ self.addEventListener('activate', (event) => {
   );
   self.clients.claim();
 });
+
+/**
+ * Store the shell AND every static asset it references. Relying on the
+ * browser's own requests to fill the cache leaves gaps (a chunk fetched
+ * before the worker took control, or from memory cache) — and one missing
+ * chunk is a blank screen offline.
+ */
+async function refreshShell(res) {
+  const cache = await caches.open(CACHE_VERSION);
+  const html = await res.clone().text();
+  await cache.put(SHELL, res);
+  const urls = [
+    ...new Set([...html.matchAll(/(?:src|href)="(\/_next\/static\/[^"]+)"/g)].map((m) => m[1])),
+  ];
+  await Promise.all(
+    urls.map(async (u) => {
+      if (await cache.match(u)) return;
+      const r = await fetch(u).catch(() => null);
+      if (r && r.ok) await cache.put(u, r);
+    }),
+  );
+}
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -60,7 +82,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then((res) => {
-          if (res.ok) caches.open(CACHE_VERSION).then((cache) => cache.put(SHELL, res.clone()));
+          if (res.ok) event.waitUntil(refreshShell(res.clone()));
           return res;
         })
         .catch(() =>
