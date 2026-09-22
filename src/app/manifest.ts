@@ -11,10 +11,12 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Work Optional',
     short_name: 'Work Optional',
     description:
-      'Find out when work becomes optional. Projects your net worth year by year from your own assumptions — entirely in your browser.',
+      'Log three numbers a month, see whether you’re on track, and find out when work becomes optional. Everything stays on your device.',
+    id: '/',
     start_url: '/',
     scope: '/',
     display: 'standalone',
+    categories: ['finance', 'productivity'],
     orientation: 'portrait',
     background_color: '#0b0b0c',
     theme_color: '#0b0b0c',

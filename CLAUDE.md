@@ -115,7 +115,7 @@ src/
     simulator/            assumptions-form, compare-view, goal-seek-panel, year-table, default-assumptions
     charts/simulator-chart.tsx
     i18n/lang-switch.tsx  EN · 中文 toggle
-    pwa/sw-register.tsx
+    pwa/sw-register.tsx, install-card.tsx — PWA: `public/sw.js` caches the shell + hashed /_next/static (cache-first) and refreshes the shell on every online navigation, so an installed app works offline; the install card (Data tab, plus a header "Install" button when not standalone) uses `beforeinstallprompt` where it exists and spells out Share → Add to Home Screen on iOS. Owner's call (2026-09): distribution is PWA, not the App Store — Xcode isn't even installed; revisit only if they want store presence.
   lib/
     cloud/                config (env → on/off), crypto (E2EE, tested), client (the only network module)
     backup/               backup.ts — whole-app backup file: build, parse-as-untrusted, staleness (+ tests)

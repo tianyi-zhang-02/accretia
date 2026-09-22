@@ -25,6 +25,7 @@ import { LocaleProvider, useI18n } from '@/lib/i18n/locale';
 import { ledgerSchema, type MonthEntry } from '@/lib/ledger/ledger';
 import { simulate } from '@/lib/simulator/engine';
 import { fireHeadline } from '@/lib/simulator/insights';
+import InstallCard, { useInstallState } from '@/components/pwa/install-card';
 import { runMonteCarlo } from '@/lib/simulator/montecarlo';
 import { assumptionsSchema, type Assumptions } from '@/lib/validation/scenarios';
 
@@ -144,6 +145,7 @@ function SimulatorInner() {
   // 'failed' = it was expired or already used.)
   const [arrival, setArrival] = useState<'ok' | 'failed' | null>(null);
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const install = useInstallState();
 
   function openData() {
     setDataMounted(true);
@@ -482,6 +484,11 @@ function SimulatorInner() {
               {theme === 'dark' ? '☀' : '☾'}
             </button>
             <LangSwitch />
+            {!install.standalone && (install.prompt || install.ios) ? (
+              <button type="button" onClick={openData} className="btn btn-sm">
+                {t.install.headerBtn}
+              </button>
+            ) : null}
             {CLOUD ? (
               <button
                 type="button"
@@ -566,6 +573,7 @@ function SimulatorInner() {
           }
         >
           <div className="flex flex-col gap-4">
+            <InstallCard state={install} />
             <section className="card">
               <label className="flex cursor-pointer items-start justify-between gap-4">
                 <span>

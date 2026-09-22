@@ -6,6 +6,19 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Use it as an app — installed from the browser, no store
+
+- **Install card** in Data (and an *Install* button in the header until you
+  do): Chrome, Edge and Android get a one-tap Install; iPhone Safari gets
+  the two taps spelled out (Share → Add to Home Screen); once installed it
+  says so.
+- **Real offline.** The service worker now keeps the last-opened shell and
+  every content-hashed script/stylesheet (cache-first — they can't go
+  stale), and refreshes the shell each time you open the app online. Before
+  this, the offline fallback served an HTML shell whose scripts might not be
+  cached; now the whole app runs with no connection. Sync still needs one.
+- Manifest: tracking-first description, `id`, categories.
+
 ### Forgot your passphrase? A recovery code — not an email reset
 
 Asked for: recover via email. Not possible without the server holding a

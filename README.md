@@ -43,7 +43,7 @@ Everything runs in the browser, and **by default nothing is ever sent anywhere �
 - **Pixel journey** 🕹 — your projection as a tiny living pixel world: terrain follows your real net worth, milestones become landmarks (FIRE house, goal flag, treasure chests, a storm on crash years), and a little walker — trailed by a cat — crosses the horizon under a sun–moon cycle. Procedural canvas, zero images, zero libraries.
 - **100% client-side** — nothing stored or sent. **Export / Import** a scenario as JSON is the only persistence.
 - **Bilingual** (English / 简体中文, native — not machine-translated), **light/dark theme**, **font zoom**, and **simple by default** with an "advanced tools" toggle.
-- **Installable PWA**, works offline.
+- **Use it as an app, no store needed.** Data → *Use it as an app*: Chrome/Edge/Android get an Install button; iPhone Safari gets the two taps (Share → Add to Home Screen). Installed, it opens full-screen with its own icon and **works fully offline** — the service worker keeps the last-opened shell and its scripts; your data was on the device all along.
 
 Navigation is three sections — **Track · Plan · Data** — a segmented control on desktop and a bottom tab bar on phones. **Plan** is a **live side-by-side editor**: assumptions on the left, the projection (final balance + chart + advanced tools) pinned on the right, so editing an assumption updates the chart in real time. On mobile it stacks (projection on top).
 

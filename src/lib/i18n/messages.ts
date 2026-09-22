@@ -600,6 +600,19 @@ const en = {
     calibrateNeed: 'Record at least three months first — one odd month shouldn’t rewrite a plan.',
     calibrated: 'Plan updated from your actuals.',
   },
+  install: {
+    heading: 'Use it as an app',
+    installed: 'Installed — you’re using the app.',
+    body: 'Put it on your home screen: it opens full-screen with its own icon, works offline, and keeps your data on this device. No app store needed.',
+    installBtn: 'Install',
+    iosSteps: [
+      'Tap the Share button at the bottom of Safari (the square with an arrow).',
+      'Choose “Add to Home Screen”, then “Add”.',
+    ],
+    otherBrowser:
+      'On Android or desktop, open this page in Chrome or Edge and use the browser menu’s “Install app”. On iPhone, use Safari.',
+    headerBtn: 'Install',
+  },
   nav: {
     aria: 'Sections',
     track: 'Track',
@@ -1378,6 +1391,16 @@ const zh: Messages = {
     calibrateHint: '把计划里的年开支改成今年的实际年化数字，把起始净资产改成最近一次记录的数。',
     calibrateNeed: '先记满三个月——不能让某个特殊的月份改写整个计划。',
     calibrated: '已用真实数据更新计划。',
+  },
+  install: {
+    heading: '当成 app 用',
+    installed: '已安装，你现在用的就是 app。',
+    body: '把它放到主屏幕：有自己的图标，全屏打开，没网也能用，数据留在这台设备上。不用经过应用商店。',
+    installBtn: '安装',
+    iosSteps: ['点 Safari 底部的分享按钮（带箭头的方框）。', '选「添加到主屏幕」，再点「添加」。'],
+    otherBrowser:
+      '安卓和电脑请用 Chrome 或 Edge 打开这个页面，在浏览器菜单里选「安装应用」。iPhone 请用 Safari。',
+    headerBtn: '安装',
   },
   nav: {
     aria: '栏目',
