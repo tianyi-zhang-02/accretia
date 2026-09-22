@@ -1,74 +1,78 @@
 /**
- * Service worker for the tracker PWA.
+ * Service worker for Work Optional — the part that makes "add to home
+ * screen" behave like an app: the whole shell works offline.
  *
- * Strategy (deliberately conservative — financial app, no offline writes):
- *   - /api/* and /auth/* → never intercept. Always go to the network.
- *   - Navigation requests (HTML)   → network-first, fall back to the
- *     cached shell ('/') if the device is offline. So opening the app
- *     while offline shows the dashboard chrome rather than the browser's
+ * Strategy (deliberately conservative — a financial app, no offline writes):
+ *   - Cross-origin (the sync service)  → never intercepted; always network.
+ *   - /_next/static/*                   → cache-first. These URLs are
+ *     content-hashed, so a cached copy is never stale; new builds get new
+ *     URLs.
+ *   - Navigations (the HTML)            → network-first, and every
+ *     successful response refreshes the cached shell, so the offline copy is
+ *     always the last version you actually opened. Offline → the cached
+ *     shell (whose hashed scripts are in the cache too), never the browser's
  *     "no internet" page.
- *   - Everything else → pass-through. The browser's built-in cache handles
- *     /_next/static/* with content-hashed URLs better than we would.
+ *   - Everything else                   → pass-through.
  *
- * Bump CACHE_VERSION whenever the install precache list changes — the
- * activate handler deletes any cache whose key doesn't match.
+ * Nothing the user typed is ever cached here: the ledger and plan live in
+ * localStorage, which the app reads itself. Bump CACHE_VERSION to drop old
+ * caches on activate.
  */
 
-const CACHE_VERSION = 'tracker-v1';
-const SHELL_URLS = ['/'];
+const CACHE_VERSION = 'workoptional-v2';
+const SHELL = '/';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_VERSION).then((cache) => cache.addAll(SHELL_URLS)),
-  );
-  // Activate the new SW immediately rather than waiting for tabs to close.
+  event.waitUntil(caches.open(CACHE_VERSION).then((cache) => cache.add(SHELL)));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k)),
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))),
       ),
-    ),
   );
-  // Take control of currently-open clients without requiring a reload.
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only handle GET. Anything else (POST, PATCH, DELETE) goes straight to
-  // the network — we never replay mutations from cache.
   if (event.request.method !== 'GET') return;
-
   const url = new URL(event.request.url);
-
-  // Cross-origin requests (fonts, Alpha Vantage, etc.) pass through.
   if (url.origin !== self.location.origin) return;
 
-  // Never cache API or auth — the server-side rate limiter and the
-  // freshness guarantees there are too important to second-guess.
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) {
-    return;
-  }
-
-  // HTML navigations: network-first with the shell as fallback.
-  if (event.request.mode === 'navigate') {
+  if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
-      fetch(event.request).catch(() =>
-        caches.match('/').then(
-          (cached) =>
-            cached ??
-            new Response('Offline. Reconnect and try again.', {
-              status: 503,
-              headers: { 'content-type': 'text/plain' },
-            }),
-        ),
-      ),
+      caches.open(CACHE_VERSION).then(async (cache) => {
+        const hit = await cache.match(event.request);
+        if (hit) return hit;
+        const res = await fetch(event.request);
+        if (res.ok) cache.put(event.request, res.clone());
+        return res;
+      }),
     );
     return;
   }
 
-  // Everything else — let the browser handle it.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          if (res.ok) caches.open(CACHE_VERSION).then((cache) => cache.put(SHELL, res.clone()));
+          return res;
+        })
+        .catch(() =>
+          caches.match(SHELL).then(
+            (cached) =>
+              cached ??
+              new Response('Offline. Reconnect and try again.', {
+                status: 503,
+                headers: { 'content-type': 'text/plain' },
+              }),
+          ),
+        ),
+    );
+  }
 });
