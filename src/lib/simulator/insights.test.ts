@@ -70,7 +70,10 @@ describe('insight engine', () => {
   });
 
   it('reality-checks an unsustainable savings rate and an optimistic return', () => {
-    const a = base({ recurringAnnualExpenses: 20_000, investment: { returnPct: 12, returnPctLow: 8, returnPctHigh: 16 } });
+    const a = base({
+      recurringAnnualExpenses: 20_000,
+      investment: { returnPct: 12, returnPctLow: 8, returnPctHigh: 16 },
+    });
     const list = buildInsights(a);
     expect(find(list, 'savingsRateHigh')!.ratePct).toBeGreaterThan(60);
     expect(find(list, 'returnOptimistic')!.returnPct).toBe(12);

@@ -40,9 +40,7 @@ describe('non-linear careers', () => {
       { label: 'back', startAge: 34, baseSalary: 80_000, annualRaisePct: 0 },
     ];
     const { rows } = simulate(a);
-    expect(rows.map((r) => r.grossIncome)).toEqual([
-      100_000, 100_000, 0, 0, 80_000, 80_000,
-    ]);
+    expect(rows.map((r) => r.grossIncome)).toEqual([100_000, 100_000, 0, 0, 80_000, 80_000]);
     // Break years still pay the bills: 2 years × 40k drawn from savings.
     expect(rows[3]!.netWorth).toBe(2 * 60_000 - 2 * 40_000);
   });

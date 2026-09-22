@@ -6,6 +6,28 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Forgot your passphrase? A recovery code — not an email reset
+
+Asked for: recover via email. Not possible without the server holding a
+key, which would break the whole promise. Done instead:
+
+- **A recovery code, shown once when you set your passphrase** — 32
+  letters/digits in 8 groups, with Copy, Save as file, and "I've saved it".
+  Anyone with the code can open the cloud copy; nobody without one of the
+  two secrets can, us included.
+- **"I forgot my passphrase"** under the passphrase field → type the code
+  (case, dashes and 0/O, 1/I, 8/B misreads are forgiven) → choose a **new
+  passphrase**; the old one stops working. Legacy cloud copies (made before
+  codes existed) say so, and every locked-out path offers **Delete cloud
+  copy and start over** from this device's data.
+- Account panel rows: **Recovery code** (Saved / None — Add / Get a new
+  code) and **Passphrase** (Change). Either change takes effect on the next
+  upload, and the panel says so.
+- Under the hood: envelope v2 wraps a random data key under both secrets
+  (`lib/cloud/crypto.ts`); v1 copies still open and upgrade when a code is
+  added. 207 tests; the isolation guard now also pins that nothing exports
+  the data key.
+
 ### Signing in, made obvious
 
 - **A Sign in button in the header** (when sync is enabled), which turns into

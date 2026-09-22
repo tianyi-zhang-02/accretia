@@ -178,7 +178,7 @@ function bisect(args: {
   // bail out with a clear reason.
   if (increasing) {
     if (fHi < target) {
-      return { ok: false, reason: 'not reachable within the lever\'s upper bound' };
+      return { ok: false, reason: "not reachable within the lever's upper bound" };
     }
     if (fLo > target) {
       // Already exceeds at the LOW end — this lever isn't the constraint.
@@ -187,7 +187,7 @@ function bisect(args: {
     }
   } else {
     if (fLo < target) {
-      return { ok: false, reason: 'not reachable — even at the lever\'s most aggressive value' };
+      return { ok: false, reason: "not reachable — even at the lever's most aggressive value" };
     }
     if (fHi > target) {
       return { ok: false, reason: 'no change needed — already exceeds target at the upper bound' };
@@ -281,10 +281,7 @@ export function solveGoalSeek(a: Assumptions): GoalSeekResult {
     increasing: true,
     valueTolerance: 1e-3,
     evaluate: (v) =>
-      netWorthAtAge(
-        { ...a, investment: { ...a.investment, returnPct: v } },
-        targetAge,
-      ),
+      netWorthAtAge({ ...a, investment: { ...a.investment, returnPct: v } }, targetAge),
   });
 
   // Lever 3: recurring expenses. Decreasing: less spending → more saved →
@@ -294,8 +291,7 @@ export function solveGoalSeek(a: Assumptions): GoalSeekResult {
     hi: currentExpenses,
     target: targetAmount,
     increasing: false,
-    evaluate: (v) =>
-      netWorthAtAge({ ...a, recurringAnnualExpenses: v }, targetAge),
+    evaluate: (v) => netWorthAtAge({ ...a, recurringAnnualExpenses: v }, targetAge),
   });
 
   // Lever 4: push the target age out. Bounded at 100 (anyone older than

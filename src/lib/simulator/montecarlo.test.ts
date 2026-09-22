@@ -71,7 +71,13 @@ describe('income volatility (unpredictable pay)', () => {
         birthYear: 1996,
         careerStages: [
           // A partner-style draw: flat expected path, wide annual swings.
-          { label: 'partner', startAge: 30, baseSalary: 100_000, annualRaisePct: 0, volatilityPct: 30 },
+          {
+            label: 'partner',
+            startAge: 30,
+            baseSalary: 100_000,
+            annualRaisePct: 0,
+            volatilityPct: 30,
+          },
         ],
       },
     ],
