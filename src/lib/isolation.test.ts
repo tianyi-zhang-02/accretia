@@ -83,7 +83,11 @@ describe('data isolation — nothing can leave the browser', () => {
     for (const code of [panel, crypto]) {
       expect(/localStorage|sessionStorage|indexedDB|document\.cookie/.test(code)).toBe(false);
     }
-    expect(crypto).toMatch(/false,\s*\[\s*'encrypt',\s*'decrypt'\s*\]/); // non-extractable key
+    // The passphrase- / recovery-code-derived key is non-extractable. The data
+    // key it wraps IS extractable (it must be re-wrapped when a passphrase or
+    // code changes) — so pin that nothing ever exports it, either.
+    expect(crypto).toMatch(/false,\s*\[\s*'encrypt',\s*'decrypt',\s*'wrapKey',\s*'unwrapKey'\s*\]/);
+    for (const code of [panel, crypto]) expect(code).not.toMatch(/exportKey/);
   });
 
   it('has no API routes, server actions, cookies or env-driven behavior', () => {

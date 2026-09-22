@@ -21,13 +21,17 @@ import {
   type RemoteVault,
 } from '@/lib/cloud/client';
 import {
-  decrypt,
-  deriveKey,
-  encrypt,
-  KDF_ITERATIONS,
+  addRecoveryCode,
+  createVault,
   MIN_PASSPHRASE_LENGTH,
-  newSalt,
+  normalizeRecoveryCode,
+  open,
+  RECOVERY_CODE_LENGTH,
+  seal,
+  setPassphrase,
+  unlock,
   WrongPassphraseError,
+  type VaultKeys,
 } from '@/lib/cloud/crypto';
 import { useI18n } from '@/lib/i18n/locale';
 import type { MonthEntry } from '@/lib/ledger/ledger';
@@ -43,10 +47,14 @@ import Icon from '../ui/icon';
  *
  * The key lives in React state only — never storage. Signing out, closing
  * the tab or reloading forgets it, and the passphrase is asked for again.
+ *
+ * A forgotten passphrase is survivable with the RECOVERY CODE handed out
+ * when the passphrase is set (see crypto.ts): the code unlocks the vault,
+ * after which a new passphrase must be chosen. Nothing here can recover a
+ * vault without one of the two secrets — by design, and the copy says so.
  */
 
 type Ok = Extract<RestoreResult, { ok: true }>;
-type Unlocked = { key: CryptoKey; salt: string; iter: number };
 
 /** Supabase throttles sign-in emails to one a minute per address. */
 const RESEND_SECONDS = 60;
@@ -83,7 +91,15 @@ export default function CloudSync({
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [remote, setRemote] = useState<RemoteVault | null | undefined>(undefined);
-  const [unlocked, setUnlocked] = useState<Unlocked | null>(null);
+  const [unlocked, setUnlocked] = useState<VaultKeys | null>(null);
+  // Locked step: passphrase, or the recovery-code path behind "I forgot".
+  const [forgot, setForgot] = useState(false);
+  const [recoveryInput, setRecoveryInput] = useState('');
+  // A freshly minted code, shown until the person says they've saved it.
+  const [freshCode, setFreshCode] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  // Change-passphrase form, opened by choice from the unlocked view.
+  const [changingPass, setChangingPass] = useState(false);
   const [pass, setPass] = useState('');
   const [pass2, setPass2] = useState('');
   const [pending, setPending] = useState<Ok | null>(null);
@@ -129,6 +145,9 @@ export default function CloudSync({
         setRemote(undefined);
         setPending(null);
         setSyncedSig(null);
+        setFreshCode(null);
+        setForgot(false);
+        setChangingPass(false);
       }
     }).then((fn) => {
       if (alive) off = fn;
@@ -339,46 +358,154 @@ export default function CloudSync({
 
       {remote === undefined ? (
         <p className="text-muted text-xs">{C.loading}</p>
-      ) : !unlocked ? (
+      ) : !unlocked && forgot && remote ? (
+        // ---- forgot: unlock with the recovery code ----
         <form
           className="flex flex-col gap-2"
           onSubmit={(e) => {
             e.preventDefault();
+            if (!normalizeRecoveryCode(recoveryInput))
+              return bad(C.err.recoveryFormat(RECOVERY_CODE_LENGTH));
+            setBusy(true);
+            setNote(null);
+            unlock(remote.envelope, { recoveryCode: recoveryInput })
+              .then(async (vault) => {
+                if (vault.v !== 2) throw new WrongPassphraseError();
+                const r = parseBackup(await open(remote.envelope, vault));
+                setSyncedSig(r.ok ? signature(r.scenarios, r.ledger) : null);
+                // The old passphrase is retired: a new one must be chosen.
+                setUnlocked({ ...vault, pass: null });
+                setRecoveryInput('');
+                setForgot(false);
+                good(C.recovered);
+              })
+              .catch((err: unknown) =>
+                bad(err instanceof WrongPassphraseError ? C.err.recoveryWrong : C.err.network),
+              )
+              .finally(() => setBusy(false));
+          }}
+        >
+          <p className="display text-lg">{C.forgotTitle}</p>
+          {remote.envelope.v === 2 && remote.envelope.keys.recovery ? (
+            <>
+              <p className="text-muted text-[13px]">{C.forgotBody}</p>
+              <input
+                type="text"
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                placeholder={C.recoveryPlaceholder}
+                value={recoveryInput}
+                onChange={(e) => setRecoveryInput(e.target.value)}
+                className="field nums h-12 font-mono text-[15px] tracking-wider"
+              />
+              <button type="submit" className="btn btn-primary h-11" disabled={busy}>
+                {busy ? C.deriving : C.recoverBtn}
+              </button>
+            </>
+          ) : (
+            <p className="text-muted text-[13px]">{C.noCodeLegacy}</p>
+          )}
+          <p className="text-muted mt-2 text-xs">{C.noCode}</p>
+          {!confirmDelete ? (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm self-start px-0"
+              onClick={() => setConfirmDelete(true)}
+            >
+              {C.startOver} ›
+            </button>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs">{C.deleteConfirm}</span>
+              <button
+                type="button"
+                className="btn"
+                onClick={() =>
+                  void run(async () => {
+                    await deleteVault();
+                    setRemote(null);
+                    setConfirmDelete(false);
+                    setForgot(false);
+                    good(C.deleted);
+                  })
+                }
+              >
+                {C.deleteYes}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setConfirmDelete(false)}
+              >
+                {C.cancel}
+              </button>
+            </div>
+          )}
+          <button
+            type="button"
+            className="btn btn-ghost self-start"
+            onClick={() => {
+              setForgot(false);
+              setNote(null);
+            }}
+          >
+            ‹ {C.back}
+          </button>
+        </form>
+      ) : !unlocked || (unlocked.v === 2 && unlocked.pass === null) || changingPass ? (
+        // ---- passphrase: create (new vault), enter (existing), or set anew ----
+        <form
+          className="flex flex-col gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const settingNew = creating || unlocked !== null; // new vault, after recovery, or by choice
             if (pass.length < MIN_PASSPHRASE_LENGTH)
               return bad(C.err.passShort(MIN_PASSPHRASE_LENGTH));
-            if (creating && pass !== pass2) return bad(C.err.passMismatch);
+            if (settingNew && pass !== pass2) return bad(C.err.passMismatch);
             void run(async () => {
-              const salt = remote ? remote.envelope.salt : newSalt();
-              const iter = remote ? remote.envelope.iter : KDF_ITERATIONS;
-              const key = await deriveKey(pass, salt, iter);
-              // Existing vault: prove the passphrase before calling it unlocked.
-              if (remote) {
+              if (unlocked) {
+                // Re-wrap the data key under the new passphrase (v2 only).
+                if (unlocked.v !== 2) return bad(C.legacyChange);
+                setUnlocked(await setPassphrase(unlocked, pass));
+                setSyncedSig(null); // the cloud copy still carries the old wrap
+                setChangingPass(false);
+                good(C.passChanged);
+              } else if (creating) {
+                const { vault, recoveryCode } = await createVault(pass);
+                setUnlocked(vault);
+                setFreshCode(recoveryCode);
+                good(C.passCreated);
+              } else {
+                const vault = await unlock(remote!.envelope, { passphrase: pass });
                 // …and while the plaintext is in hand, note whether this device
                 // already matches it.
-                const r = parseBackup(await decrypt(remote.envelope, key));
+                const r = parseBackup(await open(remote!.envelope, vault));
                 setSyncedSig(r.ok ? signature(r.scenarios, r.ledger) : null);
+                setUnlocked(vault);
+                good(C.unlockedNote);
               }
-              setUnlocked({ key, salt, iter });
               setPass('');
               setPass2('');
-              good(creating ? C.passCreated : C.unlockedNote);
             });
           }}
         >
-          {arrival === 'ok' ? (
+          {arrival === 'ok' && !unlocked ? (
             <p className="text-positive text-[13px]">{creating ? C.welcome : C.welcomeBack}</p>
           ) : null}
-          <p className="text-[13px]">{creating ? C.createPass : C.enterPass}</p>
+          <p className="text-[13px]">
+            {unlocked ? C.newPassLabel : creating ? C.createPass : C.enterPass}
+          </p>
           <input
             ref={passRef}
             type={showPass ? 'text' : 'password'}
-            autoComplete={creating ? 'new-password' : 'current-password'}
+            autoComplete={creating || unlocked ? 'new-password' : 'current-password'}
             placeholder={C.passPlaceholder}
             value={pass}
             onChange={(e) => setPass(e.target.value)}
             className="field h-12"
           />
-          {creating ? (
+          {creating || unlocked ? (
             <>
               <input
                 type={showPass ? 'text' : 'password'}
@@ -419,11 +546,84 @@ export default function CloudSync({
           </label>
           {creating ? <p className="text-negative text-xs">{C.passWarning}</p> : null}
           <button type="submit" className="btn btn-primary" disabled={busy}>
-            {busy ? C.deriving : creating ? C.createPassBtn : C.unlock}
+            {busy ? C.deriving : unlocked ? C.setPassBtn : creating ? C.createPassBtn : C.unlock}
           </button>
+          {!unlocked && remote ? (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm self-start px-0"
+              onClick={() => {
+                setForgot(true);
+                setNote(null);
+              }}
+            >
+              {C.forgot} ›
+            </button>
+          ) : null}
+          {changingPass ? (
+            <button
+              type="button"
+              className="btn btn-ghost self-start"
+              onClick={() => {
+                setChangingPass(false);
+                setPass('');
+                setPass2('');
+              }}
+            >
+              ‹ {C.back}
+            </button>
+          ) : null}
         </form>
       ) : (
         <>
+          {freshCode ? (
+            <div className="bg-surface-2 mb-4 rounded-[12px] p-4">
+              <p className="display text-lg">{C.codeTitle}</p>
+              <p className="text-muted mt-1 text-[13px]">{C.codeBody}</p>
+              <p className="nums my-3 rounded-[10px] bg-[var(--background)] px-3 py-3 text-center font-mono text-[15px] tracking-wider break-all select-all">
+                {freshCode}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() =>
+                    void navigator.clipboard?.writeText(freshCode).then(() => {
+                      setCopied(true);
+                      window.setTimeout(() => setCopied(false), 1500);
+                    })
+                  }
+                >
+                  {copied ? C.copied : C.copy}
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => {
+                    const text = C.codeFileBody(t.app.title, email) + freshCode + '\n';
+                    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'work-optional-recovery-code.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+                  }}
+                >
+                  {C.saveCodeFile}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary ml-auto"
+                  onClick={() => setFreshCode(null)}
+                >
+                  {C.savedIt}
+                </button>
+              </div>
+              <p className="text-muted mt-2 text-[11px]">{C.codeUploadNote}</p>
+            </div>
+          ) : null}
           <ul className="rows">
             <li className="row items-center">
               <span className="text-[13px]">{C.cloudCopy}</span>
@@ -441,6 +641,43 @@ export default function CloudSync({
                 {!remote ? C.neverUploaded : syncedSig === currentSig ? C.inSync : C.needsUpload}
               </span>
             </li>
+            <li className="row items-center">
+              <span className="text-[13px]">{C.recoveryRow}</span>
+              <span className="flex items-center gap-2 text-[13px]">
+                <span
+                  className={unlocked.v === 2 && unlocked.recovery ? 'text-positive' : 'text-muted'}
+                >
+                  {unlocked.v === 2 && unlocked.recovery ? C.recoverySet : C.recoveryNone}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  disabled={busy || !!freshCode}
+                  title={unlocked.v === 2 && unlocked.recovery ? C.newCodeHint : undefined}
+                  onClick={() =>
+                    void run(async () => {
+                      const { vault, recoveryCode } = await addRecoveryCode(unlocked);
+                      setUnlocked(vault);
+                      setFreshCode(recoveryCode);
+                      setSyncedSig(null); // the cloud copy must be re-uploaded to carry it
+                    })
+                  }
+                >
+                  {unlocked.v === 2 && unlocked.recovery ? C.newCode : C.addCode}
+                </button>
+              </span>
+            </li>
+            <li className="row items-center">
+              <span className="text-[13px]">{C.passRow}</span>
+              <button
+                type="button"
+                className="btn btn-sm"
+                disabled={busy}
+                onClick={() => (unlocked.v === 2 ? setChangingPass(true) : bad(C.legacyChange))}
+              >
+                {C.changePass}
+              </button>
+            </li>
           </ul>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -451,7 +688,7 @@ export default function CloudSync({
                 void run(async () => {
                   setConflict(false);
                   const text = JSON.stringify(buildBackup(scenarios, selectedId, ledger));
-                  const env = await encrypt(text, unlocked.key, unlocked.salt, unlocked.iter);
+                  const env = await seal(text, unlocked);
                   const res = await saveVault(env, remote?.updatedAt ?? null);
                   if (!res.ok) return setConflict(true);
                   setRemote({ envelope: env, updatedAt: res.updatedAt });
@@ -471,7 +708,7 @@ export default function CloudSync({
                   const latest = await fetchVault();
                   if (!latest) return bad(C.err.noCloud);
                   setRemote(latest);
-                  const r = parseBackup(await decrypt(latest.envelope, unlocked.key));
+                  const r = parseBackup(await open(latest.envelope, unlocked));
                   if (!r.ok) return bad(C.err.unreadable);
                   setPending(r); // replaced only after the confirm below
                 })

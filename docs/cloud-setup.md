@@ -66,8 +66,11 @@ For local dev, the same two lines go in `.env.local` (git-ignored).
   base64. If you can read anyone's numbers there, stop and investigate.
 
 ## What users should know (and the UI tells them)
-- The passphrase never leaves their device. **If they forget it, the cloud
-  copy cannot be recovered by anyone** — the local backup file is the net.
+- The passphrase never leaves their device. When they set it they get a
+  **recovery code** (shown once; copy / save as file) — the only other way
+  in. **With both lost, the cloud copy cannot be recovered by anyone**; the
+  local backup file is the net. There is no email reset and there must not
+  be one.
 - Signing out forgets the key; they re-enter the passphrase next time.
 - "Delete cloud copy" removes the server's copy and leaves local data alone.
   Deleting the *account* itself is done from your Supabase dashboard
