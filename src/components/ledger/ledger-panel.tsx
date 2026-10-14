@@ -99,6 +99,7 @@ export default function LedgerPanel({
   fire,
   onOpenPlan,
   onCalibrate,
+  notify,
 }: {
   entries: MonthEntry[];
   onChange: (next: MonthEntry[]) => void;
@@ -107,6 +108,8 @@ export default function LedgerPanel({
   fire: { age: number; year: number } | null;
   onOpenPlan: () => void;
   onCalibrate: (patch: Partial<Assumptions>) => void;
+  /** Show a toast; `undo` puts things back the way they were. */
+  notify: (text: string, undo?: () => void) => void;
 }) {
   const { t, fmt, locale } = useI18n();
   const L = t.ledger;
@@ -195,7 +198,15 @@ export default function LedgerPanel({
             onChange(upsert(entries, e));
             setPicked({ year: e.year, month: e.month });
           }}
-          onClear={(ym) => onChange(remove(entries, ym.year, ym.month))}
+          onClear={(ym) => {
+            const before = entries;
+            onChange(remove(entries, ym.year, ym.month));
+            const label = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
+              month: 'long',
+              year: 'numeric',
+            }).format(new Date(ym.year, ym.month - 1, 1));
+            notify(t.toast.monthCleared(label), () => onChange(before));
+          }}
         />
         <TrackStatus
           entries={entries}
@@ -410,7 +421,6 @@ export default function LedgerPanel({
                 onClick={() => {
                   if (!patch) return;
                   onCalibrate(patch);
-                  setNote({ tone: 'ok', text: L.calibrated });
                 }}
               >
                 {L.calibrate}

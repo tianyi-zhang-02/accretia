@@ -37,6 +37,18 @@ const ICONS = {
   arrow: ['M5 12h14', 'M13 6l6 6-6 6'],
   /** Privacy and data. */
   shield: ['M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6l8-3Z'],
+  /** Settings — two sliders. */
+  sliders: [
+    'M4 7h9',
+    'M19 7h1',
+    'M13 7a3 3 0 1 0 6 0 3 3 0 0 0-6 0Z',
+    'M4 17h1',
+    'M11 17h9',
+    'M5 17a3 3 0 1 0 6 0 3 3 0 0 0-6 0Z',
+  ],
+  check: ['M5 12.5l4.5 4.5L19 7.5'],
+  close: ['M6 6l12 12', 'M18 6 6 18'],
+  download: ['M12 4v11', 'M7 10.5l5 5 5-5', 'M5 20h14'],
 } as const;
 
 export type IconName = keyof typeof ICONS;

@@ -29,12 +29,33 @@ import Icon from '../ui/icon';
 
 type Ok = Extract<RestoreResult, { ok: true }>;
 
+/** Download everything as one backup file. Returns when it happened (ISO). */
+export function downloadBackup(
+  scenarios: BackupScenario[],
+  selectedId: string,
+  ledger: MonthEntry[],
+): string {
+  const now = new Date();
+  const text = JSON.stringify(buildBackup(scenarios, selectedId, ledger, now), null, 2);
+  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = backupFilename(now);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+  return now.toISOString();
+}
+
 export default function DataCard({
   scenarios,
   selectedId,
   ledger,
   saveLocal,
+  storageError,
   lastBackupAt,
+  onToggleSave,
   onBackedUp,
   onRestore,
 }: {
@@ -42,12 +63,16 @@ export default function DataCard({
   selectedId: string;
   ledger: MonthEntry[];
   saveLocal: boolean;
+  /** The browser refused the last write (private mode, quota). */
+  storageError: boolean;
   lastBackupAt: string | null;
+  onToggleSave: (next: boolean) => void;
   onBackedUp: (iso: string) => void;
   onRestore: (r: Ok) => void;
 }) {
   const { t } = useI18n();
   const D = t.data;
+  const K = t.track.data;
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<Ok | null>(null);
   const [note, setNote] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
@@ -73,17 +98,7 @@ export default function DataCard({
   const stale = days === null || days >= BACKUP_STALE_DAYS;
 
   function backUp() {
-    const now = new Date();
-    const text = JSON.stringify(buildBackup(scenarios, selectedId, ledger, now), null, 2);
-    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = backupFilename(now);
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 0);
-    onBackedUp(now.toISOString());
+    onBackedUp(downloadBackup(scenarios, selectedId, ledger));
     setNote({ tone: 'ok', text: D.backedUp });
   }
 
@@ -110,6 +125,25 @@ export default function DataCard({
       </span>
 
       <ul className="rows">
+        <li className="row items-center">
+          <label htmlFor="save-local" className="min-w-0 cursor-pointer">
+            <span className="block text-[13px] font-medium">{K.saveLocalHeading}</span>
+            <span className="text-muted mt-0.5 block text-xs">{K.saveLocalBody}</span>
+          </label>
+          <input
+            id="save-local"
+            type="checkbox"
+            role="switch"
+            className="switch"
+            checked={saveLocal}
+            onChange={(e) => onToggleSave(e.target.checked)}
+          />
+        </li>
+        {storageError && saveLocal ? (
+          <li className="row">
+            <p className="text-negative text-xs">{K.storageError}</p>
+          </li>
+        ) : null}
         <li className="row items-center">
           <span className="text-[13px]">{D.stored}</span>
           <span className={`text-right text-[13px] ${saveLocal ? '' : 'text-negative'}`}>
