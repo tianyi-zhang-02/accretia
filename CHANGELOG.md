@@ -6,6 +6,42 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Feel, flow and keeping your data safe
+
+**Look**
+- Header is one line: a small mark, the name, and a single **Settings** button
+  (appearance, text size, language) instead of four loose controls — the
+  title no longer wraps on a phone.
+- **Follows your phone's light/dark setting** by default (and before the
+  page's script runs, so no dark flash); Settings can pin Light or Dark.
+  Light theme gets a hairline card shadow; native checkboxes and scrollbars
+  match the theme; on/off settings use a proper switch.
+- Keyboard focus ring everywhere, a gentle fade between sections, a frosted
+  bottom bar on phones, and reduced-motion respected.
+
+**Use**
+- **Undo instead of "are you sure?"**: clearing a month, removing a plan,
+  restoring a backup or cloud copy, and "use these numbers in my plan" all
+  show a toast with Undo.
+- Your theme, text size and **language are remembered** — the installed app
+  always opens at the home address, so before this it fell back to the
+  browser language every time.
+
+**Storage**
+- **Two windows no longer overwrite each other.** Edit in one, and the other
+  picks the change up (and says so) instead of saving its stale copy over it.
+- **Saving failures are shown.** In private browsing or with full storage the
+  browser refuses to save; the data card now says so plainly instead of
+  silently keeping everything in a tab you might close.
+- **Backup reminder on the home screen** once you've logged 2+ months with no
+  backup in 30 days (and no cloud account): one tap downloads the file.
+- "Keep my data on this device" is now a switch inside the data card.
+
+**Fixed**
+- The offline service worker now registers in production only. In `next dev`
+  its cache-first rule served stale stylesheets (file names don't change
+  there); production names are content hashes, so live users were unaffected.
+
 ### Use it as an app — installed from the browser, no store
 
 - **Install card** in Data (and an *Install* button in the header until you

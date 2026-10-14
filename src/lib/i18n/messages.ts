@@ -600,6 +600,31 @@ const en = {
     calibrateNeed: 'Record at least three months first — one odd month shouldn’t rewrite a plan.',
     calibrated: 'Plan updated from your actuals.',
   },
+  settings: {
+    aria: 'Settings',
+    appearance: 'Appearance',
+    system: 'Auto',
+    light: 'Light',
+    dark: 'Dark',
+    textSize: 'Text size',
+    language: 'Language',
+  },
+  toast: {
+    undo: 'Undo',
+    monthCleared: (month: string) => `${month} cleared.`,
+    planRemoved: (name: string) => `“${name}” removed.`,
+    restored: 'Data replaced from the backup.',
+    downloaded: 'Data replaced from the cloud copy.',
+    calibrated: 'Plan updated from your actual numbers.',
+    backedUp: 'Backup file downloaded.',
+  },
+  nudge: {
+    never: (months: number) =>
+      `${months} ${months === 1 ? 'month' : 'months'} logged, and the only copy is in this browser.`,
+    stale: (days: number) => `Your last backup was ${days} days ago.`,
+    backUp: 'Back up now',
+    dismiss: 'Not now',
+  },
   install: {
     heading: 'Use it as an app',
     installed: 'Installed — you’re using the app.',
@@ -742,6 +767,9 @@ const en = {
       'other.misc': 'Miscellaneous',
     },
     data: {
+      storageError:
+        'This browser isn’t saving right now (private browsing, or storage is full). Your changes live only in this tab until you back up to a file.',
+      otherTab: 'Updated from another window.',
       saveLocalHeading: 'Keep my data on this device',
       saveLocalBody:
         'On: your plan and ledger are still here next time. Off: everything is erased from this browser right away and lives only until you close the tab.',
@@ -1392,6 +1420,30 @@ const zh: Messages = {
     calibrateNeed: '先记满三个月——不能让某个特殊的月份改写整个计划。',
     calibrated: '已用真实数据更新计划。',
   },
+  settings: {
+    aria: '设置',
+    appearance: '外观',
+    system: '跟随系统',
+    light: '浅色',
+    dark: '深色',
+    textSize: '字号',
+    language: '语言',
+  },
+  toast: {
+    undo: '撤销',
+    monthCleared: (month: string) => `已清空${month}。`,
+    planRemoved: (name: string) => `已删除「${name}」。`,
+    restored: '已用备份文件替换数据。',
+    downloaded: '已用云端副本替换数据。',
+    calibrated: '已用真实数字更新规划。',
+    backedUp: '备份文件已下载。',
+  },
+  nudge: {
+    never: (months: number) => `已经记了 ${months} 个月，但只存在这个浏览器里，还没备份过。`,
+    stale: (days: number) => `上次备份是 ${days} 天前。`,
+    backUp: '现在备份',
+    dismiss: '以后再说',
+  },
   install: {
     heading: '当成 app 用',
     installed: '已安装，你现在用的就是 app。',
@@ -1531,6 +1583,9 @@ const zh: Messages = {
       'other.misc': '杂项',
     },
     data: {
+      storageError:
+        '这个浏览器现在存不了数据（可能是无痕模式，或者空间满了）。改动只留在这个标签页里，记得备份成文件。',
+      otherTab: '已同步另一个窗口里的改动。',
       saveLocalHeading: '把数据留在这台设备上',
       saveLocalBody:
         '开着：规划和账本下次打开还在。关掉：立刻从这个浏览器里清除，只在当前页面里临时保留，关掉标签页就没了。',

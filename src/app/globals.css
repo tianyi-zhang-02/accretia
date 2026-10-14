@@ -18,10 +18,15 @@
   --accent: #4ade80;
   --positive: #4ade80;
   --negative: #f87171;
+  /* Cards float on the dark background by contrast alone. */
+  --card-shadow: none;
+  color-scheme: dark;
+  accent-color: var(--accent);
 }
 
-/* Light theme — opt-in via <html data-theme="light">. Warm off-white with
-   darker accent/positive/negative for readable contrast on a light surface. */
+/* Light theme — chosen in Settings (<html data-theme="light">), or the
+   system preference when the person hasn't chosen. The media-query copy
+   applies before JavaScript runs, so a light-mode phone never flashes dark. */
 :root[data-theme='light'] {
   --background: #f6f6f7;
   --foreground: #111113;
@@ -34,6 +39,25 @@
   --accent: #15803d;
   --positive: #15803d;
   --negative: #dc2626;
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.03);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --background: #f6f6f7;
+    --foreground: #111113;
+    /* Darkened from #6b6b74 for the same reason on the light theme. */
+    --muted: #57575f;
+    --border: #e4e4e7;
+    --surface: #ffffff;
+    --surface-2: #f0f0f2;
+    --hairline: #ececef;
+    --accent: #15803d;
+    --positive: #15803d;
+    --negative: #dc2626;
+    --card-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.03);
+    color-scheme: light;
+  }
 }
 
 @theme inline {
@@ -56,6 +80,19 @@ html,
 body {
   background: var(--background);
   color: var(--foreground);
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* One focus ring for everything a keyboard can reach. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 body {
@@ -94,6 +131,7 @@ body {
   background: var(--surface);
   border-radius: 16px;
   padding: 20px;
+  box-shadow: var(--card-shadow);
 }
 .card-tight {
   padding: 14px 16px;
@@ -142,6 +180,12 @@ body {
 }
 .btn:hover {
   filter: brightness(1.25);
+}
+:root[data-theme='light'] .btn:hover {
+  filter: brightness(0.96);
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 /* Compact variant — header controls and inline chips. (A utility class
    can't shrink `.btn`; it isn't layered.) */
@@ -207,7 +251,9 @@ body {
     z-index: 40;
     width: 100%;
     border-radius: 0;
-    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    -webkit-backdrop-filter: saturate(160%) blur(18px);
+    backdrop-filter: saturate(160%) blur(18px);
     box-shadow: 0 -1px 0 var(--hairline);
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -266,6 +312,96 @@ body {
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.03em;
+}
+
+/* An on/off switch — for settings that really are on or off. */
+.switch {
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+.switch::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--foreground);
+  transition: transform 160ms ease;
+}
+.switch:checked {
+  background: var(--accent);
+  box-shadow: none;
+}
+.switch:checked::before {
+  transform: translateX(18px);
+  background: #fff;
+}
+
+/* Section changes: a short fade so a tab switch reads as a change of place. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-in {
+  animation: fade-in 180ms ease-out;
+}
+
+/* Floating popover (settings) and toast. */
+.popover {
+  position: absolute;
+  z-index: 50;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow:
+    0 12px 32px rgb(0 0 0 / 0.28),
+    0 0 0 1px var(--hairline);
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 60;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: calc(100vw - 32px);
+  padding: 10px 10px 10px 16px;
+  border-radius: 14px;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 13px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.3);
+}
+@media (max-width: 639px) {
+  .toast {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
 }
 
 /* Slide-in for toast notifications (subtle, finishes in 220ms). */

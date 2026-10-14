@@ -1,15 +1,14 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 
 import GuidedSetup from '@/components/agent/guided-setup';
-import DataCard from '@/components/data/data-card';
+import DataCard, { downloadBackup } from '@/components/data/data-card';
 import Icon, { SectionLabel } from '@/components/ui/icon';
 import InsightsPanel from '@/components/agent/insights-panel';
 import MonteCarloChart from '@/components/charts/montecarlo-chart';
 import SimulatorChart, { type DisplayMode, type Marker } from '@/components/charts/simulator-chart';
-import LangSwitch from '@/components/i18n/lang-switch';
 import LedgerPanel from '@/components/ledger/ledger-panel';
 import AssumptionsForm from '@/components/simulator/assumptions-form';
 import PlanSummary from '@/components/simulator/plan-summary';
@@ -26,6 +25,9 @@ import { ledgerSchema, type MonthEntry } from '@/lib/ledger/ledger';
 import { simulate } from '@/lib/simulator/engine';
 import { fireHeadline } from '@/lib/simulator/insights';
 import InstallCard, { useInstallState } from '@/components/pwa/install-card';
+import SettingsMenu, { type ThemePref } from '@/components/ui/settings-menu';
+import Toast, { type ToastMessage } from '@/components/ui/toast';
+import { BACKUP_STALE_DAYS, daysSince } from '@/lib/backup/backup';
 import { runMonteCarlo } from '@/lib/simulator/montecarlo';
 import { assumptionsSchema, type Assumptions } from '@/lib/validation/scenarios';
 
@@ -111,7 +113,7 @@ export default function SimulatorClient() {
 }
 
 function SimulatorInner() {
-  const { t, fmt } = useI18n();
+  const { t, fmt, locale, setLocale } = useI18n();
 
   // Scenarios. Nothing is ever written to a server; they're mirrored to this
   // device's localStorage while "Save on this device" is ticked (see
@@ -127,8 +129,13 @@ function SimulatorInner() {
   );
   const [volatilityPct, setVolatilityPct] = useState(15);
 
-  // Display preferences — in-memory (reset on refresh, per the no-storage rule).
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  // Display preferences. They ride inside the scenarios blob (like
+  // lastBackupAt) — no extra storage key. 'system' follows the OS setting.
+  const [themePref, setThemePref] = useState<ThemePref>('system');
+  const [fontScale, setFontScale] = useState(1);
+  const systemDark = useSyncExternalStore(subscribeColorScheme, prefersDark, () => true);
+  const theme: 'dark' | 'light' =
+    themePref === 'system' ? (systemDark ? 'dark' : 'light') : themePref;
   const [guiding, setGuiding] = useState(false);
   // One panel, three views — the home screen keeps to a single visual.
   const [view, setView] = useState<'chart' | 'world' | 'table'>('chart');
@@ -145,6 +152,18 @@ function SimulatorInner() {
   // 'failed' = it was expired or already used.)
   const [arrival, setArrival] = useState<'ok' | 'failed' | null>(null);
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  // The browser refused the last write (private mode, storage full).
+  const [storageError, setStorageError] = useState(false);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const notify = useCallback(
+    (text: string, undo?: () => void) => setToast({ id: Date.now(), text, undo }),
+    [],
+  );
+  const clearToast = useCallback(() => setToast(null), []);
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  // Set when state was just adopted FROM storage (another tab wrote it), so
+  // the persist effect doesn't echo it straight back.
+  const adopting = useRef(false);
   const install = useInstallState();
 
   function openData() {
@@ -189,58 +208,86 @@ function SimulatorInner() {
   // mount and overwrites a saved session with the blank default scenario.
   const hydrated = useRef(false);
 
+  /**
+   * Read the saved plan, ledger and preferences from this device and adopt
+   * them. Used once on mount, and again whenever ANOTHER tab or window of the
+   * app writes — otherwise two open windows would silently overwrite each
+   * other. Returns false when nothing is saved. Storage is untrusted input:
+   * everything is validated.
+   */
+  function adoptSaved(first: boolean): boolean {
+    // Ledger first — it's independent of whether a plan was saved.
+    try {
+      const rawLedger = localStorage.getItem(LEDGER_KEY);
+      const parsedLedger = rawLedger ? ledgerSchema.safeParse(JSON.parse(rawLedger)) : null;
+      if (parsedLedger?.success) setLedger(parsedLedger.data);
+      else if (!first && rawLedger === null) setLedger([]);
+    } catch {
+      // Corrupted ledger → keep what we have; never block the plan restore.
+    }
+    // Fall back to the pre-rename key so an existing plan isn't lost;
+    // it's migrated to the current key on the next write.
+    const legacy = first ? localStorage.getItem(LEGACY_STORAGE_KEY) : null;
+    const raw = localStorage.getItem(STORAGE_KEY) ?? legacy;
+    if (!raw) return false;
+    if (legacy !== null) localStorage.removeItem(LEGACY_STORAGE_KEY);
+    const parsed = JSON.parse(raw) as {
+      scenarios?: unknown;
+      selectedId?: unknown;
+      lastBackupAt?: unknown;
+      prefs?: unknown;
+    };
+    if (
+      typeof parsed.lastBackupAt === 'string' &&
+      Number.isFinite(Date.parse(parsed.lastBackupAt))
+    ) {
+      setLastBackupAt(parsed.lastBackupAt.slice(0, 40));
+    }
+    const prefs = (parsed.prefs ?? {}) as { theme?: unknown; fontScale?: unknown; lang?: unknown };
+    if (prefs.theme === 'system' || prefs.theme === 'light' || prefs.theme === 'dark') {
+      setThemePref(prefs.theme);
+    }
+    if (typeof prefs.fontScale === 'number' && prefs.fontScale >= 0.8 && prefs.fontScale <= 1.4) {
+      setFontScale(Math.round(prefs.fontScale * 10) / 10);
+    }
+    // The installed app always opens at "/", so remember the language — but
+    // an explicit ?lang in the address still wins.
+    if (
+      first &&
+      (prefs.lang === 'en' || prefs.lang === 'zh') &&
+      prefs.lang !== locale &&
+      !new URLSearchParams(window.location.search).has('lang')
+    ) {
+      setLocale(prefs.lang);
+    }
+    if (!Array.isArray(parsed.scenarios)) return true;
+    const restored: ComparableScenario[] = [];
+    for (const sc of parsed.scenarios) {
+      const c = sc as { id?: unknown; name?: unknown; assumptions?: unknown };
+      const a = assumptionsSchema.safeParse(c.assumptions);
+      if (a.success && typeof c.id === 'string' && typeof c.name === 'string') {
+        restored.push({ id: c.id, name: c.name.slice(0, 80), assumptions: a.data });
+      }
+    }
+    if (restored.length === 0) return true;
+    setScenarios(restored);
+    setSelectedId(
+      typeof parsed.selectedId === 'string' && restored.some((r) => r.id === parsed.selectedId)
+        ? parsed.selectedId
+        : restored[0]!.id,
+    );
+    setSaveLocal(true);
+    return true;
+  }
+
   // Restore a saved session once, after mount (deferred a tick so the SSR
   // and hydration renders agree; storage is untrusted → validate everything).
   useEffect(() => {
     const id = window.setTimeout(() => {
       try {
-        // Ledger first — it's independent of whether a plan was saved.
-        try {
-          const rawLedger = localStorage.getItem(LEDGER_KEY);
-          const parsedLedger = rawLedger ? ledgerSchema.safeParse(JSON.parse(rawLedger)) : null;
-          if (parsedLedger?.success) setLedger(parsedLedger.data);
-        } catch {
-          // Corrupted ledger → start empty; never block the plan restore.
-        }
-        // Fall back to the pre-rename key so an existing plan isn't lost;
-        // it's migrated to the current key on the next write.
-        const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-        const raw = localStorage.getItem(STORAGE_KEY) ?? legacy;
         // Nothing saved → first visit. Open the guided setup rather than
         // dropping someone into fifty inputs.
-        if (!raw) {
-          setGuiding(true);
-          return;
-        }
-        if (legacy !== null) localStorage.removeItem(LEGACY_STORAGE_KEY);
-        const parsed = JSON.parse(raw) as {
-          scenarios?: unknown;
-          selectedId?: unknown;
-          lastBackupAt?: unknown;
-        };
-        if (
-          typeof parsed.lastBackupAt === 'string' &&
-          Number.isFinite(Date.parse(parsed.lastBackupAt))
-        ) {
-          setLastBackupAt(parsed.lastBackupAt.slice(0, 40));
-        }
-        if (!Array.isArray(parsed.scenarios)) return;
-        const restored: ComparableScenario[] = [];
-        for (const s of parsed.scenarios) {
-          const c = s as { id?: unknown; name?: unknown; assumptions?: unknown };
-          const a = assumptionsSchema.safeParse(c.assumptions);
-          if (a.success && typeof c.id === 'string' && typeof c.name === 'string') {
-            restored.push({ id: c.id, name: c.name.slice(0, 80), assumptions: a.data });
-          }
-        }
-        if (restored.length === 0) return;
-        setScenarios(restored);
-        setSelectedId(
-          typeof parsed.selectedId === 'string' && restored.some((r) => r.id === parsed.selectedId)
-            ? parsed.selectedId
-            : restored[0]!.id,
-        );
-        setSaveLocal(true);
+        if (!adoptSaved(true)) setGuiding(true);
       } catch {
         // Corrupted storage → start clean rather than crash.
       } finally {
@@ -249,22 +296,58 @@ function SimulatorInner() {
       }
     }, 0);
     return () => window.clearTimeout(id);
+    // Runs once on mount by design; adoptSaved only calls state setters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Another tab or window of the app saved: adopt its version (last write
+  // wins, and nobody silently overwrites the other).
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY && e.key !== LEDGER_KEY) return;
+      if (!saveLocal || !hydrated.current) return;
+      try {
+        adopting.current = true;
+        adoptSaved(false);
+        notify(t.track.data.otherTab);
+      } catch {
+        adopting.current = false;
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saveLocal, t]);
 
   // While enabled, mirror every change to localStorage (device-only).
   useEffect(() => {
     if (!saveLocal || !hydrated.current) return;
+    if (adopting.current) {
+      adopting.current = false; // just read from storage — nothing to write
+      return;
+    }
+    let failed = false;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ scenarios, selectedId, lastBackupAt }));
+      const prefs = { theme: themePref, fontScale, lang: locale };
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ scenarios, selectedId, lastBackupAt, prefs }),
+      );
       if (ledger.length > 0) localStorage.setItem(LEDGER_KEY, JSON.stringify(ledger));
       else localStorage.removeItem(LEDGER_KEY);
     } catch {
-      // Storage full/blocked — silently keep running in-memory.
+      // Storage full / blocked (private browsing). Keep running in memory,
+      // but SAY so — silently losing someone's ledger is the worst outcome.
+      failed = true;
     }
-  }, [saveLocal, scenarios, selectedId, ledger, lastBackupAt]);
-  const [fontScale, setFontScale] = useState(1);
+    const id = window.setTimeout(() => setStorageError(failed), 0);
+    return () => window.clearTimeout(id);
+  }, [saveLocal, scenarios, selectedId, ledger, lastBackupAt, themePref, fontScale, locale]);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', theme === 'dark' ? '#0b0b0c' : '#f6f6f7');
   }, [theme]);
   useEffect(() => {
     // `zoom` scales the whole page like browser zoom — reliable given the
@@ -275,14 +358,8 @@ function SimulatorInner() {
   // Progressive disclosure: keep the default view simple; reveal the analysis
   // panels (goal-seek, FIRE, stress) + the asset-mix calculator on demand.
   const [advanced, setAdvanced] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  function flash(msg: string) {
-    setNote(msg);
-    window.setTimeout(() => setNote(null), 2200);
-  }
 
   const current = scenarios.find((s) => s.id === selectedId) ?? scenarios[0]!;
   const assumptions = current.assumptions;
@@ -318,19 +395,39 @@ function SimulatorInner() {
 
   function removeCurrent() {
     if (scenarios.length === 1) return;
+    const before = { scenarios, selectedId };
     // Dropping below 2 makes compare meaningless — return to the editor.
     if (scenarios.length <= 2) setComparing(false);
-    setScenarios((arr) => {
-      const next = arr.filter((s) => s.id !== current.id);
-      // Re-select something that still exists.
-      setSelectedId(next[0]!.id);
-      return next;
+    const next = scenarios.filter((s) => s.id !== current.id);
+    setScenarios(next);
+    // Re-select something that still exists.
+    setSelectedId(next[0]!.id);
+    notify(t.toast.planRemoved(current.name), () => {
+      setScenarios(before.scenarios);
+      setSelectedId(before.selectedId);
+    });
+  }
+
+  /** Replace everything (backup restore, cloud download) — undoable. */
+  function replaceAll(
+    r: { scenarios: ComparableScenario[]; selectedId: string; ledger: MonthEntry[] },
+    text: string,
+  ) {
+    const before = { scenarios, selectedId, ledger };
+    setScenarios(r.scenarios);
+    setSelectedId(r.selectedId);
+    setLedger(r.ledger);
+    setComparing(false);
+    notify(text, () => {
+      setScenarios(before.scenarios);
+      setSelectedId(before.selectedId);
+      setLedger(before.ledger);
     });
   }
 
   function exportCurrent() {
     downloadScenarioJson(current.name, assumptions);
-    flash(t.scenarioBar.downloaded);
+    notify(t.scenarioBar.downloaded);
   }
 
   async function onImportFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -359,7 +456,7 @@ function SimulatorInner() {
       setScenarios((arr) => [...arr, fresh]);
       setSelectedId(fresh.id);
       setComparing(false);
-      flash(t.scenarioBar.imported);
+      notify(t.scenarioBar.imported);
     } catch {
       setImportError(t.scenarioBar.unreadableFile);
     }
@@ -386,6 +483,16 @@ function SimulatorInner() {
   }, [chartEngine, assumptions, volatilityPct]);
 
   const fire = useMemo(() => fireHeadline(assumptions), [assumptions]);
+
+  // Nudge toward a backup file once there's something worth losing: two or
+  // more months logged, no backup in BACKUP_STALE_DAYS, and no cloud account
+  // (signed-in people have the encrypted copy).
+  const backupDays = daysSince(lastBackupAt);
+  const showNudge =
+    !nudgeDismissed &&
+    !accountEmail &&
+    ledger.length >= 2 &&
+    (backupDays === null || backupDays >= BACKUP_STALE_DAYS);
 
   const lastNominal = result?.rows[result.rows.length - 1]?.netWorth ?? 0;
   const lastReal = result?.rows[result.rows.length - 1]?.netWorthRealTodayDollars ?? 0;
@@ -452,38 +559,17 @@ function SimulatorInner() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="display text-2xl">{t.app.title}</h1>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            {/* Font size */}
-            <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
-              <button
-                type="button"
-                aria-label={t.controls.smaller}
-                onClick={() => setFontScale((s) => Math.max(0.8, Math.round((s - 0.1) * 10) / 10))}
-                className="text-muted hover:text-foreground px-2 py-0.5"
-              >
-                A−
-              </button>
-              <button
-                type="button"
-                aria-label={t.controls.larger}
-                onClick={() => setFontScale((s) => Math.min(1.4, Math.round((s + 0.1) * 10) / 10))}
-                className="text-muted hover:text-foreground px-2 py-0.5 text-sm"
-              >
-                A+
-              </button>
-            </div>
-            {/* Theme */}
-            <button
-              type="button"
-              aria-label={theme === 'dark' ? t.controls.lightTheme : t.controls.darkTheme}
-              onClick={() => setTheme((v) => (v === 'dark' ? 'light' : 'dark'))}
-              className="border-border text-muted hover:text-foreground rounded border px-2 py-0.5 text-xs"
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="display flex min-w-0 items-center gap-2.5 text-xl sm:text-2xl">
+            <span
+              aria-hidden
+              className="bg-foreground text-background flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] text-base font-bold"
             >
-              {theme === 'dark' ? '☀' : '☾'}
-            </button>
-            <LangSwitch />
+              W
+            </span>
+            <span className="truncate">{t.app.title}</span>
+          </h1>
+          <div className="flex shrink-0 items-center gap-2">
             {!install.standalone && (install.prompt || install.ios) ? (
               <button type="button" onClick={openData} className="btn btn-sm">
                 {t.install.headerBtn}
@@ -506,6 +592,12 @@ function SimulatorInner() {
                 )}
               </button>
             ) : null}
+            <SettingsMenu
+              theme={themePref}
+              onTheme={setThemePref}
+              fontScale={fontScale}
+              onFontScale={setFontScale}
+            />
           </div>
         </div>
         {/* Phones get the app, not the brochure — the promise is restated in Data. */}
@@ -551,72 +643,90 @@ function SimulatorInner() {
         />
       ) : null}
 
+      {tab === 'track' && showNudge ? (
+        <div className="card card-tight fade-in flex flex-col gap-3 sm:flex-row sm:items-center">
+          <p className="flex min-w-0 flex-1 items-start gap-2.5 text-[13px]">
+            <Icon name="shield" size={16} className="text-accent mt-0.5" />
+            <span>
+              {backupDays === null ? t.nudge.never(ledger.length) : t.nudge.stale(backupDays)}
+            </span>
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => {
+                setLastBackupAt(downloadBackup(scenarios, selectedId, ledger));
+                notify(t.toast.backedUp);
+              }}
+            >
+              <Icon name="download" size={14} />
+              {t.nudge.backUp}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setNudgeDismissed(true)}
+            >
+              {t.nudge.dismiss}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {tab === 'track' ? (
-        <LedgerPanel
-          entries={ledger}
-          onChange={setLedger}
-          assumptions={assumptions}
-          planRows={result?.rows ?? []}
-          fire={fire}
-          onOpenPlan={() => {
-            setTab('plan');
-            window.scrollTo({ top: 0 });
-          }}
-          onCalibrate={(patch) => patchCurrent({ ...assumptions, ...patch })}
-        />
+        <div className="fade-in">
+          <LedgerPanel
+            entries={ledger}
+            onChange={setLedger}
+            assumptions={assumptions}
+            planRows={result?.rows ?? []}
+            fire={fire}
+            onOpenPlan={() => {
+              setTab('plan');
+              window.scrollTo({ top: 0 });
+            }}
+            onCalibrate={(patch) => {
+              const before = assumptions;
+              patchCurrent({ ...assumptions, ...patch });
+              notify(t.toast.calibrated, () => patchCurrent(before));
+            }}
+            notify={notify}
+          />
+        </div>
       ) : null}
 
       {dataMounted ? (
         <div
           className={
-            tab === 'data' ? 'grid grid-cols-1 items-start gap-4 lg:grid-cols-2' : 'hidden'
+            tab === 'data' ? 'fade-in grid grid-cols-1 items-start gap-4 lg:grid-cols-2' : 'hidden'
           }
         >
           <div className="flex flex-col gap-4">
-            <InstallCard state={install} />
-            <section className="card">
-              <label className="flex cursor-pointer items-start justify-between gap-4">
-                <span>
-                  <span className="block text-sm font-medium">{t.track.data.saveLocalHeading}</span>
-                  <span className="text-muted mt-1 block text-xs">
-                    {t.track.data.saveLocalBody}
-                  </span>
-                </span>
-                <input
-                  type="checkbox"
-                  className="mt-1 h-5 w-5 shrink-0"
-                  checked={saveLocal}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSaveLocal(true);
-                    } else {
-                      setSaveLocal(false);
-                      try {
-                        localStorage.removeItem(STORAGE_KEY);
-                        localStorage.removeItem(LEDGER_KEY);
-                      } catch {
-                        // ignore
-                      }
-                    }
-                  }}
-                />
-              </label>
-            </section>
             {/* Long-term use needs a copy the browser can't lose. */}
             <DataCard
               scenarios={scenarios}
               selectedId={selectedId}
               ledger={ledger}
               saveLocal={saveLocal}
+              storageError={storageError}
               lastBackupAt={lastBackupAt}
-              onBackedUp={setLastBackupAt}
-              onRestore={(r) => {
-                setScenarios(r.scenarios);
-                setSelectedId(r.selectedId);
-                setLedger(r.ledger);
-                setComparing(false);
+              onToggleSave={(on) => {
+                setSaveLocal(on);
+                if (!on) {
+                  setStorageError(false);
+                  try {
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(LEDGER_KEY);
+                  } catch {
+                    // ignore
+                  }
+                }
               }}
+              onBackedUp={setLastBackupAt}
+              onRestore={(r) => replaceAll(r, t.toast.restored)}
             />
+            <InstallCard state={install} />
           </div>
           {/* Signing in is what people come here for — first on a phone. */}
           <div className="order-first lg:order-last">
@@ -627,12 +737,7 @@ function SimulatorInner() {
                 ledger={ledger}
                 arrival={arrival}
                 onAuth={setAccountEmail}
-                onRestore={(r) => {
-                  setScenarios(r.scenarios);
-                  setSelectedId(r.selectedId);
-                  setLedger(r.ledger);
-                  setComparing(false);
-                }}
+                onRestore={(r) => replaceAll(r, t.toast.downloaded)}
               />
             ) : null}
           </div>
@@ -640,7 +745,7 @@ function SimulatorInner() {
       ) : null}
 
       {tab === 'plan' ? (
-        <>
+        <div className="fade-in flex flex-col gap-5">
           {/* Scenario bar — pick / name / manage the current scenario. */}
           <section className="card card-tight flex flex-col gap-3">
             <div className="flex items-center gap-2">
@@ -739,7 +844,6 @@ function SimulatorInner() {
                 </div>
               </div>
             ) : null}
-            {note ? <p className="text-positive text-xs">{note}</p> : null}
             {importError ? <p className="text-negative text-xs">{importError}</p> : null}
           </section>
 
@@ -1003,10 +1107,22 @@ function SimulatorInner() {
               </div>
             </>
           )}
-        </>
+        </div>
       ) : null}
 
       <p className="text-muted text-[11px] italic">{t.footer.disclaimer}</p>
+      <Toast toast={toast} onDone={clearToast} />
     </div>
   );
+}
+
+// The OS light/dark setting, read without a hydration mismatch: the server
+// snapshot is dark (the default theme); the client subscribes to changes.
+function subscribeColorScheme(onChange: () => void) {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  mq.addEventListener('change', onChange);
+  return () => mq.removeEventListener('change', onChange);
+}
+function prefersDark() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
