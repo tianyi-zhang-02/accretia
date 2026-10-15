@@ -808,6 +808,33 @@ const en = {
       debt: 'Other loan payments',
       other: 'Everything else',
     },
+    findings: {
+      heading: 'What this month shows',
+      spendingUp: (pct: number, amount: string, usual: string) =>
+        `You spent ${amount} — ${pct}% more than usual (${usual}).`,
+      spendingDown: (pct: number, amount: string, usual: string) =>
+        `You spent ${amount} — ${pct}% less than usual (${usual}).`,
+      categoryJump: (cat: string, amount: string, usual: string) =>
+        `${cat} went up to ${amount} (usually ${usual}).`,
+      categoryDrop: (cat: string, amount: string, usual: string) =>
+        `${cat} came down to ${amount} (usually ${usual}).`,
+      savingsUp: (rate: number, usual: number) =>
+        `You kept ${rate}% of what came in — up from your usual ${usual}%.`,
+      savingsDown: (rate: number, usual: number) =>
+        `You kept ${rate}% of what came in — down from your usual ${usual}%.`,
+      netWorthUp: (change: string, months: number) =>
+        `Net worth is up ${change} since ${months === 1 ? 'last month' : `${months} months ago`}.`,
+      netWorthDown: (change: string, months: number) =>
+        `Net worth is down ${change} since ${months === 1 ? 'last month' : `${months} months ago`}.`,
+      paceAhead: (year: number, projected: string, plan: string) =>
+        `At this pace you’ll keep about ${projected} in ${year} — ahead of the plan’s ${plan}.`,
+      paceBehind: (year: number, projected: string, plan: string) =>
+        `At this pace you’ll keep about ${projected} in ${year} — short of the plan’s ${plan}.`,
+      splurge: (pct: number, amount: string) => `${pct}% of spending (${amount}) went to splurges.`,
+      firstMonth: 'Log next month too, and this card starts comparing.',
+      none: 'Nothing unusual — about the same as your recent months.',
+      note: 'Compared with your own last three months, not with anyone else.',
+    },
     tiers: {
       needs: 'Essentials',
       lifestyle: 'Lifestyle',
@@ -1731,6 +1758,32 @@ const zh: Messages = {
       fun: '娱乐、旅行、购物',
       debt: '其他贷款',
       other: '其他',
+    },
+    findings: {
+      heading: '这个月的发现',
+      spendingUp: (pct: number, amount: string, usual: string) =>
+        `这个月花了 ${amount}，比平时（${usual}）多 ${pct}%。`,
+      spendingDown: (pct: number, amount: string, usual: string) =>
+        `这个月花了 ${amount}，比平时（${usual}）少 ${pct}%。`,
+      categoryJump: (cat: string, amount: string, usual: string) =>
+        `「${cat}」涨到了 ${amount}（平时约 ${usual}）。`,
+      categoryDrop: (cat: string, amount: string, usual: string) =>
+        `「${cat}」降到了 ${amount}（平时约 ${usual}）。`,
+      savingsUp: (rate: number, usual: number) => `进账里存下了 ${rate}%，比平时的 ${usual}% 高。`,
+      savingsDown: (rate: number, usual: number) =>
+        `进账里存下了 ${rate}%，比平时的 ${usual}% 低。`,
+      netWorthUp: (change: string, months: number) =>
+        `净资产比${months === 1 ? '上个月' : ` ${months} 个月前`}多了 ${change}。`,
+      netWorthDown: (change: string, months: number) =>
+        `净资产比${months === 1 ? '上个月' : ` ${months} 个月前`}少了 ${change}。`,
+      paceAhead: (year: number, projected: string, plan: string) =>
+        `照这个节奏，${year} 年能存下约 ${projected}，超过规划的 ${plan}。`,
+      paceBehind: (year: number, projected: string, plan: string) =>
+        `照这个节奏，${year} 年能存下约 ${projected}，比规划的 ${plan} 少。`,
+      splurge: (pct: number, amount: string) => `花销里有 ${pct}%（${amount}）是随性花销。`,
+      firstMonth: '下个月也记一下，这里就会开始做对比。',
+      none: '没什么异常，和最近几个月差不多。',
+      note: '只和你自己最近三个月比，不和任何人比。',
     },
     tiers: {
       needs: '必要开支',

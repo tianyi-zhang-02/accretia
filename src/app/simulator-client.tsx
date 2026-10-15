@@ -262,7 +262,8 @@ function SimulatorInner() {
     ) {
       setLocale(prefs.lang);
     }
-    if (!Array.isArray(parsed.scenarios)) return true;
+    // Preferences alone (no plan yet) still count as a first visit.
+    if (!Array.isArray(parsed.scenarios)) return false;
     const restored: ComparableScenario[] = [];
     for (const sc of parsed.scenarios) {
       const c = sc as { id?: unknown; name?: unknown; assumptions?: unknown };
@@ -271,7 +272,7 @@ function SimulatorInner() {
         restored.push({ id: c.id, name: c.name.slice(0, 80), assumptions: a.data });
       }
     }
-    if (restored.length === 0) return true;
+    if (restored.length === 0) return false;
     setScenarios(restored);
     setSelectedId(
       typeof parsed.selectedId === 'string' && restored.some((r) => r.id === parsed.selectedId)
@@ -289,7 +290,16 @@ function SimulatorInner() {
       try {
         // Nothing saved → first visit. Open the guided setup rather than
         // dropping someone into fifty inputs.
-        if (!adoptSaved(true)) setGuiding(true);
+        if (!adoptSaved(true)) {
+          setGuiding(true);
+          // Opened from a link that chose a language (?lang=zh): remember just
+          // that, so the installed app — which opens at "/" — keeps it. No plan
+          // is written until the person makes one.
+          const lang = new URLSearchParams(window.location.search).get('lang');
+          if ((lang === 'en' || lang === 'zh') && localStorage.getItem(STORAGE_KEY) === null) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ prefs: { lang } }));
+          }
+        }
       } catch {
         // Corrupted storage → start clean rather than crash.
       } finally {

@@ -6,6 +6,27 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### What this month shows
+
+A new card on Track, under *Am I on track?*, reads your latest month against
+**your own** last three months — a few plain sentences, worst news first:
+
+- spending vs usual (*"You spent $6,550 — 57% more than usual ($4,180)"*);
+- the category that jumped, or the one that came down;
+- net worth since the last time you logged it;
+- the pace for the year against the plan (*"…about $74,730 in 2026 — short
+  of the plan's $142,000"*);
+- savings rate vs usual, and a large share of splurges.
+
+Thresholds are deliberately high, so a normal month says *"nothing
+unusual"*. It never compares you with anyone else and gives no advice.
+
+- **Year report:** every category in *Where it went* now has a 12-month
+  sparkline, so a spike month stands out.
+- **Fixed:** opening the app from a `?lang=zh` link on a fresh device now
+  remembers the language (only that — no plan is saved until you make one,
+  and the guided setup still opens).
+
 ### Use it in Claude — a local, end-to-end-encrypted MCP extension
 
 Say *“take-home 11,000, rent 3,200, groceries 600, 401k 1,958”* to Claude
