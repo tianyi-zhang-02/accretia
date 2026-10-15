@@ -39,7 +39,11 @@ describe('MCP server isolation', () => {
   it('only cloud.ts touches the network', () => {
     expect(using(/@supabase\/supabase-js/)).toEqual(['cloud.ts']);
     // The global fetch() — not the Remote interface's .fetch() method or its type signature.
-    expect(using(/(?<![.\w])(?<!async )fetch\((?!\):)|node:https?|node:net|node:dgram|WebSocket|XMLHttpRequest/)).toEqual([]);
+    expect(
+      using(
+        /(?<![.\w])(?<!async )fetch\((?!\):)|node:https?|node:net|node:dgram|WebSocket|XMLHttpRequest/,
+      ),
+    ).toEqual([]);
   });
 
   it('only store.ts touches the filesystem, and only its named files', () => {

@@ -752,6 +752,8 @@ const en = {
         `${n} ${n === 1 ? 'amount that repeats' : 'amounts that repeat'} every month ${n === 1 ? 'was' : 'were'} filled in — change any that differ.`,
       clearCarried: 'Clear them',
       fixedTag: 'repeats',
+      budgetLeft: (budget: string, left: string) => `budget ${budget} · ${left} left`,
+      budgetOver: (budget: string, over: string) => `budget ${budget} · ${over} over`,
       bySourceHide: 'One number',
       sumOfSources: 'The sum of the sources below.',
       sourcesHint: 'Take-home amounts — what actually landed in your account.',
@@ -812,6 +814,18 @@ const en = {
       debt: 'Other loan payments',
       other: 'Everything else',
     },
+    budgets: {
+      heading: 'Monthly budgets',
+      none: 'none set',
+      summary: (n: number, total: string) => `${n} set · ${total} a month`,
+      hint: 'A monthly limit per category. Leave any blank. Shown as you log, in this month’s findings and in the year report — they don’t change your plan’s projection.',
+      usually: (amount: string) => `usually ${amount}`,
+      total: 'Total budgeted',
+      planSays: (amount: string) => `your plan expects about ${amount} a month in all`,
+      fillUsual: 'Fill blanks from your usual',
+      clearAll: 'Clear all',
+      vsBudget: (budget: string) => `budget ${budget}`,
+    },
     findings: {
       heading: 'What this month shows',
       spendingUp: (pct: number, amount: string, usual: string) =>
@@ -836,6 +850,14 @@ const en = {
         `At this pace you’ll keep about ${projected} in ${year} — short of the plan’s ${plan}.`,
       splurge: (pct: number, amount: string) => `${pct}% of spending (${amount}) went to splurges.`,
       firstMonth: 'Log next month too, and this card starts comparing.',
+      overBudget: (n: number, cat: string, over: string) =>
+        n === 1
+          ? `${cat} went ${over} over budget.`
+          : `${n} categories went over budget — most of all ${cat}, by ${over}.`,
+      withinBudget: (n: number) =>
+        n === 1
+          ? 'The budgeted category stayed within budget.'
+          : `All ${n} budgeted categories stayed within budget.`,
       none: 'Nothing unusual — about the same as your recent months.',
       note: 'Compared with your own last three months, not with anyone else.',
     },
@@ -1706,6 +1728,8 @@ const zh: Messages = {
       carried: (n: number) => `已带入 ${n} 项每月固定的金额（和前两个月一样），不一样的直接改。`,
       clearCarried: '全部清空',
       fixedTag: '固定',
+      budgetLeft: (budget: string, left: string) => `预算 ${budget} · 还剩 ${left}`,
+      budgetOver: (budget: string, over: string) => `预算 ${budget} · 超了 ${over}`,
       bySourceHide: '只填一个数',
       sumOfSources: '这是下面各来源的合计。',
       sourcesHint: '填到手的金额，也就是真正进到账户里的钱。',
@@ -1766,6 +1790,18 @@ const zh: Messages = {
       debt: '其他贷款',
       other: '其他',
     },
+    budgets: {
+      heading: '每月预算',
+      none: '还没设',
+      summary: (n: number, total: string) => `已设 ${n} 类 · 每月 ${total}`,
+      hint: '给每个分类设一个月度上限，不想设的空着就行。记账时、「这个月的发现」和年度报表里都会对照显示，不会改动规划的推算。',
+      usually: (amount: string) => `平时约 ${amount}`,
+      total: '预算合计',
+      planSays: (amount: string) => `规划里每月总开支约 ${amount}`,
+      fillUsual: '空着的按平时填',
+      clearAll: '全部清空',
+      vsBudget: (budget: string) => `预算 ${budget}`,
+    },
     findings: {
       heading: '这个月的发现',
       spendingUp: (pct: number, amount: string, usual: string) =>
@@ -1789,6 +1825,12 @@ const zh: Messages = {
         `照这个节奏，${year} 年能存下约 ${projected}，比规划的 ${plan} 少。`,
       splurge: (pct: number, amount: string) => `花销里有 ${pct}%（${amount}）是随性花销。`,
       firstMonth: '下个月也记一下，这里就会开始做对比。',
+      overBudget: (n: number, cat: string, over: string) =>
+        n === 1
+          ? `「${cat}」超预算 ${over}。`
+          : `有 ${n} 类超了预算，超得最多的是「${cat}」，超了 ${over}。`,
+      withinBudget: (n: number) =>
+        n === 1 ? '设了预算的那一类没超。' : `设了预算的 ${n} 类都没超。`,
       none: '没什么异常，和最近几个月差不多。',
       note: '只和你自己最近三个月比，不和任何人比。',
     },

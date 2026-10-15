@@ -16,7 +16,12 @@ import { ledgerSchema, type MonthEntry } from '@/lib/ledger/ledger';
 import { assumptionsSchema, type Assumptions } from '@/lib/validation/scenarios';
 
 export const BACKUP_APP = 'work-optional';
-export const BACKUP_VERSION = 1;
+/**
+ * v2 (2026-10): plans may carry `monthlyBudgets`. Bumped so an older build
+ * — a cached app, an old Claude extension — refuses the file instead of
+ * reading it and silently dropping the budgets on its next save.
+ */
+export const BACKUP_VERSION = 2;
 const MAX_BYTES = 2_000_000;
 const MAX_SCENARIOS = 50;
 

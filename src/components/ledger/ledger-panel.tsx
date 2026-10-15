@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n/locale';
 import {
   calibrationPatch,
+  planAt,
   categoryBreakdown,
   incomeBreakdown,
   totalSaved,
@@ -26,6 +27,9 @@ import type { Assumptions } from '@/lib/validation/scenarios';
 import Icon, { SectionLabel } from '../ui/icon';
 import { categoryByMonth } from '@/lib/ledger/insights';
 
+import { yearBudget, type Budgets } from '@/lib/ledger/budgets';
+
+import BudgetCard from './budget-card';
 import MonthCheckIn, { TierBar } from './month-check-in';
 import TrackStatus from './track-status';
 
@@ -105,6 +109,7 @@ export default function LedgerPanel({
   onOpenPlan,
   onCalibrate,
   notify,
+  onBudgets,
 }: {
   entries: MonthEntry[];
   onChange: (next: MonthEntry[]) => void;
@@ -115,6 +120,8 @@ export default function LedgerPanel({
   onCalibrate: (patch: Partial<Assumptions>) => void;
   /** Show a toast; `undo` puts things back the way they were. */
   notify: (text: string, undo?: () => void) => void;
+  /** Save the plan's monthly budgets. */
+  onBudgets: (next: Budgets) => void;
 }) {
   const { t, fmt, locale } = useI18n();
   const L = t.ledger;
@@ -141,6 +148,14 @@ export default function LedgerPanel({
   const report = useMemo(() => yearReport(entries, year, planRows), [entries, year, planRows]);
   const breakdown = useMemo(() => categoryBreakdown(entries, year), [entries, year]);
   const sources = useMemo(() => incomeBreakdown(entries, year), [entries, year]);
+  const budgets: Budgets = useMemo(
+    () => assumptions.monthlyBudgets ?? {},
+    [assumptions.monthlyBudgets],
+  );
+  const yearBudgets = useMemo(() => {
+    const y = yearBudget(entries, year, budgets);
+    return new Map((y?.lines ?? []).map((l) => [l.id, l]));
+  }, [entries, year, budgets]);
   const kinds = useMemo(() => yearTierTotals(entries, year), [entries, year]);
   const saved = useMemo(() => totalSaved(entries, year), [entries, year]);
   const patch = useMemo(
@@ -195,28 +210,41 @@ export default function LedgerPanel({
   return (
     <section className="flex flex-col gap-4">
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[3fr_2fr]">
-        <MonthCheckIn
-          entries={entries}
-          sel={sel}
-          today={today}
-          planRows={planRows}
-          startingNetWorth={assumptions.startingNetWorth}
-          onSelect={select}
-          onSave={(e) => {
-            onChange(upsert(entries, e));
-            setPicked({ year: e.year, month: e.month });
-          }}
-          onClear={(ym) => {
-            const before = entries;
-            onChange(remove(entries, ym.year, ym.month));
-            const label = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
-              month: 'long',
-              year: 'numeric',
-            }).format(new Date(ym.year, ym.month - 1, 1));
-            notify(t.toast.monthCleared(label), () => onChange(before));
-          }}
-        />
+        <div className="flex flex-col gap-4">
+          <MonthCheckIn
+            budgets={budgets}
+            entries={entries}
+            sel={sel}
+            today={today}
+            planRows={planRows}
+            startingNetWorth={assumptions.startingNetWorth}
+            onSelect={select}
+            onSave={(e) => {
+              onChange(upsert(entries, e));
+              setPicked({ year: e.year, month: e.month });
+            }}
+            onClear={(ym) => {
+              const before = entries;
+              onChange(remove(entries, ym.year, ym.month));
+              const label = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
+                month: 'long',
+                year: 'numeric',
+              }).format(new Date(ym.year, ym.month - 1, 1));
+              notify(t.toast.monthCleared(label), () => onChange(before));
+            }}
+          />
+          <BudgetCard
+            budgets={budgets}
+            entries={entries}
+            today={today}
+            planMonthlySpending={
+              planAt(planRows, assumptions.startingNetWorth, today)?.monthlySpending ?? null
+            }
+            onChange={onBudgets}
+          />
+        </div>
         <TrackStatus
+          budgets={budgets}
           entries={entries}
           report={report}
           planRows={planRows}
@@ -374,6 +402,19 @@ export default function LedgerPanel({
                           <span className="text-muted text-[11px]">
                             {' '}
                             · {fmt.pct0(r.sharePct)} · {L.perMonth(fmt.currency0(r.monthlyAvg))}
+                            {yearBudgets.get(r.id) ? (
+                              <span
+                                className={
+                                  yearBudgets.get(r.id)!.over ? 'text-negative' : 'text-positive'
+                                }
+                              >
+                                {' '}
+                                ·{' '}
+                                {t.track.budgets.vsBudget(
+                                  fmt.currency0(yearBudgets.get(r.id)!.budget),
+                                )}
+                              </span>
+                            ) : null}
                           </span>
                         </span>
                       </div>

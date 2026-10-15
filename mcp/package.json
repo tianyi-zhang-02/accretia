@@ -1,6 +1,6 @@
 {
   "name": "work-optional-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Work Optional for Claude: log your month in plain words and check whether you're on track. Encrypted on your machine; syncs end-to-end with the Work Optional app.",
   "type": "module",

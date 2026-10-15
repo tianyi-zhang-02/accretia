@@ -6,6 +6,27 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Budgets per category
+
+- **Set a monthly budget for any category** — food 800, fun 300 — from a new
+  *Monthly budgets* card on Track. Leave the rest blank. **Fill blanks from
+  your usual** proposes the average of your last three months logged by
+  category, rounded to $10, and the total is shown next to what your plan
+  expects you to spend a month.
+- **See it as you log:** each budgeted category says what's left, or how far
+  over it went, in red.
+- **What this month shows** leads with the category furthest over budget
+  (and how many are over), or says everything stayed within.
+- **Year report:** each category with a budget is compared with the budget
+  for the months you logged by category.
+- Budgets live on the plan, so they ride along in backups and the encrypted
+  sync; they never change the projection. The backup format is now
+  **version 2**, so an older copy of the app refuses a file with budgets
+  instead of quietly dropping them. Older backups still restore.
+- **Claude extension 0.3.0:** `set_budgets` (“set my food budget to 800”),
+  and logging a month or asking for a year report now mentions what went
+  over budget.
+
 ### Fixed bills fill themselves in
 
 - **A new month starts with what repeats.** Rent, insurance, a car payment,

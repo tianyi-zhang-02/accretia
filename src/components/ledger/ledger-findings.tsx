@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 
 import { useI18n } from '@/lib/i18n/locale';
 import { ledgerInsights, type LedgerInsight } from '@/lib/ledger/insights';
+import type { Budgets } from '@/lib/ledger/budgets';
 import type { MonthEntry } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
 
@@ -16,13 +17,18 @@ import { SectionLabel } from '../ui/icon';
 export default function LedgerFindings({
   entries,
   planRows,
+  budgets,
 }: {
   entries: MonthEntry[];
   planRows: YearRow[];
+  budgets: Budgets;
 }) {
   const { t, fmt, locale } = useI18n();
   const F = t.track.findings;
-  const { focus, insights } = useMemo(() => ledgerInsights(entries, planRows), [entries, planRows]);
+  const { focus, insights } = useMemo(
+    () => ledgerInsights(entries, planRows, 4, budgets),
+    [entries, planRows, budgets],
+  );
   if (!focus) return null;
 
   const month = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
@@ -55,6 +61,10 @@ export default function LedgerFindings({
           : F.paceBehind(i.year, c(i.projected), c(i.plan));
       case 'splurgeShare':
         return F.splurge(i.pct, c(i.amount));
+      case 'overBudget':
+        return F.overBudget(i.count, t.track.categories[i.category], c(i.over));
+      case 'withinBudget':
+        return F.withinBudget(i.count);
       case 'firstMonth':
         return F.firstMonth;
     }
