@@ -6,6 +6,30 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### The budget-sheet breakdown: where it came from, what kind, what you kept
+
+Modelled on a good personal budget sheet (income → take-home → essentials /
+lifestyle / splurges → savings). All optional; a month logged the old way is
+unchanged.
+
+- **Income by source.** "Split by source" under Money in: salary, bonus, side
+  hustle, investment income (dividends), interest, other — take-home amounts.
+  Money in becomes their sum.
+- **Three kinds of spending.** Every line item is an essential (rent,
+  groceries, bills, insurance, loans), lifestyle (eating out, travel, gym,
+  clothes, coffee) or splurge (fun money, bars, Ubers) — marked with a dot,
+  and summed in a three-way bar under the spending total as you type.
+  New line items from the sheet: coffee, bars & alcohol, Uber/Lyft (split
+  from public transit), hair & skincare, laundry.
+- **401(k) / pre-tax savings.** Money taken from the paycheck before
+  take-home is invisible in income − spending; log it and the month says
+  "+ $1,958 pre-tax = $10,338 saved in total".
+- **Year report** gains *Where it came from*, *What kind of spending*, and
+  *What you kept* (left over from take-home + pre-tax, savings rate over
+  everything that came in).
+- CSV: `pretax_savings` and `income.salary` … columns (Chinese headers work);
+  the full template includes them, labelled.
+
 ### Feel, flow and keeping your data safe
 
 **Look**

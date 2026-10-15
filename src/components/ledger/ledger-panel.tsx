@@ -6,6 +6,9 @@ import { useI18n } from '@/lib/i18n/locale';
 import {
   calibrationPatch,
   categoryBreakdown,
+  incomeBreakdown,
+  totalSaved,
+  yearTierTotals,
   checkInTarget,
   isAfter,
   parseLedgerCsv,
@@ -21,7 +24,7 @@ import type { YearRow } from '@/lib/simulator/engine';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
 import Icon, { SectionLabel } from '../ui/icon';
-import MonthCheckIn from './month-check-in';
+import MonthCheckIn, { TierBar } from './month-check-in';
 import TrackStatus from './track-status';
 
 /**
@@ -135,6 +138,9 @@ export default function LedgerPanel({
 
   const report = useMemo(() => yearReport(entries, year, planRows), [entries, year, planRows]);
   const breakdown = useMemo(() => categoryBreakdown(entries, year), [entries, year]);
+  const sources = useMemo(() => incomeBreakdown(entries, year), [entries, year]);
+  const kinds = useMemo(() => yearTierTotals(entries, year), [entries, year]);
+  const saved = useMemo(() => totalSaved(entries, year), [entries, year]);
   const patch = useMemo(
     () => calibrationPatch(report, entries, assumptions),
     [report, entries, assumptions],
@@ -314,6 +320,44 @@ export default function LedgerPanel({
               ))}
             </ul>
 
+            {/* Where it came from — only when some month was split by source. */}
+            {sources ? (
+              <>
+                <p className="eyebrow mt-5 mb-2">{L.bySource}</p>
+                <ul className="rows">
+                  {sources.rows.map((r) => (
+                    <li key={r.id} className="row items-center">
+                      <span className="text-[13px]">{t.track.incomeSources[r.id]}</span>
+                      <span className="nums text-[13px]">
+                        <span className="font-medium">{fmt.currency0(r.total)}</span>
+                        <span className="text-muted text-[11px]"> · {fmt.pct0(r.sharePct)}</span>
+                      </span>
+                    </li>
+                  ))}
+                  {sources.unsourced > 0 ? (
+                    <li className="row text-muted items-center text-xs">
+                      <span>{L.unsourced}</span>
+                      <span className="nums">{fmt.currency0(sources.unsourced)}</span>
+                    </li>
+                  ) : null}
+                </ul>
+              </>
+            ) : null}
+
+            {/* What kind of spending — essentials / lifestyle / splurges. */}
+            {kinds ? (
+              <>
+                <p className="eyebrow mt-5 mb-2">{L.byKind}</p>
+                <TierBar tiers={kinds} total={kinds.needs + kinds.lifestyle + kinds.splurge} />
+                {kinds.unsorted > 0 ? (
+                  <p className="text-muted mt-1.5 flex justify-between text-xs">
+                    <span>{t.track.tiers.unsorted}</span>
+                    <span className="nums">{fmt.currency0(kinds.unsorted)}</span>
+                  </p>
+                ) : null}
+              </>
+            ) : null}
+
             {/* Where it went — only for people who log by category. */}
             {breakdown ? (
               <>
@@ -366,6 +410,37 @@ export default function LedgerPanel({
                       <span className="nums">{fmt.currency0(breakdown.uncategorized)}</span>
                     </li>
                   ) : null}
+                </ul>
+              </>
+            ) : null}
+
+            {/* What was really saved: take-home left over + pre-tax savings. */}
+            {saved.pretax > 0 ? (
+              <>
+                <p className="eyebrow mt-5 mb-1">{L.savingsHeading}</p>
+                <ul className="rows">
+                  <li className="row items-center">
+                    <span className="text-[13px]">{L.keptAfterTax}</span>
+                    <span className="nums text-[13px]">{fmt.currency0(saved.kept)}</span>
+                  </li>
+                  <li className="row items-center">
+                    <span className="text-[13px]">{L.pretaxSaved}</span>
+                    <span className="nums text-[13px]">{fmt.currency0(saved.pretax)}</span>
+                  </li>
+                  <li className="row items-center">
+                    <span className="text-[13px] font-medium">{L.totalSavedRow}</span>
+                    <span className="nums text-right text-[13px]">
+                      <span className="text-positive font-medium">
+                        {fmt.currency0(saved.total)}
+                      </span>
+                      {saved.savingsRatePct !== null ? (
+                        <span className="text-muted text-[11px]">
+                          {' '}
+                          · {fmt.pct0(saved.savingsRatePct)} {L.savedRateOfAll}
+                        </span>
+                      ) : null}
+                    </span>
+                  </li>
                 </ul>
               </>
             ) : null}
@@ -531,7 +606,14 @@ export default function LedgerPanel({
               onClick={() =>
                 download(
                   `ledger-template-${year}-full.csv`,
-                  templateCsv(year, 'full', { ...t.track.categories, ...t.track.subcategories }),
+                  templateCsv(year, 'full', {
+                    ...t.track.categories,
+                    ...t.track.subcategories,
+                    ...Object.fromEntries(
+                      Object.entries(t.track.incomeSources).map(([id, l]) => [`income.${id}`, l]),
+                    ),
+                    pretax_savings: t.track.checkIn.pretax,
+                  }),
                 )
               }
             >

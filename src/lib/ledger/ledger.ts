@@ -46,14 +46,14 @@ export type Categories = Partial<Record<CategoryId, number>>;
 export const SUBCATEGORIES = {
   housing: ['mortgage', 'rent', 'propertyTax', 'hoa', 'maintenance'],
   utilities: ['energy', 'water', 'internet', 'phone'],
-  food: ['groceries', 'dining'],
-  transport: ['carPayment', 'fuel', 'transit', 'parking', 'carMaintenance'],
+  food: ['groceries', 'dining', 'coffee'],
+  transport: ['carPayment', 'fuel', 'transit', 'parking', 'carMaintenance', 'rideshare'],
   insurance: ['health', 'auto', 'home', 'life', 'other'],
   health: ['medical', 'pharmacy', 'dental', 'fitness'],
   family: ['childcare', 'tuition', 'activities', 'support'],
-  fun: ['travel', 'entertainment', 'shopping', 'subscriptions', 'gifts'],
+  fun: ['travel', 'entertainment', 'shopping', 'subscriptions', 'gifts', 'alcohol'],
   debt: ['studentLoan', 'creditCard', 'personalLoan'],
-  other: ['pets', 'donations', 'taxes', 'fees', 'misc'],
+  other: ['pets', 'donations', 'taxes', 'fees', 'personalCare', 'laundry', 'misc'],
 } as const satisfies Record<CategoryId, readonly string[]>;
 
 export type SubId = {
@@ -65,10 +65,72 @@ export const subsOf = (c: CategoryId): SubId[] =>
   SUBCATEGORIES[c].map((item) => `${c}.${item}` as SubId);
 export const SUB_IDS: SubId[] = CATEGORY_IDS.flatMap(subsOf);
 
+export const tierOf = (id: SubId): TierId =>
+  ITEM_TIER[id] ?? CATEGORY_TIER[id.split('.')[0] as CategoryId];
+export const categoryTier = (c: CategoryId): TierId => CATEGORY_TIER[c];
+
+// ---------- Three kinds of spending ----------
+
+/**
+ * Every line item is also one of three KINDS of spending — the split a good
+ * budget sheet makes: what you must pay (essentials), what makes life nicer
+ * (lifestyle), and what you could stop tomorrow (splurges). Categories say
+ * WHAT the money bought; tiers say how optional it was.
+ */
+export const TIER_IDS = ['needs', 'lifestyle', 'splurge'] as const;
+export type TierId = (typeof TIER_IDS)[number];
+
+/** Where an un-itemized category amount is counted. */
+const CATEGORY_TIER: Record<CategoryId, TierId> = {
+  housing: 'needs',
+  utilities: 'needs',
+  food: 'needs',
+  transport: 'needs',
+  insurance: 'needs',
+  health: 'needs',
+  family: 'needs',
+  fun: 'lifestyle',
+  debt: 'needs',
+  other: 'lifestyle',
+};
+
+/** Line items that differ from their category's tier. */
+const ITEM_TIER: Partial<Record<string, TierId>> = {
+  'food.dining': 'lifestyle',
+  'food.coffee': 'lifestyle',
+  'transport.rideshare': 'splurge',
+  'health.fitness': 'lifestyle',
+  'family.activities': 'lifestyle',
+  'fun.entertainment': 'splurge',
+  'fun.alcohol': 'splurge',
+  'other.pets': 'needs',
+  'other.taxes': 'needs',
+  'other.fees': 'needs',
+  'other.laundry': 'needs',
+  'other.misc': 'splurge',
+};
+
+// ---------- Income sources ----------
+
+/** Where take-home money came from. Optional, like the spending breakdown. */
+export const INCOME_SOURCE_IDS = [
+  'salary',
+  'bonus',
+  'sideHustle',
+  'investment',
+  'interest',
+  'other',
+] as const;
+export type IncomeSourceId = (typeof INCOME_SOURCE_IDS)[number];
+export type IncomeSources = Partial<Record<IncomeSourceId, number>>;
+
 const money = z.number().min(0).max(MONEY_CAP);
 const categoriesSchema = z
   .object(Object.fromEntries(CATEGORY_IDS.map((id) => [id, money.optional()])))
   .strict() as z.ZodType<Categories>;
+const incomeSourcesSchema = z
+  .object(Object.fromEntries(INCOME_SOURCE_IDS.map((id) => [id, money.optional()])))
+  .strict() as z.ZodType<IncomeSources>;
 const breakdownSchema = z
   .object(Object.fromEntries(SUB_IDS.map((id) => [id, money.optional()])))
   .strict() as z.ZodType<Breakdown>;
@@ -94,9 +156,38 @@ export function subTotal(b: Breakdown | undefined, c: CategoryId): number {
  *   spending, with categories   = the sum of the categories.
  * Empty / all-zero values vanish at both levels.
  */
-function normalize<T extends { spending: number; categories?: Categories; breakdown?: Breakdown }>(
-  e: T,
-): T {
+function normalize<
+  T extends {
+    income: number;
+    spending: number;
+    categories?: Categories;
+    breakdown?: Breakdown;
+    incomeSources?: IncomeSources;
+    pretaxSavings?: number;
+  },
+>(input: T): T {
+  // Income side: with sources, `income` IS their sum. Zeros vanish.
+  let e = input;
+  if (e.incomeSources) {
+    const src: IncomeSources = {};
+    for (const id of INCOME_SOURCE_IDS) {
+      const v = e.incomeSources[id];
+      if (v !== undefined && v > 0) src[id] = v;
+    }
+    const { incomeSources: _s, ...rest } = e;
+    void _s;
+    const sum = round2(INCOME_SOURCE_IDS.reduce((t, id) => t + (src[id] ?? 0), 0));
+    e = (
+      Object.keys(src).length
+        ? { ...rest, incomeSources: src, income: Math.min(MONEY_CAP, sum) }
+        : rest
+    ) as T;
+  }
+  if (e.pretaxSavings !== undefined && !(e.pretaxSavings > 0)) {
+    const { pretaxSavings: _p, ...rest } = e;
+    void _p;
+    e = rest as T;
+  }
   if (!e.categories && !e.breakdown) return e;
   const items: Breakdown = {};
   for (const id of SUB_IDS) {
@@ -135,6 +226,13 @@ export const monthEntrySchema = z
     categories: categoriesSchema.optional(),
     /** Optional line items inside categories; a category with items is their sum. */
     breakdown: breakdownSchema.optional(),
+    /** Optional split of `income` by source; with sources, income is their sum. */
+    incomeSources: incomeSourcesSchema.optional(),
+    /**
+     * Saved straight out of the paycheck BEFORE it reached take-home — 401(k),
+     * HSA, ESPP. Invisible in income − spending, so it's recorded on its own.
+     */
+    pretaxSavings: money.optional(),
   })
   .transform(normalize);
 export type MonthEntry = z.infer<typeof monthEntrySchema>;
@@ -178,6 +276,21 @@ const HEADERS: Record<string, keyof MonthEntry> = {
   networth: 'netWorth',
   'net worth': 'netWorth',
   净资产: 'netWorth',
+  pretax_savings: 'pretaxSavings',
+  '401k': 'pretaxSavings',
+  税前储蓄: 'pretaxSavings',
+};
+
+/** Income-source columns: `income.salary` (by id) or a Chinese name. */
+const SOURCE_HEADERS: Record<string, IncomeSourceId> = {
+  ...Object.fromEntries(INCOME_SOURCE_IDS.map((id) => [`income.${id.toLowerCase()}`, id])),
+  工资: 'salary',
+  奖金: 'bonus',
+  副业: 'sideHustle',
+  投资收益: 'investment',
+  分红: 'investment',
+  利息: 'interest',
+  其他收入: 'other',
 };
 
 /** Line-item columns are matched by id (case-insensitively). */
@@ -272,10 +385,14 @@ export function parseLedgerCsv(text: string): CsvResult {
   const subCols = headerCells
     .map((h, idx) => ({ id: SUB_HEADERS[h] ?? SUB_HEADERS[lead(h)], idx }))
     .filter((c): c is { id: SubId; idx: number } => c.id !== undefined);
+  const srcCols = headerCells
+    .map((h, idx) => ({ id: SOURCE_HEADERS[h] ?? SOURCE_HEADERS[lead(h)], idx }))
+    .filter((c): c is { id: IncomeSourceId; idx: number } => c.id !== undefined);
   const at = (f: keyof MonthEntry) => cols.indexOf(f);
   // A detailed file may leave out `spending` — the categories add up to it.
   const hasSpending = at('spending') >= 0 || catCols.length > 0 || subCols.length > 0;
-  if (at('year') < 0 || at('month') < 0 || at('income') < 0 || !hasSpending) {
+  const hasIncome = at('income') >= 0 || srcCols.length > 0;
+  if (at('year') < 0 || at('month') < 0 || !hasIncome || !hasSpending) {
     return { entries: [], errors: [], fatal: 'noHeader' };
   }
 
@@ -285,7 +402,9 @@ export function parseLedgerCsv(text: string): CsvResult {
     const raw = lines[i]!;
     if (raw.trim() === '') continue;
     const cells = splitLine(raw);
-    const income = cells[at('income')] ?? '';
+    const income = at('income') >= 0 ? (cells[at('income')] ?? '') : '';
+    const srcCells = srcCols.map((c) => ({ id: c.id, cell: cells[c.idx] ?? '' }));
+    const ptCell = at('pretaxSavings') >= 0 ? (cells[at('pretaxSavings')] ?? '') : '';
     const spending = at('spending') >= 0 ? (cells[at('spending')] ?? '') : '';
     const nwCell = at('netWorth') >= 0 ? (cells[at('netWorth')] ?? '') : '';
     const catCells = catCols.map((c) => ({ id: c.id, cell: cells[c.idx] ?? '' }));
@@ -296,7 +415,9 @@ export function parseLedgerCsv(text: string): CsvResult {
       spending === '' &&
       nwCell === '' &&
       catCells.every((c) => c.cell === '') &&
-      subCells.every((c) => c.cell === '')
+      subCells.every((c) => c.cell === '') &&
+      srcCells.every((c) => c.cell === '') &&
+      ptCell === ''
     )
       continue;
 
@@ -321,6 +442,15 @@ export function parseLedgerCsv(text: string): CsvResult {
       if (n === null || n < 0) badCategory = true;
       else breakdown[c.id] = n;
     }
+    const incomeSources: IncomeSources = {};
+    for (const c of srcCells) {
+      if (c.cell === '') continue;
+      const n = cellToNumber(c.cell);
+      if (n === null || n < 0) badCategory = true;
+      else incomeSources[c.id] = (incomeSources[c.id] ?? 0) + n;
+    }
+    const pretax = ptCell === '' ? undefined : cellToNumber(ptCell);
+    if (pretax === null) badCategory = true;
     if (
       year === null ||
       month === null ||
@@ -340,6 +470,8 @@ export function parseLedgerCsv(text: string): CsvResult {
       ...(nw === undefined ? {} : { netWorth: nw }),
       ...(Object.keys(categories).length ? { categories } : {}),
       ...(Object.keys(breakdown).length ? { breakdown } : {}),
+      ...(Object.keys(incomeSources).length ? { incomeSources } : {}),
+      ...(typeof pretax === 'number' ? { pretaxSavings: pretax } : {}),
     });
     if (!parsed.success) {
       errors.push({ line: i + 1, reason: 'range' });
@@ -356,15 +488,19 @@ const HEADER_ROW = 'year,month,income,spending,net_worth';
 export type CsvDetail = 'simple' | 'category' | 'full';
 
 /** Labels make the header readable — "housing.hoa (HOA fees)". Ids stay the key. */
-export type CsvLabels = Partial<Record<CategoryId | SubId, string>>;
+export type CsvLabels = Partial<Record<string, string>>;
 
-function headerRow(detail: CsvDetail, labels?: CsvLabels): string {
-  const cell = (id: CategoryId | SubId) => {
+const SOURCE_COLS = INCOME_SOURCE_IDS.map((id) => `income.${id}`);
+
+function headerRow(detail: CsvDetail, labels?: CsvLabels, withIncome = false): string {
+  const cell = (id: string) => {
     const label = labels?.[id]?.replace(/[",()（）\r\n]/g, ' ').trim();
     return label ? `${id} (${label})` : id;
   };
   return [
     HEADER_ROW,
+    // Income detail: pre-tax savings, then where take-home came from.
+    ...(withIncome ? [cell('pretax_savings'), ...SOURCE_COLS.map(cell)] : []),
     ...(detail === 'simple' ? [] : CATEGORY_IDS.map(cell)),
     ...(detail === 'full' ? SUB_IDS.map(cell) : []),
   ].join(',');
@@ -380,6 +516,7 @@ export function toCsv(entries: MonthEntry[]): string {
     : entries.some((e) => e.categories)
       ? 'category'
       : 'simple';
+  const withIncome = entries.some((e) => e.incomeSources || e.pretaxSavings !== undefined);
   const rows = entries.map((e) =>
     [
       e.year,
@@ -387,11 +524,14 @@ export function toCsv(entries: MonthEntry[]): string {
       e.income,
       e.spending,
       e.netWorth ?? '',
+      ...(withIncome
+        ? [e.pretaxSavings ?? '', ...INCOME_SOURCE_IDS.map((id) => e.incomeSources?.[id] ?? '')]
+        : []),
       ...(detail === 'simple' ? [] : CATEGORY_IDS.map((id) => e.categories?.[id] ?? '')),
       ...(detail === 'full' ? SUB_IDS.map((id) => e.breakdown?.[id] ?? '') : []),
     ].join(','),
   );
-  return [headerRow(detail), ...rows].join('\n') + '\n';
+  return [headerRow(detail, undefined, withIncome), ...rows].join('\n') + '\n';
 }
 
 /**
@@ -405,7 +545,8 @@ export function templateCsv(
   labels?: CsvLabels,
 ): string {
   const level: CsvDetail = detail === true ? 'category' : detail === false ? 'simple' : detail;
-  const header = headerRow(level, labels);
+  // The full template carries every column, income detail included.
+  const header = headerRow(level, labels, level === 'full');
   const blanks = ','.repeat(header.split(',').length - 2);
   const rows = Array.from({ length: 12 }, (_, i) => `${year},${i + 1}${blanks}`);
   return [header, ...rows].join('\n') + '\n';
@@ -662,4 +803,91 @@ export function categoryBreakdown(entries: MonthEntry[], year: number): Category
 export function prefersDetail(entries: MonthEntry[], ym: YearMonth): boolean {
   const prior = entries.filter((e) => key(e) < key(ym)).at(-1);
   return Boolean(prior?.categories);
+}
+
+// ---------- Budget-sheet view: where it came from, what kind, what was kept ----------
+
+export type IncomeBreakdown = {
+  rows: Array<{ id: IncomeSourceId; total: number; sharePct: number }>;
+  /** Income from months logged as a single number. */
+  unsourced: number;
+};
+
+/** Where the year's take-home came from. Null when no month that year has sources. */
+export function incomeBreakdown(entries: MonthEntry[], year: number): IncomeBreakdown | null {
+  const inYear = entries.filter((e) => e.year === year);
+  if (!inYear.some((e) => e.incomeSources)) return null;
+  const total = inYear.reduce((t, e) => t + e.income, 0);
+  const rows = INCOME_SOURCE_IDS.map((id) => {
+    const sum = round2(inYear.reduce((t, e) => t + (e.incomeSources?.[id] ?? 0), 0));
+    return { id, total: sum, sharePct: total > 0 ? (sum / total) * 100 : 0 };
+  })
+    .filter((r) => r.total > 0)
+    .sort((a, b) => b.total - a.total);
+  return {
+    rows,
+    unsourced: round2(inYear.filter((e) => !e.incomeSources).reduce((t, e) => t + e.income, 0)),
+  };
+}
+
+export type TierTotals = Record<TierId, number> & {
+  /** Spending logged as a single total — kind unknown. */
+  unsorted: number;
+};
+
+/** One month's spending by kind: essentials / lifestyle / splurges. */
+export function tierTotals(e: MonthEntry): TierTotals {
+  const out: TierTotals = { needs: 0, lifestyle: 0, splurge: 0, unsorted: 0 };
+  if (!e.categories) {
+    out.unsorted = e.spending;
+    return out;
+  }
+  for (const c of CATEGORY_IDS) {
+    const catTotal = e.categories[c] ?? 0;
+    if (catTotal <= 0) continue;
+    let itemized = 0;
+    for (const id of subsOf(c)) {
+      const v = e.breakdown?.[id] ?? 0;
+      if (v > 0) {
+        out[tierOf(id)] += v;
+        itemized += v;
+      }
+    }
+    // Whatever wasn't itemized counts under the category's own kind.
+    const rest = catTotal - itemized;
+    if (rest > 0.004) out[CATEGORY_TIER[c]] += rest;
+  }
+  for (const k of [...TIER_IDS, 'unsorted'] as const) out[k] = round2(out[k]);
+  return out;
+}
+
+/** The same, summed over a year. */
+export function yearTierTotals(entries: MonthEntry[], year: number): TierTotals | null {
+  const inYear = entries.filter((e) => e.year === year);
+  if (!inYear.some((e) => e.categories)) return null;
+  const out: TierTotals = { needs: 0, lifestyle: 0, splurge: 0, unsorted: 0 };
+  for (const e of inYear) {
+    const t = tierTotals(e);
+    for (const k of [...TIER_IDS, 'unsorted'] as const) out[k] += t[k];
+  }
+  for (const k of [...TIER_IDS, 'unsorted'] as const) out[k] = round2(out[k]);
+  return out;
+}
+
+/**
+ * What was really saved: take-home minus spending, PLUS what left the
+ * paycheck before take-home (401(k), HSA). `savingsRatePct` is of the total
+ * that came in (take-home + pre-tax savings), so a big 401(k) isn't hidden.
+ */
+export function totalSaved(entries: MonthEntry[], year?: number) {
+  const list = year === undefined ? entries : entries.filter((e) => e.year === year);
+  const kept = list.reduce((t, e) => t + e.income - e.spending, 0);
+  const pretax = list.reduce((t, e) => t + (e.pretaxSavings ?? 0), 0);
+  const cameIn = list.reduce((t, e) => t + e.income + (e.pretaxSavings ?? 0), 0);
+  return {
+    kept: round2(kept),
+    pretax: round2(pretax),
+    total: round2(kept + pretax),
+    savingsRatePct: cameIn > 0 ? ((kept + pretax) / cameIn) * 100 : null,
+  };
 }

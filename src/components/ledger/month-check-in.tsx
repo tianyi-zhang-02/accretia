@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useI18n } from '@/lib/i18n/locale';
 import {
   CATEGORY_IDS,
+  INCOME_SOURCE_IDS,
   isAfter,
   planAt,
   prefersDetail,
@@ -12,10 +13,16 @@ import {
   shiftMonth,
   streak,
   subsOf,
+  TIER_IDS,
+  tierOf,
+  tierTotals,
   type Breakdown,
   type Categories,
   type CategoryId,
+  type IncomeSourceId,
+  type IncomeSources,
   type MonthEntry,
+  type TierId,
   type SubId,
   type YearMonth,
 } from '@/lib/ledger/ledger';
@@ -78,6 +85,56 @@ function MoneyField({
   );
 }
 
+/** One color per kind of spending, used as a dot and in the bar. */
+export const TIER_DOT: Record<TierId, string> = {
+  needs: 'bg-foreground/60',
+  lifestyle: 'bg-accent',
+  splurge: 'bg-negative',
+};
+
+/** Essentials / lifestyle / splurges as one stacked bar with amounts. */
+export function TierBar({
+  tiers,
+  total,
+}: {
+  tiers: Record<TierId, number> & { unsorted: number };
+  total: number;
+}) {
+  const { t, fmt } = useI18n();
+  const T = t.track.tiers;
+  return (
+    <div className="mt-1 flex flex-col gap-2">
+      <span className="bg-surface-2 flex h-2 overflow-hidden rounded-full">
+        {TIER_IDS.map((k) =>
+          tiers[k] > 0 ? (
+            <span
+              key={k}
+              className={`h-full ${TIER_DOT[k]}`}
+              style={{ width: `${(tiers[k] / total) * 100}%` }}
+            />
+          ) : null,
+        )}
+      </span>
+      <ul className="grid grid-cols-1 gap-1 sm:grid-cols-3">
+        {TIER_IDS.map((k) => (
+          <li
+            key={k}
+            className="flex items-baseline justify-between gap-2 text-xs sm:flex-col sm:items-start sm:gap-0"
+          >
+            <span className="flex items-center gap-1.5">
+              <span className={`h-1.5 w-1.5 rounded-full ${TIER_DOT[k]}`} />
+              {T[k]}
+            </span>
+            <span className="nums text-muted">
+              {fmt.currency0(tiers[k])} · {fmt.pct0(total > 0 ? (tiers[k] / total) * 100 : 0)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function Form({
   ym,
   entry,
@@ -133,6 +190,15 @@ function Form({
       entry ?? entries.filter((e) => e.year * 12 + e.month < ym.year * 12 + ym.month).at(-1);
     return CATEGORY_IDS.filter((c) => subsOf(c).some((id) => from?.breakdown?.[id] !== undefined));
   });
+  // Income side, the budget-sheet way: one number, or split by source; plus
+  // what left the paycheck before take-home (401(k), HSA).
+  const lastLogged =
+    entry ?? entries.filter((e) => e.year * 12 + e.month < ym.year * 12 + ym.month).at(-1);
+  const [bySource, setBySource] = useState(() => Boolean(lastLogged?.incomeSources));
+  const [srcs, setSrcs] = useState<Partial<Record<IncomeSourceId, string>>>(() =>
+    Object.fromEntries(Object.entries(entry?.incomeSources ?? {}).map(([id, v]) => [id, str(v)])),
+  );
+  const [pretax, setPretax] = useState(() => str(entry?.pretaxSavings));
   const [touched, setTouched] = useState(false);
 
   const usual = useMemo(() => recentAverage(entries, ym), [entries, ym]);
@@ -145,9 +211,24 @@ function Form({
     return e.year === p.year && e.month === p.month;
   });
 
-  const inc = income.trim() === '' ? undefined : parseMoney(income);
-  // Per-category parse: number, undefined (blank) or null (unreadable).
+  // Per-field parse: number, undefined (blank) or null (unreadable).
   const blank = (raw: string | undefined) => (raw ?? '').trim() === '';
+  const srcValues = INCOME_SOURCE_IDS.map((id) => ({
+    id,
+    value: blank(srcs[id]) ? undefined : parseMoney(srcs[id]!),
+  }));
+  const srcFilled = srcValues.filter((v) => typeof v.value === 'number');
+  const srcSum = Math.round(srcFilled.reduce((t, v) => t + (v.value as number), 0) * 100) / 100;
+  const inc = bySource
+    ? srcValues.some((v) => v.value === null)
+      ? null
+      : srcFilled.length
+        ? srcSum
+        : undefined
+    : income.trim() === ''
+      ? undefined
+      : parseMoney(income);
+  const pt = blank(pretax) ? undefined : parseMoney(pretax);
   const catValues = CATEGORY_IDS.map((id) => {
     const items = subsOf(id).map((sub) => ({
       id: sub,
@@ -168,6 +249,21 @@ function Form({
   });
   const catFilled = catValues.filter((c) => typeof c.value === 'number');
   const catTotal = Math.round(catFilled.reduce((t, c) => t + (c.value as number), 0) * 100) / 100;
+  // The same month, sorted by KIND of spending (essentials / lifestyle / splurges).
+  const tiers = detailed
+    ? tierTotals({
+        year: ym.year,
+        month: ym.month,
+        income: 0,
+        spending: catTotal,
+        categories: Object.fromEntries(catFilled.map((c) => [c.id, c.value as number])),
+        breakdown: Object.fromEntries(
+          catValues.flatMap((c) =>
+            c.items.filter((i) => typeof i.value === 'number').map((i) => [i.id, i.value]),
+          ),
+        ),
+      })
+    : null;
   const sp = detailed
     ? catValues.some((c) => c.value === null)
       ? null
@@ -178,8 +274,9 @@ function Form({
       ? undefined
       : parseMoney(spending);
   const nw = netWorth.trim() === '' ? undefined : parseMoney(netWorth, true);
-  const anyInvalid = inc === null || sp === null || nw === null;
-  const canSave = !anyInvalid && (inc !== undefined || sp !== undefined || nw !== undefined);
+  const anyInvalid = inc === null || sp === null || nw === null || pt === null;
+  const canSave =
+    !anyInvalid && (inc !== undefined || sp !== undefined || nw !== undefined || pt !== undefined);
   const dirty = touched;
 
   const edit = (set: (s: string) => void) => (next: string) => {
@@ -197,6 +294,20 @@ function Form({
     setTouched(true);
     onDirty();
   };
+  const editSrc = (id: IncomeSourceId, next: string) => {
+    setSrcs((c) => ({ ...c, [id]: next }));
+    setTouched(true);
+    onDirty();
+  };
+  function toggleSources() {
+    if (!bySource && srcFilled.length === 0 && typeof inc === 'number' && inc > 0) {
+      // Keep a typed total: start it off as salary.
+      setSrcs((c) => ({ ...c, salary: String(inc) }));
+    } else if (bySource && srcSum > 0) setIncome(String(srcSum));
+    setBySource((v) => !v);
+    setTouched(true);
+    onDirty();
+  }
   const toggleOpen = (id: CategoryId) =>
     setOpen((o) => (o.includes(id) ? o.filter((x) => x !== id) : [...o, id]));
 
@@ -247,6 +358,8 @@ function Form({
       onSubmit={(e) => {
         e.preventDefault();
         if (!canSave) return;
+        const incomeSources: IncomeSources = {};
+        if (bySource) for (const v of srcFilled) incomeSources[v.id] = v.value as number;
         const categories: Categories = {};
         const breakdown: Breakdown = {};
         if (detailed) {
@@ -262,6 +375,8 @@ function Form({
           ...(typeof nw === 'number' ? { netWorth: nw } : {}),
           ...(detailed && catFilled.length ? { categories } : {}),
           ...(detailed && Object.keys(breakdown).length ? { breakdown } : {}),
+          ...(bySource && srcFilled.length ? { incomeSources } : {}),
+          ...(typeof pt === 'number' ? { pretaxSavings: pt } : {}),
         });
         setTouched(false);
       }}
@@ -294,15 +409,37 @@ function Form({
 
       <div className={`grid grid-cols-1 gap-4 ${detailed ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
         <div className="flex flex-col gap-1.5">
-          <MoneyField
-            label={C.income}
-            hint={C.incomeHint}
-            value={income}
-            placeholder={usual ? C.usually(plain(usual.income)) : '0'}
-            invalid={inc === null}
-            onChange={edit(setIncome)}
-          />
-          {prev && prev.income > 0 && income.trim() === '' ? (
+          {bySource ? (
+            <div className="flex flex-col gap-1">
+              <span className="text-[13px] font-medium">{C.income}</span>
+              <span
+                title={C.sumOfSources}
+                className="field field-money nums text-muted relative flex h-12 items-center text-[17px]"
+              >
+                <span className="absolute left-3 text-[15px]">$</span>
+                {plain(srcSum)}
+              </span>
+              <span className="text-muted text-[11px]">{C.sumOfSources}</span>
+            </div>
+          ) : (
+            <MoneyField
+              label={C.income}
+              hint={C.incomeHint}
+              value={income}
+              placeholder={usual ? C.usually(plain(usual.income)) : '0'}
+              invalid={inc === null}
+              onChange={edit(setIncome)}
+            />
+          )}
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm self-start px-0"
+            aria-expanded={bySource}
+            onClick={toggleSources}
+          >
+            {bySource ? C.bySourceHide : C.bySource} ›
+          </button>
+          {!bySource && prev && prev.income > 0 && income.trim() === '' ? (
             <button
               type="button"
               className="btn btn-ghost btn-sm self-start"
@@ -331,6 +468,67 @@ function Form({
           onChange={edit(setNetWorth)}
         />
       </div>
+
+      {bySource ? (
+        <fieldset className="bg-surface-2/50 flex flex-col gap-2 rounded-[12px] p-3">
+          <legend className="sr-only">{C.income}</legend>
+          <p className="text-muted text-[11px]">{C.sourcesHint}</p>
+          <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+            {srcValues.map(({ id, value }) => (
+              <li key={id}>
+                <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
+                  <span className="truncate text-[13px]">{t.track.incomeSources[id]}</span>
+                  <span className="relative">
+                    <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
+                      $
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      value={srcs[id] ?? ''}
+                      placeholder={
+                        prev?.incomeSources?.[id] !== undefined
+                          ? plain(prev.incomeSources[id]!)
+                          : '0'
+                      }
+                      aria-invalid={value === null}
+                      onChange={(e) => editSrc(id, e.target.value)}
+                      className={`field field-money nums h-10 min-h-0 w-full text-right text-[15px] ${
+                        value === null ? 'text-negative' : ''
+                      }`}
+                    />
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      ) : null}
+
+      <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
+        <span className="min-w-0">
+          <span className="block text-[13px] font-medium">{C.pretax}</span>
+          <span className="text-muted block text-[11px]">{C.pretaxHint}</span>
+        </span>
+        <span className="relative">
+          <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
+            $
+          </span>
+          <input
+            type="text"
+            inputMode="decimal"
+            autoComplete="off"
+            value={pretax}
+            placeholder={prev?.pretaxSavings !== undefined ? plain(prev.pretaxSavings) : C.optional}
+            aria-invalid={pt === null}
+            onChange={(e) => edit(setPretax)(e.target.value)}
+            className={`field field-money nums h-10 min-h-0 w-full text-right text-[15px] ${
+              pt === null ? 'text-negative' : ''
+            }`}
+          />
+        </span>
+      </label>
 
       {detailed ? (
         <fieldset className="flex flex-col gap-2">
@@ -403,8 +601,13 @@ function Form({
                       {items.map((item) => (
                         <li key={item.id}>
                           <label className="grid grid-cols-[1fr_7.5rem] items-center gap-3">
-                            <span className="text-muted truncate text-[13px]">
-                              {t.track.subcategories[item.id]}
+                            <span className="text-muted flex min-w-0 items-center gap-2 text-[13px]">
+                              <span
+                                aria-hidden
+                                title={t.track.tiers[tierOf(item.id)]}
+                                className={`h-1.5 w-1.5 shrink-0 rounded-full ${TIER_DOT[tierOf(item.id)]}`}
+                              />
+                              <span className="truncate">{t.track.subcategories[item.id]}</span>
                             </span>
                             <span className="relative">
                               <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs">
@@ -441,6 +644,7 @@ function Form({
             <span className="text-muted">{C.total}</span>
             <span className="nums font-medium">{fmt.currency0(catTotal)}</span>
           </p>
+          {tiers && catTotal > 0 ? <TierBar tiers={tiers} total={catTotal} /> : null}
         </fieldset>
       ) : null}
 
@@ -453,6 +657,11 @@ function Form({
               <span className="text-muted"> · {C.rate(fmt.pct0(rate))}</span>
             ) : null}
           </p>
+          {typeof pt === 'number' && pt > 0 ? (
+            <p className="text-positive mt-0.5 text-[13px]">
+              {C.keptPlusPretax(fmt.currency0(pt), fmt.currency0(kept + pt))}
+            </p>
+          ) : null}
           {plan ? (
             <p className="text-muted mt-0.5 text-[13px]">
               {C.planExpects(fmt.currency0(plan.monthlySaved))}{' '}
