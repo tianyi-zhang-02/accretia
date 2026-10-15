@@ -18,8 +18,18 @@
   --accent: #4ade80;
   --positive: #4ade80;
   --negative: #f87171;
-  /* Cards float on the dark background by contrast alone. */
-  --card-shadow: none;
+  /* Cards: a hairline lit edge on top, the way light catches a raised surface. */
+  --card-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 0 0 1px rgb(255 255 255 / 0.035);
+  /* The metal card — sapphire graphite. */
+  --metal-1: #2c3446;
+  --metal-2: #12161f;
+  --metal-3: #232b3b;
+  --metal-text: #eef1f6;
+  --metal-muted: #a6afc0;
+  --metal-edge: rgb(255 255 255 / 0.16);
+  --metal-grain: rgb(255 255 255 / 0.024);
+  --metal-sheen: rgb(255 255 255 / 0.1);
+  --metal-engrave: 0 1px 0 rgb(255 255 255 / 0.07), 0 -1px 0 rgb(0 0 0 / 0.55);
   color-scheme: dark;
   accent-color: var(--accent);
 }
@@ -40,6 +50,15 @@
   --positive: #15803d;
   --negative: #dc2626;
   --card-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.03);
+  --metal-1: #fafbfc;
+  --metal-2: #cdd1d8;
+  --metal-3: #eef0f3;
+  --metal-text: #15171b;
+  --metal-muted: #4d5460;
+  --metal-edge: rgb(255 255 255 / 0.95);
+  --metal-grain: rgb(0 0 0 / 0.028);
+  --metal-sheen: rgb(255 255 255 / 0.55);
+  --metal-engrave: 0 1px 0 rgb(255 255 255 / 0.85);
   color-scheme: light;
 }
 @media (prefers-color-scheme: light) {
@@ -56,6 +75,15 @@
     --positive: #15803d;
     --negative: #dc2626;
     --card-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.03);
+    --metal-1: #fafbfc;
+    --metal-2: #cdd1d8;
+    --metal-3: #eef0f3;
+    --metal-text: #15171b;
+    --metal-muted: #4d5460;
+    --metal-edge: rgb(255 255 255 / 0.95);
+    --metal-grain: rgb(0 0 0 / 0.028);
+    --metal-sheen: rgb(255 255 255 / 0.55);
+    --metal-engrave: 0 1px 0 rgb(255 255 255 / 0.85);
     color-scheme: light;
   }
 }
@@ -83,6 +111,17 @@ body {
   transition:
     background-color 200ms ease,
     color 200ms ease;
+}
+
+body {
+  background:
+    radial-gradient(
+      1100px 520px at 50% -260px,
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      transparent 70%
+    ),
+    var(--background);
+  background-repeat: no-repeat;
 }
 
 ::selection {
@@ -129,7 +168,7 @@ body {
 /* The one card. No border — a lighter surface and real padding. */
 .card {
   background: var(--surface);
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 20px;
   box-shadow: var(--card-shadow);
 }
@@ -196,9 +235,16 @@ body {
   border-radius: 8px;
 }
 .btn-primary {
-  background: var(--foreground);
+  background: linear-gradient(
+    180deg,
+    var(--foreground),
+    color-mix(in srgb, var(--foreground) 86%, var(--background))
+  );
   color: var(--background);
   font-weight: 600;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    0 1px 2px rgb(0 0 0 / 0.25);
 }
 .btn-ghost {
   background: transparent;
@@ -312,6 +358,61 @@ body {
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.03em;
+}
+
+/* ---------------------------------------------------------------------
+   The metal card. Brushed grain + a diagonal gradient + a lit top edge; a
+   soft sheen sweeps across on hover. Text inside uses the metal tokens.
+   --------------------------------------------------------------------- */
+.metal {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 20px 22px;
+  color: var(--metal-text);
+  background:
+    repeating-linear-gradient(90deg, var(--metal-grain) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 90% at 0% 0%, var(--metal-sheen), transparent 55%),
+    linear-gradient(135deg, var(--metal-1), var(--metal-2) 50%, var(--metal-3));
+  box-shadow:
+    inset 0 1px 0 var(--metal-edge),
+    inset 0 0 0 1px rgb(255 255 255 / 0.05),
+    0 22px 44px -24px rgb(0 0 0 / 0.6),
+    0 2px 6px rgb(0 0 0 / 0.18);
+}
+.metal::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 42%, var(--metal-sheen) 50%, transparent 58%);
+  opacity: 0.5;
+  transform: translateX(-35%);
+  transition: transform 1200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.metal:hover::before {
+  transform: translateX(35%);
+}
+.metal .text-muted,
+.metal-muted {
+  color: var(--metal-muted);
+}
+.metal-figure {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-shadow: var(--metal-engrave);
+}
+/* The issuer's wordmark — the one place letter-spacing is the point. */
+.metal-mark {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--metal-muted);
 }
 
 /* An on/off switch — for settings that really are on or off. */
@@ -446,5 +547,13 @@ body {
   .print-hide,
   .print-hide * {
     display: none !important;
+  }
+  .metal {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+  .metal::before {
+    display: none;
   }
 }

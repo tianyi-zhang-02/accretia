@@ -726,6 +726,9 @@ const en = {
         `On your plan, work becomes optional at ${age} (${year}).`,
       fireNever: 'On your current plan, work never becomes optional.',
       openPlan: 'Open plan',
+      heroFireLabel: 'On your plan, work becomes optional at',
+      heroFireAge: (age: number) => `${age}`,
+      heroFireSub: (year: number) => `years old — in ${year}`,
     },
     categories: {
       housing: 'Mortgage / rent',
@@ -1583,6 +1586,9 @@ const zh: Messages = {
         `按现在的规划，${age} 岁（${year} 年）就可以不用上班了。`,
       fireNever: '按现在的规划，还没法不上班。',
       openPlan: '看规划',
+      heroFireLabel: '按现在的规划，可以不用上班的年龄',
+      heroFireAge: (age: number) => `${age} 岁`,
+      heroFireSub: (year: number) => `也就是 ${year} 年`,
     },
     categories: {
       housing: '房贷／房租',
