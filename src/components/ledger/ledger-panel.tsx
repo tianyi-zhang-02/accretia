@@ -24,6 +24,8 @@ import type { YearRow } from '@/lib/simulator/engine';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
 import Icon, { SectionLabel } from '../ui/icon';
+import { categoryByMonth } from '@/lib/ledger/insights';
+
 import MonthCheckIn, { TierBar } from './month-check-in';
 import TrackStatus from './track-status';
 
@@ -381,6 +383,12 @@ export default function LedgerPanel({
                           style={{ width: `${Math.max(1, Math.min(100, r.sharePct))}%` }}
                         />
                       </span>
+                      <MonthBars
+                        values={categoryByMonth(entries, year, r.id)}
+                        label={(i, v) =>
+                          `${monthName(i + 1)} ${v === null ? '—' : fmt.currency0(v)}`
+                        }
+                      />
                       {r.items.length ? (
                         <ul className="mt-1.5 flex flex-col gap-0.5 pl-3">
                           {r.items.map((item) => (
@@ -654,5 +662,28 @@ export default function LedgerPanel({
         </div>
       ) : null}
     </section>
+  );
+}
+
+/** Twelve tiny bars, Jan–Dec: one category's trend through the year. */
+function MonthBars({
+  values,
+  label,
+}: {
+  values: Array<number | null>;
+  label: (i: number, v: number | null) => string;
+}) {
+  const max = Math.max(1, ...values.map((v) => v ?? 0));
+  return (
+    <span className="mt-1.5 flex h-4 w-full max-w-[200px] items-end gap-[2px]" aria-hidden>
+      {values.map((v, i) => (
+        <span
+          key={i}
+          title={label(i, v)}
+          className={`flex-1 rounded-[1px] ${v === null ? 'bg-surface-2' : 'bg-foreground/30'}`}
+          style={{ height: v === null ? '2px' : `${Math.max(8, (v / max) * 100)}%` }}
+        />
+      ))}
+    </span>
   );
 }

@@ -8,6 +8,7 @@ import type { YearRow } from '@/lib/simulator/engine';
 
 import { SectionLabel } from '../ui/icon';
 import MetalCard, { Chip } from '../ui/metal-card';
+import LedgerFindings from './ledger-findings';
 
 /**
  * "Am I on track?" — what was logged, set against what the plan expected
@@ -239,6 +240,7 @@ export default function TrackStatus({
           </button>
         </div>
       </div>
+      <LedgerFindings entries={entries} planRows={planRows} />
     </section>
   );
 }
