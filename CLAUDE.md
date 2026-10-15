@@ -120,6 +120,7 @@ src/
     backup/               backup.ts — whole-app backup file: build, parse-as-untrusted, staleness (+ tests)
     ledger/               ledger.ts — month entries, CSV in/out, year report, calibration patch (+ tests)
     simulator/            engine, goalSeek, insights (perturb-the-engine findings), career-presets, rolePresets (+ tests)
+    tax/                  paycheck.ts — gross → take-home (+ hand-computed tests). **Exact** for: federal 2026 (IRS Rev. Proc. 2025-32 brackets + standard deduction), Social Security (2026 wage base $184,500), Medicare + 0.9% additional, 401(k) limits ($24,500 / $32,500 at 50+), California (FTB **2025** schedules — the latest published in full — exemption credit, 1% MHST over $1M, 2026 SDI 1.3% uncapped; CA adds HSA back), and the nine no-wage-tax states. **Estimated** (flat, editable, labelled in the UI): every other state incl. New York, and city tax. Annual liability, not withholding; a bonus's take-home is its marginal share. **Update the tables every tax year, from the primary sources, and keep the tests' hand-worked figures in step.** UI: `components/simulator/paycheck-calculator.tsx` in Plan, under the summary; "Use X% as my plan's tax rate" sets `effectiveTaxRatePct` (undoable).
     i18n/                 messages.ts (EN/中文 catalog) + locale.tsx (LocaleProvider/useI18n)
     validation/scenarios.ts
     format/money.ts
