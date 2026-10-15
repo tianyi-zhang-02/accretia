@@ -6,6 +6,20 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Metal cards
+
+The two numbers that matter are now set on a metal card, the way a premium
+card feels in the hand: your net worth on Track, and "work becomes optional
+at …" in Plan.
+
+- Brushed-metal finish with a lit top edge and a soft sheen that sweeps
+  across on hover; engraved figures; a gold chip; the wordmark in the corner.
+- **Sapphire graphite** in dark mode, **platinum** in light mode.
+- With nothing logged yet, the Track card shows the age work becomes optional.
+- Everyday cards got a hairline lit edge and a little more radius; primary
+  buttons have a subtle top highlight; the page has a soft light from above.
+- Printing drops the finish (the year report stays black on white).
+
 ### Paycheck calculator
 
 In Plan, under the summary. Salary and bonus in; out comes the sheet:
