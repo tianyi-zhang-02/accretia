@@ -18,6 +18,11 @@ import {
   recordedYears,
   shiftMonth,
   streak,
+  incomeBreakdown,
+  tierOf,
+  tierTotals,
+  totalSaved,
+  yearTierTotals,
   SUB_IDS,
   subTotal,
   templateCsv,
@@ -419,7 +424,7 @@ describe('line items inside categories', () => {
     const header = labelled.split('\n')[0]!;
     expect(header).toContain('housing (住房)');
     expect(header).toContain('housing.hoa (HOA  fees  monthly)');
-    expect(header.split(',')).toHaveLength(5 + 10 + SUB_IDS.length);
+    expect(header.split(',')).toHaveLength(5 + 7 + 10 + SUB_IDS.length);
     expect(parseLedgerCsv(labelled).entries).toEqual([]);
 
     const typed = parseLedgerCsv(
@@ -445,5 +450,112 @@ describe('line items inside categories', () => {
       ['housing.hoa', 200],
     ]);
     expect(row.items[0]!.sharePct).toBeCloseTo(46.67, 1);
+  });
+});
+
+describe('budget-sheet view: income sources, kinds of spending, pre-tax savings', () => {
+  const base = { year: 2026, month: 1, income: 0, spending: 0 };
+
+  it('income IS the sum of its sources; zeros vanish', () => {
+    const e = monthEntrySchema.parse({
+      ...base,
+      income: 1,
+      incomeSources: { salary: 11_000, bonus: 0, interest: 41.5 },
+    });
+    expect(e.income).toBe(11_041.5);
+    expect(e.incomeSources).toEqual({ salary: 11_000, interest: 41.5 });
+    expect(monthEntrySchema.safeParse({ ...base, incomeSources: { lottery: 1 } }).success).toBe(
+      false,
+    );
+  });
+
+  it('pre-tax savings is kept only when positive', () => {
+    expect(monthEntrySchema.parse({ ...base, pretaxSavings: 1958 }).pretaxSavings).toBe(1958);
+    expect('pretaxSavings' in monthEntrySchema.parse({ ...base, pretaxSavings: 0 })).toBe(false);
+    expect(monthEntrySchema.safeParse({ ...base, pretaxSavings: -5 }).success).toBe(false);
+  });
+
+  it("every line item has a kind; the sheet's examples land where it puts them", () => {
+    expect(tierOf('housing.rent')).toBe('needs');
+    expect(tierOf('food.groceries')).toBe('needs');
+    expect(tierOf('food.dining')).toBe('lifestyle');
+    expect(tierOf('food.coffee')).toBe('lifestyle');
+    expect(tierOf('health.fitness')).toBe('lifestyle');
+    expect(tierOf('fun.travel')).toBe('lifestyle');
+    expect(tierOf('fun.alcohol')).toBe('splurge');
+    expect(tierOf('transport.rideshare')).toBe('splurge');
+    expect(tierOf('transport.transit')).toBe('needs');
+    expect(tierOf('debt.studentLoan')).toBe('needs');
+  });
+
+  it("tierTotals: items by their own kind, the un-itemized rest by the category's", () => {
+    const [e] = upsert([], {
+      ...base,
+      categories: { fun: 300, housing: 3000 },
+      breakdown: { 'food.groceries': 600, 'food.dining': 250, 'fun.alcohol': 80 },
+    } as MonthEntry);
+    // fun is itemized (alcohol 80) so its typed 300 is replaced by 80.
+    expect(tierTotals(e!)).toEqual({ needs: 3600, lifestyle: 250, splurge: 80, unsorted: 0 });
+    expect(tierTotals({ ...base, spending: 4200 })).toEqual({
+      needs: 0,
+      lifestyle: 0,
+      splurge: 0,
+      unsorted: 4200,
+    });
+  });
+
+  it('year views: sources, kinds and the true savings rate', () => {
+    const entries = [
+      {
+        ...base,
+        month: 1,
+        incomeSources: { salary: 10_000, bonus: 5_000 },
+        pretaxSavings: 2_000,
+        categories: { housing: 4_000 },
+      },
+      { ...base, month: 2, income: 10_000, spending: 6_000 },
+    ].reduce<MonthEntry[]>((acc, e) => upsert(acc, e as MonthEntry), []);
+
+    const src = incomeBreakdown(entries, 2026)!;
+    expect(src.rows.map((r) => [r.id, r.total])).toEqual([
+      ['salary', 10_000],
+      ['bonus', 5_000],
+    ]);
+    expect(src.unsourced).toBe(10_000);
+    expect(incomeBreakdown(entries, 2025)).toBeNull();
+
+    expect(yearTierTotals(entries, 2026)).toEqual({
+      needs: 4_000,
+      lifestyle: 0,
+      splurge: 0,
+      unsorted: 6_000,
+    });
+
+    const s = totalSaved(entries, 2026);
+    expect(s).toMatchObject({ kept: 15_000, pretax: 2_000, total: 17_000 });
+    expect(s.savingsRatePct).toBeCloseTo((17_000 / 27_000) * 100, 6);
+  });
+
+  it('CSV: income sources and pre-tax savings round-trip, with Chinese headers too', () => {
+    const entries = upsert([], {
+      ...base,
+      incomeSources: { salary: 9_000, sideHustle: 400 },
+      pretaxSavings: 1_500,
+      categories: { food: 700 },
+    } as MonthEntry);
+    const csv = toCsv(entries);
+    expect(csv.split('\n')[0]).toContain('pretax_savings,income.salary');
+    expect(parseLedgerCsv(csv).entries).toEqual(entries);
+
+    const zh = parseLedgerCsv('年,月,工资,奖金,401k,支出\n2026,2,9000,"1,000",1500,4000\n');
+    expect(zh.errors).toEqual([]);
+    expect(zh.entries[0]).toMatchObject({
+      income: 10_000,
+      incomeSources: { salary: 9_000, bonus: 1_000 },
+      pretaxSavings: 1_500,
+      spending: 4_000,
+    });
+    // A plain ledger still exports exactly as before.
+    expect(toCsv([m(1, 1, 1)]).split('\n')[0]).toBe('year,month,income,spending,net_worth');
   });
 });
