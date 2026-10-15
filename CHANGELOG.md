@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### New York, exactly
+
+- **The paycheck calculator now computes New York exactly** instead of a flat
+  guess: the 2026 state schedule (with the 0.1-point cut to the lower rates),
+  the recapture that takes back the lower brackets once income passes
+  $107,650, New York disability (SDI) and 2026 Paid Family Leave (0.432%, at
+  most $411.91).
+- **I live in New York City**: one switch adds the city's own schedule, less
+  both school tax credits. Other cities (Yonkers, Philadelphia…) keep the
+  editable flat rate.
+- Every New York base amount and recapture figure is re-derived from the
+  rates in a test, to the dollar.
+- **Claude extension 0.4.0:** `paycheck_estimate` takes `nyc` and reports
+  SDI and Paid Family Leave.
+
 ### Budgets per category
 
 - **Set a monthly budget for any category** — food 800, fun 300 — from a new

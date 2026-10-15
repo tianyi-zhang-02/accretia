@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { bracketTax, paycheck, type PaycheckInput } from './paycheck';
+import {
+  bracketTax,
+  newYorkTax,
+  NY_PFL_MAX,
+  nycTax,
+  paycheck,
+  type FilingStatus,
+  type PaycheckInput,
+} from './paycheck';
 
 const base: PaycheckInput = {
   salary: 0,
@@ -110,7 +118,7 @@ describe('paycheck', () => {
     const p = paycheck({
       ...base,
       salary: 150_000,
-      state: 'NY',
+      state: 'IL',
       stateRatePct: 6,
       cityRatePct: 3.876,
     });
@@ -127,5 +135,83 @@ describe('paycheck', () => {
     const neg = paycheck({ ...base, salary: -5, k401: -1, hsa: -1 });
     expect(neg.gross).toBe(0);
     expect(neg.totalTax).toBe(0);
+  });
+});
+
+// New York 2026: Tax Law §601(a)–(c) and (d-5) as amended by L.2025 ch.59;
+// NYC schedule and school tax credits from the IT-201 instructions.
+describe('New York State (2026)', () => {
+  it('below NY AGI $107,650 it is the plain schedule', () => {
+    // taxable 92,000 → 4,191 + 5.9% × 11,350 = 4,860.65
+    expect(newYorkTax(92_000, 100_000, 'single')).toBe(4_860.65);
+  });
+
+  it('the recapture phases in over $50,000 of AGI', () => {
+    // single, wages 130,000 → taxable 122,000; schedule 4,191 + 5.9% × 41,350 = 6,630.65
+    // + 567 × (130,000 − 107,650) / 50,000 = 253.449
+    expect(newYorkTax(122_000, 130_000, 'single')).toBe(6_884.1);
+    // fully phased in: the whole income at the 5.9% bracket rate (to the statute's rounding)
+    expect(newYorkTax(192_000, 200_000, 'single')).toBe(11_327.65);
+    // second tier, partly phased: 13,278.10 + 567 + 2,047 × 24,600/50,000
+    expect(newYorkTax(232_000, 240_000, 'single')).toBe(14_852.22);
+    // second tier, fully phased: ≈ 6.85% × 292,000 = 20,002
+    expect(newYorkTax(292_000, 300_000, 'single')).toBe(20_002.1);
+    // over $25M AGI: a flat 10.9%
+    expect(newYorkTax(30_000_000, 30_008_000, 'single')).toBe(3_270_000);
+  });
+
+  it('every statutory constant follows from the rates (to the dollar)', () => {
+    // Tables as in the module; re-derived here independently.
+    const rates = [0.039, 0.044, 0.0515, 0.054, 0.059, 0.0685, 0.0965, 0.103, 0.109];
+    const edges: Record<FilingStatus, number[]> = {
+      single: [8_500, 11_700, 13_900, 80_650, 215_400, 1_077_550, 5_000_000, 25_000_000],
+      mfj: [17_150, 23_600, 27_900, 161_550, 323_200, 2_155_350, 5_000_000, 25_000_000],
+      hoh: [12_800, 17_650, 20_900, 107_650, 269_300, 1_616_450, 5_000_000, 25_000_000],
+    };
+    for (const f of ['single', 'mfj', 'hoh'] as const) {
+      let tax = 0;
+      let lo = 0;
+      edges[f].forEach((edge, i) => {
+        tax += (edge - lo) * rates[i]!;
+        lo = edge;
+        // the schedule's tax at each edge (AGI below the recapture)
+        expect(Math.abs(newYorkTax(edge, 100_000, f) - tax)).toBeLessThan(1);
+        // fully recaptured at each edge ≥ the first tier: next rate × edge
+        if (i >= (f === 'mfj' ? 2 : 3) && edge < 25_000_000) {
+          const flat = newYorkTax(edge + 0.01, Math.max(edge, 107_650) + 50_000, f);
+          expect(Math.abs(flat - (edge + 0.01) * rates[i + 1]!)).toBeLessThan(1);
+        }
+      });
+    }
+  });
+});
+
+describe('New York City', () => {
+  it('schedule less both school tax credits', () => {
+    // 1,813 + 3.876% × 142,000 = 7,316.92; − 63 − (21 + 0.228% × 180,000 = 431.40)
+    expect(nycTax(192_000, 200_000, 'single')).toBe(6_822.52);
+    // above $250k income: no fixed credit; above $500k taxable: no rate reduction
+    expect(nycTax(600_000, 608_000, 'single')).toBe(1_813 + 0.03876 * 550_000);
+  });
+});
+
+describe('paycheck in New York', () => {
+  it('single, $200k, NYC: state, city, SDI and Paid Family Leave', () => {
+    const p = paycheck({ ...base, salary: 200_000, state: 'NY', nyc: true });
+    expect(p.state).toBe(11_327.65);
+    expect(p.city).toBe(6_822.52);
+    expect(p.cityExact).toBe(true);
+    expect(p.sdi).toBe(31.2); // $0.60 × 52
+    expect(p.pfl).toBe(NY_PFL_MAX); // 0.432% × 200,000 > the $411.91 cap
+    // federal 36,734 + SS 11,439 + Medicare 2,900 + the above
+    expect(p.totalTax).toBe(36_734 + 11_439 + 2_900 + 11_327.65 + 6_822.52 + 31.2 + 411.91);
+  });
+
+  it('outside NYC the city rate is a flat estimate; 401(k) lowers NY taxable like federal', () => {
+    const p = paycheck({ ...base, salary: 200_000, state: 'NY', cityRatePct: 1.5, k401: 24_500 });
+    expect(p.cityExact).toBe(false);
+    expect(p.city).toBe(2_632.5); // 1.5% × 175,500
+    // NY taxable 167,500 → 4,191 + 5.9% × 86,850 + 567 (AGI 175,500: fully phased)
+    expect(p.state).toBe(9_882.15);
   });
 });

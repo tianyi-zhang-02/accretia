@@ -10,7 +10,7 @@ _Find out when work becomes optional — and keep track of whether you're gettin
 
 **Use it in Claude** (`mcp/`): a local, end-to-end-encrypted MCP extension for Claude Desktop / Claude Code — say *“take-home 11,000, rent 3,200, groceries 600, 401k 1,958”* and it's filed into your ledger, synced with the web app as just another device; ask for a year report or whether you're on track, or say *“set my food budget to 800”*. See [`mcp/README.md`](mcp/README.md) for the security model.
 
-**Paycheck calculator** (in Plan): salary + bonus → every tax laid out like a budget sheet (federal 2026 brackets, Social Security, Medicare, state, California SDI, city) → take-home per year, month and paycheck, plus what the bonus really nets; one tap puts the honest effective tax rate into your plan. Federal, FICA, 401(k) limits and California are computed from the published tables; other states are an editable estimate.
+**Paycheck calculator** (in Plan): salary + bonus → every tax laid out like a budget sheet (federal 2026 brackets, Social Security, Medicare, state, California SDI, city) → take-home per year, month and paycheck, plus what the bonus really nets; one tap puts the honest effective tax rate into your plan. Federal, FICA, 401(k) limits, California, New York State (2026, including the high-income recapture) and New York City are computed from the published tables, plus NY SDI and Paid Family Leave; other states are an editable estimate.
 
 In **Plan**, project net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
 
