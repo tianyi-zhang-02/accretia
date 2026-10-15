@@ -11,6 +11,7 @@ import MonteCarloChart from '@/components/charts/montecarlo-chart';
 import SimulatorChart, { type DisplayMode, type Marker } from '@/components/charts/simulator-chart';
 import LedgerPanel from '@/components/ledger/ledger-panel';
 import AssumptionsForm from '@/components/simulator/assumptions-form';
+import PaycheckCalculator from '@/components/simulator/paycheck-calculator';
 import PlanSummary from '@/components/simulator/plan-summary';
 import CompareView, { type ComparableScenario } from '@/components/simulator/compare-view';
 import { defaultAssumptions, newId } from '@/components/simulator/default-assumptions';
@@ -863,6 +864,13 @@ function SimulatorInner() {
                     <PlanSummary assumptions={assumptions} onChange={patchCurrent}>
                       <AssumptionsForm value={assumptions} onChange={patchCurrent} />
                     </PlanSummary>
+                    <PaycheckCalculator
+                      onApplyRate={(rate) => {
+                        const before = assumptions;
+                        patchCurrent({ ...assumptions, effectiveTaxRatePct: rate });
+                        notify(t.paycheck.applied(`${rate}%`), () => patchCurrent(before));
+                      }}
+                    />
                   </div>
                 </div>
 

@@ -6,6 +6,29 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Paycheck calculator
+
+In Plan, under the summary. Salary and bonus in; out comes the sheet:
+income before tax → what's taken out before tax (401(k), HSA, premiums) →
+each tax for the year → take-home per year, per month, per paycheck
+(biweekly / twice-monthly), and what the bonus really nets.
+
+- **Computed from the published tables** (each checked against the source):
+  federal 2026 brackets and standard deduction (IRS Rev. Proc. 2025-32);
+  Social Security 6.2% to $184,500 (SSA, 2026); Medicare 1.45% + 0.9% over
+  $200k / $250k joint; 401(k) limit $24,500, $32,500 at 50+ (IRS, 2026);
+  California's 2025 FTB schedules (the latest published in full) with the
+  exemption credit and 1% over $1M, plus 2026 SDI at 1.3% with no cap
+  (EDD); the nine states with no wage tax.
+- **Estimated, and labelled so:** other states (New York included) as an
+  editable flat rate, and city tax (New York City's top rate ≈ 3.88%).
+- Gets the details right: 401(k) lowers income tax but not FICA; payroll
+  HSA lowers both — except in California, which adds it back.
+- **One tap into the plan:** "Use 29.9% as my plan's tax rate" — the plan
+  uses one rate on all income, and this is the honest one. Undoable.
+- Annual liability, not withholding: a bonus's take-home is its marginal
+  share once you file. Standard deduction only; no credits, itemizing or AMT.
+
 ### The budget-sheet breakdown: where it came from, what kind, what you kept
 
 Modelled on a good personal budget sheet (income → take-home → essentials /
