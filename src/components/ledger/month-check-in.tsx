@@ -10,6 +10,7 @@ import {
   planAt,
   prefersDetail,
   recentAverage,
+  recurringFor,
   shiftMonth,
   streak,
   subsOf,
@@ -22,6 +23,7 @@ import {
   type IncomeSourceId,
   type IncomeSources,
   type MonthEntry,
+  type Recurring,
   type TierId,
   type SubId,
   type YearMonth,
@@ -135,6 +137,14 @@ export function TierBar({
   );
 }
 
+/** A small mark on an amount that came over from last month unchanged. */
+function FixedTag() {
+  const { t } = useI18n();
+  return (
+    <span className="text-accent shrink-0 text-[10px] font-medium">{t.track.checkIn.fixedTag}</span>
+  );
+}
+
 function Form({
   ym,
   entry,
@@ -172,18 +182,29 @@ function Form({
   const [income, setIncome] = useState(() => str(entry?.income));
   const [spending, setSpending] = useState(() => str(entry?.spending));
   const [netWorth, setNetWorth] = useState(() => str(entry?.netWorth));
+  // A NEW month starts with what repeats — rent, insurance, salary, 401(k):
+  // amounts identical in the last two months are filled in and tagged.
+  const [carried, setCarried] = useState<Recurring | null>(() => {
+    if (entry) return null;
+    const r = recurringFor(entries, ym);
+    return r.count > 0 ? r : null;
+  });
   // Coarse or fine: one total, or a line per category that adds up to it. A
   // new month starts in whichever way the previous one was logged.
   const [detailed, setDetailed] = useState(() =>
     entry ? Boolean(entry.categories) : prefersDetail(entries, ym),
   );
   const [cats, setCats] = useState<Partial<Record<CategoryId, string>>>(() =>
-    Object.fromEntries(CATEGORY_IDS.map((id) => [id, str(entry?.categories?.[id])])),
+    Object.fromEntries(
+      CATEGORY_IDS.map((id) => [id, str(entry?.categories?.[id] ?? carried?.categories[id])]),
+    ),
   );
   // The finest level: line items inside a category (housing → mortgage, tax,
   // HOA…). A category with items filled in shows their sum and can't be typed.
   const [subs, setSubs] = useState<Partial<Record<SubId, string>>>(() =>
-    Object.fromEntries(Object.entries(entry?.breakdown ?? {}).map(([id, v]) => [id, str(v)])),
+    Object.fromEntries(
+      Object.entries(entry?.breakdown ?? carried?.lineItems ?? {}).map(([id, v]) => [id, str(v)]),
+    ),
   );
   const [open, setOpen] = useState<CategoryId[]>(() => {
     const from =
@@ -196,9 +217,46 @@ function Form({
     entry ?? entries.filter((e) => e.year * 12 + e.month < ym.year * 12 + ym.month).at(-1);
   const [bySource, setBySource] = useState(() => Boolean(lastLogged?.incomeSources));
   const [srcs, setSrcs] = useState<Partial<Record<IncomeSourceId, string>>>(() =>
-    Object.fromEntries(Object.entries(entry?.incomeSources ?? {}).map(([id, v]) => [id, str(v)])),
+    Object.fromEntries(
+      Object.entries(entry?.incomeSources ?? carried?.incomeSources ?? {}).map(([id, v]) => [
+        id,
+        str(v),
+      ]),
+    ),
   );
-  const [pretax, setPretax] = useState(() => str(entry?.pretaxSavings));
+  const [pretax, setPretax] = useState(() => str(entry?.pretaxSavings ?? carried?.pretaxSavings));
+
+  /** Take back what was carried over (anything the person changed stays). */
+  function clearCarried() {
+    if (!carried) return;
+    const untouched = (now: string | undefined, was: number | undefined) =>
+      was !== undefined && (now ?? '') === str(was);
+    setSubs((c) => {
+      const out = { ...c };
+      for (const [id, v] of Object.entries(carried.lineItems) as Array<[SubId, number]>)
+        if (untouched(out[id], v)) out[id] = '';
+      return out;
+    });
+    setCats((c) => {
+      const out = { ...c };
+      for (const [id, v] of Object.entries(carried.categories) as Array<[CategoryId, number]>)
+        if (untouched(out[id], v)) out[id] = '';
+      return out;
+    });
+    setSrcs((c) => {
+      const out = { ...c };
+      for (const [id, v] of Object.entries(carried.incomeSources) as Array<
+        [IncomeSourceId, number]
+      >)
+        if (untouched(out[id], v)) out[id] = '';
+      return out;
+    });
+    if (untouched(pretax, carried.pretaxSavings)) setPretax('');
+    setCarried(null);
+  }
+  /** True for a field whose value came over unchanged from last month. */
+  const isCarried = (now: string | undefined, was: number | undefined) =>
+    carried !== null && was !== undefined && (now ?? '') === str(was);
   const [touched, setTouched] = useState(false);
 
   const usual = useMemo(() => recentAverage(entries, ym), [entries, ym]);
@@ -381,6 +439,15 @@ function Form({
         setTouched(false);
       }}
     >
+      {carried ? (
+        <div className="bg-surface-2 flex items-center justify-between gap-3 rounded-[10px] px-3 py-2">
+          <span className="text-xs">{C.carried(carried.count)}</span>
+          <button type="button" className="btn btn-ghost btn-sm shrink-0" onClick={clearCarried}>
+            {C.clearCarried}
+          </button>
+        </div>
+      ) : null}
+
       {/* How much detail: one number, or a line per category. */}
       <div className="flex items-center justify-between gap-3">
         <span className="text-muted text-xs">{C.modeLabel}</span>
@@ -477,7 +544,10 @@ function Form({
             {srcValues.map(({ id, value }) => (
               <li key={id}>
                 <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
-                  <span className="truncate text-[13px]">{t.track.incomeSources[id]}</span>
+                  <span className="flex items-center gap-1.5 truncate text-[13px]">
+                    {t.track.incomeSources[id]}
+                    {isCarried(srcs[id], carried?.incomeSources[id]) ? <FixedTag /> : null}
+                  </span>
                   <span className="relative">
                     <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
                       $
@@ -508,7 +578,10 @@ function Form({
 
       <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
         <span className="min-w-0">
-          <span className="block text-[13px] font-medium">{C.pretax}</span>
+          <span className="flex items-center gap-1.5 text-[13px] font-medium">
+            {C.pretax}
+            {isCarried(pretax, carried?.pretaxSavings) ? <FixedTag /> : null}
+          </span>
           <span className="text-muted block text-[11px]">{C.pretaxHint}</span>
         </span>
         <span className="relative">
@@ -560,7 +633,10 @@ function Form({
                         ›
                       </span>
                       <span className="min-w-0">
-                        <span className="block truncate text-[13px]">{t.track.categories[id]}</span>
+                        <span className="flex items-center gap-1.5 truncate text-[13px]">
+                          {t.track.categories[id]}
+                          {isCarried(cats[id], carried?.categories[id]) ? <FixedTag /> : null}
+                        </span>
                         {id === 'housing' && plan && plan.monthlyHousing > 0 ? (
                           <span className="text-muted block truncate text-[11px]">
                             {C.housingPlan(fmt.currency0(plan.monthlyHousing))}
@@ -608,6 +684,9 @@ function Form({
                                 className={`h-1.5 w-1.5 shrink-0 rounded-full ${TIER_DOT[tierOf(item.id)]}`}
                               />
                               <span className="truncate">{t.track.subcategories[item.id]}</span>
+                              {isCarried(subs[item.id], carried?.lineItems[item.id]) ? (
+                                <FixedTag />
+                              ) : null}
                             </span>
                             <span className="relative">
                               <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs">
@@ -779,9 +858,11 @@ export default function MonthCheckIn({
         </div>
       </div>
 
-      {/* Keyed by month so the drafts reset when the month changes. */}
+      {/* Keyed by month so the drafts reset when the month changes — and once
+          when the saved ledger arrives (it loads just after first paint), so a
+          new month starts from the real history: mode, repeats, placeholders. */}
       <Form
-        key={`${selKey}-${entry ? 'e' : 'n'}`}
+        key={`${selKey}-${entry ? 'e' : 'n'}-${entries.length > 0 ? 'data' : 'empty'}`}
         ym={sel}
         entry={entry}
         entries={entries}

@@ -805,6 +805,61 @@ export function prefersDetail(entries: MonthEntry[], ym: YearMonth): boolean {
   return Boolean(prior?.categories);
 }
 
+// ---------- Recurring amounts ----------
+
+export type Recurring = {
+  lineItems: Breakdown;
+  /** Categories logged as one number (not itemized) in both months. */
+  categories: Categories;
+  incomeSources: IncomeSources;
+  pretaxSavings?: number;
+  /** How many amounts were found, for "N carried over". */
+  count: number;
+};
+
+/**
+ * What repeats: amounts that were EXACTLY the same in the two most recent
+ * logged months before `ym` — rent, insurance, a car payment, salary, the
+ * 401(k). Both months must be recent (within the 3 months before `ym`), so a
+ * long gap never carries stale numbers forward. Net worth and one-number
+ * totals never carry: they're expected to change.
+ */
+export function recurringFor(entries: MonthEntry[], ym: YearMonth): Recurring {
+  const out: Recurring = { lineItems: {}, categories: {}, incomeSources: {}, count: 0 };
+  const prior = entries.filter((e) => key(e) < key(ym)).slice(-2);
+  if (prior.length < 2) return out;
+  const [a, b] = prior as [MonthEntry, MonthEntry];
+  if (key(ym) - key(a) > 3) return out;
+  const same = (x: number | undefined, y: number | undefined): x is number =>
+    x !== undefined && y !== undefined && x > 0 && Math.abs(x - y) < 0.005;
+
+  for (const id of SUB_IDS) {
+    if (same(a.breakdown?.[id], b.breakdown?.[id])) {
+      out.lineItems[id] = b.breakdown![id]!;
+      out.count += 1;
+    }
+  }
+  for (const c of CATEGORY_IDS) {
+    const itemized = (e: MonthEntry) => subsOf(c).some((id) => e.breakdown?.[id] !== undefined);
+    if (itemized(a) || itemized(b)) continue;
+    if (same(a.categories?.[c], b.categories?.[c])) {
+      out.categories[c] = b.categories![c]!;
+      out.count += 1;
+    }
+  }
+  for (const id of INCOME_SOURCE_IDS) {
+    if (same(a.incomeSources?.[id], b.incomeSources?.[id])) {
+      out.incomeSources[id] = b.incomeSources![id]!;
+      out.count += 1;
+    }
+  }
+  if (same(a.pretaxSavings, b.pretaxSavings)) {
+    out.pretaxSavings = b.pretaxSavings;
+    out.count += 1;
+  }
+  return out;
+}
+
 // ---------- Budget-sheet view: where it came from, what kind, what was kept ----------
 
 export type IncomeBreakdown = {

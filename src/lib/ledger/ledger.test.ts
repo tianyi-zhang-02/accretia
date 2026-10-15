@@ -18,6 +18,7 @@ import {
   recordedYears,
   shiftMonth,
   streak,
+  recurringFor,
   incomeBreakdown,
   tierOf,
   tierTotals,
@@ -557,5 +558,62 @@ describe('budget-sheet view: income sources, kinds of spending, pre-tax savings'
     });
     // A plain ledger still exports exactly as before.
     expect(toCsv([m(1, 1, 1)]).split('\n')[0]).toBe('year,month,income,spending,net_worth');
+  });
+});
+
+describe('recurringFor — what repeats month to month', () => {
+  const e = (month: number, extra: Partial<MonthEntry>): MonthEntry =>
+    upsert([], { year: 2026, month, income: 0, spending: 0, ...extra } as MonthEntry)[0]!;
+
+  it('carries amounts that were identical in the last two months', () => {
+    const entries = [
+      e(7, {
+        incomeSources: { salary: 11_000, bonus: 2_000 },
+        pretaxSavings: 1_958,
+        breakdown: { 'housing.rent': 3_200, 'insurance.auto': 140, 'food.groceries': 610 },
+        categories: { utilities: 180 },
+      }),
+      e(8, {
+        incomeSources: { salary: 11_000 },
+        pretaxSavings: 1_958,
+        breakdown: { 'housing.rent': 3_200, 'insurance.auto': 140, 'food.groceries': 655 },
+        categories: { utilities: 180 },
+      }),
+    ];
+    const r = recurringFor(entries, { year: 2026, month: 9 });
+    expect(r.lineItems).toEqual({ 'housing.rent': 3_200, 'insurance.auto': 140 });
+    expect(r.categories).toEqual({ utilities: 180 });
+    expect(r.incomeSources).toEqual({ salary: 11_000 });
+    expect(r.pretaxSavings).toBe(1_958);
+    expect(r.count).toBe(5);
+  });
+
+  it('needs two months, and recent ones', () => {
+    const one = [e(8, { breakdown: { 'housing.rent': 3_200 } })];
+    expect(recurringFor(one, { year: 2026, month: 9 }).count).toBe(0);
+    const stale = [
+      e(1, { breakdown: { 'housing.rent': 3_200 } }),
+      e(2, { breakdown: { 'housing.rent': 3_200 } }),
+    ];
+    expect(recurringFor(stale, { year: 2026, month: 9 }).count).toBe(0);
+  });
+
+  it('only looks at months before the one being logged; net worth never carries', () => {
+    const entries = [
+      e(7, { breakdown: { 'housing.rent': 3_200 }, netWorth: 100 }),
+      e(8, { breakdown: { 'housing.rent': 3_200 }, netWorth: 100 }),
+      e(9, { breakdown: { 'housing.rent': 9_999 } }),
+    ];
+    const r = recurringFor(entries, { year: 2026, month: 9 });
+    expect(r.lineItems).toEqual({ 'housing.rent': 3_200 });
+    expect('netWorth' in r).toBe(false);
+  });
+
+  it('a category itemized in either month is carried through its items, not as a total', () => {
+    const entries = [
+      e(7, { categories: { food: 900 } }),
+      e(8, { breakdown: { 'food.groceries': 900 } }),
+    ];
+    expect(recurringFor(entries, { year: 2026, month: 9 }).categories).toEqual({});
   });
 });

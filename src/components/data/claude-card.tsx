@@ -14,7 +14,7 @@ import { SectionLabel } from '../ui/icon';
  */
 
 const MCPB_URL =
-  'https://github.com/tianyi-zhang-02/accretia/releases/download/mcp-v0.1.0/work-optional.mcpb';
+  'https://github.com/tianyi-zhang-02/accretia/releases/download/mcp-v0.2.0/work-optional.mcpb';
 const CODE_URL = 'https://github.com/tianyi-zhang-02/accretia/tree/main/mcp#claude-code';
 
 export default function ClaudeCard() {
