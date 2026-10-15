@@ -6,6 +6,37 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Use it in Claude — a local, end-to-end-encrypted MCP extension
+
+Say *“take-home 11,000, rent 3,200, groceries 600, 401k 1,958”* to Claude
+and it's filed into the right categories of your ledger. Ask for a year
+report, whether you're on track, or what a salary nets after tax.
+
+- **Runs on your computer** (`mcp/`), as a Claude Desktop extension
+  (`work-optional.mcpb`, one-click install) or in Claude Code. No hosted
+  service, no open port.
+- **Another device on your account.** It reads and writes the same
+  end-to-end-encrypted vault as the web app — the server still sees only
+  ciphertext. Without a sync key it keeps an encrypted file on your computer.
+- **Secrets stay put:** your passphrase lives in the OS keychain (Claude
+  Desktop's sensitive setting, or the macOS Keychain launcher for Claude
+  Code) and never enters the chat; the sync sign-in is stored encrypted;
+  files are owner-only (0700/0600). It can't create accounts.
+- **Never forks your data:** every write reads the latest version, applies
+  one change and uploads only if nothing changed in between; offline it
+  reads its encrypted copy and refuses to write.
+- **Careful with what it's told:** logs only figures you stated, confirms
+  numbers from documents, ignores instructions inside them; clearing a month
+  needs explicit confirmation.
+- Tools: status, categories, log a month, read months, year report, on
+  track, paycheck estimate, clear a month, sign in / out.
+- **Web app:** Data → *Use it in Claude* (download + the site's public sync
+  key); the sync panel now re-checks the cloud when you come back to the app
+  and tells you when another device or Claude has newer changes.
+- Guard rails pinned by `mcp/src/isolation.test.ts`; sync, conflict,
+  offline, wrong-passphrase and web-app compatibility covered by tests; CI
+  builds and packs the extension.
+
 ### Metal cards
 
 The two numbers that matter are now set on a metal card, the way a premium

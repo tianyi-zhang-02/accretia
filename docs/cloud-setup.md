@@ -65,6 +65,11 @@ For local dev, the same two lines go in `.env.local` (git-ignored).
 - In **Table Editor → vaults**, confirm the `envelope` column is unreadable
   base64. If you can read anyone's numbers there, stop and investigate.
 
+## The Claude extension (mcp/)
+- It signs in to **existing** accounts only and reads/writes the same encrypted `vaults` row, so no schema change is needed.
+- Users copy the site's public sync key from Data → *Use it in Claude*.
+- It relies on the same email sender: custom SMTP matters here too.
+
 ## What users should know (and the UI tells them)
 - The passphrase never leaves their device. When they set it they get a
   **recovery code** (shown once; copy / save as file) — the only other way
