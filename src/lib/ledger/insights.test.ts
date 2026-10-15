@@ -177,6 +177,35 @@ describe('budgets in the findings', () => {
   });
 });
 
+describe('the same month last year', () => {
+  it('spending against the same month a year ago', () => {
+    const r = ledgerInsights([
+      { year: 2025, month: 8, income: 10_000, spending: 4_000 },
+      m(8, 10_000, 5_000),
+    ]);
+    expect(r.insights).toContainEqual({
+      id: 'vsLastYear',
+      tone: 'warn',
+      pct: 25,
+      amount: 5_000,
+      then: 4_000,
+    });
+  });
+
+  it('quiet when it is about the same, or that month was not logged', () => {
+    const same = ledgerInsights([
+      { year: 2025, month: 8, income: 1, spending: 5_050 },
+      m(8, 1, 5_000),
+    ]);
+    expect(ids(same)).not.toContain('vsLastYear');
+    const other = ledgerInsights([
+      { year: 2025, month: 7, income: 1, spending: 1_000 },
+      m(8, 1, 5_000),
+    ]);
+    expect(ids(other)).not.toContain('vsLastYear');
+  });
+});
+
 describe('categoryByMonth', () => {
   it('twelve slots, null where the month was not logged by category', () => {
     const entries = [

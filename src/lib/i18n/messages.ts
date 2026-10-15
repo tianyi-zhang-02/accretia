@@ -586,6 +586,17 @@ const en = {
     nwChange: 'Net worth change',
     bestWorst: 'Best · worst month',
     monthlySaved: 'Saved each month',
+    yoyHeading: 'Against last year',
+    yoySub: (n: number, months: string) =>
+      n === 12
+        ? 'All twelve months, both years.'
+        : `Only the ${n} month${n === 1 ? '' : 's'} logged in both years (${months}).`,
+    yoyKept: 'Kept',
+    yoyRate: 'Savings rate',
+    lastYear: (v: string) => `last year ${v}`,
+    yoyNetWorth: (month: string) => `Net worth, ${month} vs a year before`,
+    yoyCategories: (n: number) =>
+      `Biggest changes by category · ${n} month${n === 1 ? '' : 's'} logged by category in both`,
     byCategory: 'Where it went',
     byKind: 'What kind of spending',
     bySource: 'Where it came from',
@@ -837,6 +848,10 @@ const en = {
         `You spent ${amount} — ${pct}% more than usual (${usual}).`,
       spendingDown: (pct: number, amount: string, usual: string) =>
         `You spent ${amount} — ${pct}% less than usual (${usual}).`,
+      lastYearUp: (pct: number, amount: string, then: string) =>
+        `${pct}% more than the same month last year (${then} → ${amount}).`,
+      lastYearDown: (pct: number, amount: string, then: string) =>
+        `${pct}% less than the same month last year (${then} → ${amount}).`,
       categoryJump: (cat: string, amount: string, usual: string) =>
         `${cat} went up to ${amount} (usually ${usual}).`,
       categoryDrop: (cat: string, amount: string, usual: string) =>
@@ -864,7 +879,7 @@ const en = {
           ? 'The budgeted category stayed within budget.'
           : `All ${n} budgeted categories stayed within budget.`,
       none: 'Nothing unusual — about the same as your recent months.',
-      note: 'Compared with your own last three months, not with anyone else.',
+      note: 'Compared with your own months — the last three, and the same month last year — never with anyone else.',
     },
     tiers: {
       needs: 'Essentials',
@@ -1574,6 +1589,14 @@ const zh: Messages = {
     nwChange: '净资产变化',
     bestWorst: '最好 · 最差的月份',
     monthlySaved: '每月结余',
+    yoyHeading: '和去年同期比',
+    yoySub: (n: number, months: string) =>
+      n === 12 ? '两年都记满了十二个月。' : `只比两年都记了的 ${n} 个月（${months}）。`,
+    yoyKept: '存下',
+    yoyRate: '储蓄率',
+    lastYear: (v: string) => `去年 ${v}`,
+    yoyNetWorth: (month: string) => `净资产（${month}，和去年同月比）`,
+    yoyCategories: (n: number) => `变化最大的分类 · 两年都按分类记的 ${n} 个月`,
     byCategory: '钱花到哪儿了',
     byKind: '花销的性质',
     bySource: '钱从哪儿来',
@@ -1818,6 +1841,10 @@ const zh: Messages = {
         `这个月花了 ${amount}，比平时（${usual}）多 ${pct}%。`,
       spendingDown: (pct: number, amount: string, usual: string) =>
         `这个月花了 ${amount}，比平时（${usual}）少 ${pct}%。`,
+      lastYearUp: (pct: number, amount: string, then: string) =>
+        `比去年同月多花了 ${pct}%（${then} → ${amount}）。`,
+      lastYearDown: (pct: number, amount: string, then: string) =>
+        `比去年同月少花了 ${pct}%（${then} → ${amount}）。`,
       categoryJump: (cat: string, amount: string, usual: string) =>
         `「${cat}」涨到了 ${amount}（平时约 ${usual}）。`,
       categoryDrop: (cat: string, amount: string, usual: string) =>
@@ -1842,7 +1869,7 @@ const zh: Messages = {
       withinBudget: (n: number) =>
         n === 1 ? '设了预算的那一类没超。' : `设了预算的 ${n} 类都没超。`,
       none: '没什么异常，和最近几个月差不多。',
-      note: '只和你自己最近三个月比，不和任何人比。',
+      note: '只和你自己的记录比（最近三个月、去年同月），不和任何人比。',
     },
     tiers: {
       needs: '必要开支',

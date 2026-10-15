@@ -19,6 +19,7 @@ import {
   type MonthEntry,
 } from '@/lib/ledger/ledger';
 import { budgetTotal, yearBudget } from '@/lib/ledger/budgets';
+import { yearOverYear } from '@/lib/ledger/compare';
 import { simulate } from '@/lib/simulator/engine';
 import { fireHeadline } from '@/lib/simulator/insights';
 import { exactState, paycheck } from '@/lib/tax/paycheck';
@@ -47,7 +48,7 @@ import { Vault, VaultError, type VaultData } from './vault';
  * may ever print to it.
  */
 
-const VERSION = '0.4.0';
+const VERSION = '0.5.0';
 const cfg = readConfig();
 const store = new Store(cfg.home);
 const cloud: Cloud | null =
@@ -379,7 +380,7 @@ server.registerTool(
   {
     title: 'Year report',
     description:
-      'Totals for a year: take-home, spending, kept, pre-tax savings and the true savings rate; where it came from; where it went (by category and line item); essentials vs lifestyle vs splurges; and plan vs actual.',
+      'Totals for a year: take-home, spending, kept, pre-tax savings and the true savings rate; where it came from; where it went (by category and line item); essentials vs lifestyle vs splurges; plan vs actual; and against last year, over the months logged in both years.',
     inputSchema: { year: z.number().int().min(1900).max(2200) },
     annotations: { readOnlyHint: true },
   },
@@ -411,6 +412,19 @@ server.registerTool(
                   left: l.left,
                   over: l.over,
                 })),
+              }
+            : null;
+        })(),
+        vsLastYear: (() => {
+          const y = yearOverYear(data.ledger, year);
+          return y
+            ? {
+                note: 'Like for like: only months logged in both years.',
+                months: y.months,
+                thisYear: y.now,
+                lastYear: y.then,
+                netWorth: y.netWorth,
+                categories: y.categories.slice(0, 6),
               }
             : null;
         })(),

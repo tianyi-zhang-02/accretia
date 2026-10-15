@@ -24,6 +24,7 @@ export type LedgerInsight =
   | { id: 'splurgeShare'; tone: 'warn'; pct: number; amount: number }
   | { id: 'overBudget'; tone: 'warn'; count: number; category: CategoryId; over: number }
   | { id: 'withinBudget'; tone: 'good'; count: number }
+  | { id: 'vsLastYear'; tone: 'good' | 'warn'; pct: number; amount: number; then: number }
   | { id: 'firstMonth'; tone: 'info' };
 
 export type LedgerInsights = {
@@ -171,6 +172,24 @@ export function ledgerInsights(
     }
   }
 
+  // ---- the same month last year ----
+  const lastYear = sorted.find((e) => e.year === focus.year - 1 && e.month === focus.month);
+  if (lastYear && lastYear.spending > 0) {
+    const diff = focus.spending - lastYear.spending;
+    if (
+      Math.abs(diff) >= MIN_DOLLARS &&
+      (Math.abs(diff) / lastYear.spending) * 100 >= SPENDING_PCT
+    ) {
+      out.push({
+        id: 'vsLastYear',
+        tone: diff > 0 ? 'warn' : 'good',
+        pct: round((diff / lastYear.spending) * 100),
+        amount: focus.spending,
+        then: lastYear.spending,
+      });
+    }
+  }
+
   // ---- budgets ----
   if (focus.categories) {
     const lines = budgetLines(focus.categories, budgets);
@@ -195,6 +214,7 @@ export function ledgerInsights(
     'firstMonth',
     'spendingVsUsual',
     'categoryJump',
+    'vsLastYear',
     'netWorthChange',
     'yearPace',
     'savingsRate',

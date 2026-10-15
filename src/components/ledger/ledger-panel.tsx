@@ -28,6 +28,7 @@ import Icon, { SectionLabel } from '../ui/icon';
 import { categoryByMonth } from '@/lib/ledger/insights';
 
 import { yearBudget, type Budgets } from '@/lib/ledger/budgets';
+import { yearOverYear } from '@/lib/ledger/compare';
 
 import BudgetCard from './budget-card';
 import MonthCheckIn, { TierBar } from './month-check-in';
@@ -145,9 +146,16 @@ export default function LedgerPanel({
     return (m: number) => f.format(new Date(2000, m - 1, 1));
   }, [locale]);
 
+  /** "Jan–Sep" for a run of months, otherwise each one. */
+  const monthsLabel = (ms: number[]) =>
+    ms.length > 2 && ms.at(-1)! - ms[0]! === ms.length - 1
+      ? `${monthName(ms[0]!)}–${monthName(ms.at(-1)!)}`
+      : ms.map(monthName).join(locale === 'zh' ? '、' : ', ');
+
   const report = useMemo(() => yearReport(entries, year, planRows), [entries, year, planRows]);
   const breakdown = useMemo(() => categoryBreakdown(entries, year), [entries, year]);
   const sources = useMemo(() => incomeBreakdown(entries, year), [entries, year]);
+  const yoy = useMemo(() => yearOverYear(entries, year), [entries, year]);
   const budgets: Budgets = useMemo(
     () => assumptions.monthlyBudgets ?? {},
     [assumptions.monthlyBudgets],
@@ -349,6 +357,78 @@ export default function LedgerPanel({
                 </li>
               ))}
             </ul>
+
+            {/* Against last year — like for like, months logged in both. */}
+            {yoy ? (
+              <>
+                <p className="eyebrow mt-5 mb-1">{L.yoyHeading}</p>
+                <p className="text-muted mb-2 text-xs">
+                  {L.yoySub(yoy.months.length, monthsLabel(yoy.months))}
+                </p>
+                <ul className="rows">
+                  {(
+                    [
+                      [L.totalIncome, yoy.now.income, yoy.then.income, 1],
+                      [L.totalSpending, yoy.now.spending, yoy.then.spending, -1],
+                      [L.yoyKept, yoy.now.kept, yoy.then.kept, 1],
+                    ] as const
+                  ).map(([label, now, then, good]) => (
+                    <YoyRow
+                      key={label}
+                      label={label}
+                      value={fmt.currency0(now)}
+                      then={L.lastYear(fmt.currency0(then))}
+                      delta={now === then ? null : fmt.currencyDelta(now - then)}
+                      good={(now - then) * good >= 0}
+                    />
+                  ))}
+                  {yoy.now.savingsRatePct !== null && yoy.then.savingsRatePct !== null ? (
+                    <YoyRow
+                      label={L.yoyRate}
+                      value={fmt.pct0(yoy.now.savingsRatePct)}
+                      then={L.lastYear(fmt.pct0(yoy.then.savingsRatePct))}
+                      delta={null}
+                      good
+                    />
+                  ) : null}
+                  {yoy.netWorth ? (
+                    <YoyRow
+                      label={L.yoyNetWorth(monthName(yoy.netWorth.month))}
+                      value={fmt.currency0(yoy.netWorth.now)}
+                      then={L.lastYear(fmt.currency0(yoy.netWorth.then))}
+                      delta={fmt.currencyDelta(yoy.netWorth.change)}
+                      good={yoy.netWorth.change >= 0}
+                    />
+                  ) : null}
+                </ul>
+                {yoy.categories.some((x) => x.diff !== 0) ? (
+                  <>
+                    <p className="text-muted mt-3 mb-1 text-xs">
+                      {L.yoyCategories(yoy.categoryMonths)}
+                    </p>
+                    <ul className="rows">
+                      {yoy.categories
+                        .filter((x) => x.diff !== 0)
+                        .slice(0, 4)
+                        .map((x) => (
+                          <YoyRow
+                            key={x.id}
+                            label={t.track.categories[x.id]}
+                            value={fmt.currency0(x.now)}
+                            then={L.lastYear(fmt.currency0(x.then))}
+                            delta={
+                              x.pct === null
+                                ? fmt.currencyDelta(x.diff)
+                                : `${x.diff > 0 ? '+' : '−'}${fmt.pct0(Math.abs(x.pct))}`
+                            }
+                            good={x.diff <= 0}
+                          />
+                        ))}
+                    </ul>
+                  </>
+                ) : null}
+              </>
+            ) : null}
 
             {/* Where it came from — only when some month was split by source. */}
             {sources ? (
@@ -726,5 +806,35 @@ function MonthBars({
         />
       ))}
     </span>
+  );
+}
+
+/** One "this year vs last year" line: the figure, last year's, and the change. */
+function YoyRow({
+  label,
+  value,
+  then,
+  delta,
+  good,
+}: {
+  label: string;
+  value: string;
+  then: string;
+  delta: string | null;
+  good: boolean;
+}) {
+  return (
+    <li className="row items-center">
+      <span className="text-[13px]">{label}</span>
+      <span className="nums text-right text-[13px]">
+        <span className="font-medium">{value}</span>
+        {delta ? (
+          <span className={`ml-1.5 text-xs ${good ? 'text-positive' : 'text-negative'}`}>
+            {delta}
+          </span>
+        ) : null}
+        <span className="text-muted block text-[11px]">{then}</span>
+      </span>
+    </li>
   );
 }
