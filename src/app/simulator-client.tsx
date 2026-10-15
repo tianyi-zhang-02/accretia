@@ -704,6 +704,7 @@ function SimulatorInner() {
               notify(t.toast.calibrated, () => patchCurrent(before));
             }}
             notify={notify}
+            onBudgets={(monthlyBudgets) => patchCurrent({ ...assumptions, monthlyBudgets })}
           />
         </div>
       ) : null}

@@ -11,6 +11,7 @@
 
 import type { YearRow } from '@/lib/simulator/engine';
 
+import { budgetLines, type Budgets } from './budgets';
 import { CATEGORY_IDS, tierTotals, type CategoryId, type MonthEntry } from './ledger';
 
 export type LedgerInsight =
@@ -21,6 +22,8 @@ export type LedgerInsight =
   | { id: 'netWorthChange'; tone: 'good' | 'warn'; change: number; months: number }
   | { id: 'yearPace'; tone: 'good' | 'warn'; year: number; projected: number; plan: number }
   | { id: 'splurgeShare'; tone: 'warn'; pct: number; amount: number }
+  | { id: 'overBudget'; tone: 'warn'; count: number; category: CategoryId; over: number }
+  | { id: 'withinBudget'; tone: 'good'; count: number }
   | { id: 'firstMonth'; tone: 'info' };
 
 export type LedgerInsights = {
@@ -44,6 +47,7 @@ export function ledgerInsights(
   entries: MonthEntry[],
   planRows: YearRow[] = [],
   limit = 4,
+  budgets: Budgets = {},
 ): LedgerInsights {
   const sorted = [...entries].sort((a, b) => key(a) - key(b));
   const focus = sorted.at(-1);
@@ -167,15 +171,34 @@ export function ledgerInsights(
     }
   }
 
+  // ---- budgets ----
+  if (focus.categories) {
+    const lines = budgetLines(focus.categories, budgets);
+    const over = lines.filter((l) => l.over).sort((a, b) => a.left - b.left);
+    if (over.length > 0) {
+      out.push({
+        id: 'overBudget',
+        tone: 'warn',
+        count: over.length,
+        category: over[0]!.id,
+        over: round(-over[0]!.left),
+      });
+    } else if (lines.length > 0) {
+      out.push({ id: 'withinBudget', tone: 'good', count: lines.length });
+    }
+  }
+
   // Most informative first. The savings rate mostly restates the spending
   // line, so it ranks below net worth and the year's pace.
   const order: LedgerInsight['id'][] = [
+    'overBudget',
     'firstMonth',
     'spendingVsUsual',
     'categoryJump',
     'netWorthChange',
     'yearPace',
     'savingsRate',
+    'withinBudget',
     'categoryDrop',
     'splurgeShare',
   ];

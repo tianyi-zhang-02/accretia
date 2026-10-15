@@ -10,6 +10,9 @@ import {
   type MonthEntry,
 } from '@/lib/ledger/ledger';
 
+import { budgetLines, type Budgets } from '@/lib/ledger/budgets';
+import { assumptionsSchema } from '@/lib/validation/scenarios';
+
 import type { VaultData } from './vault';
 
 /**
@@ -87,8 +90,33 @@ export function clearMonthChange(year: number, month: number) {
   return (d: VaultData): VaultData => ({ ...d, ledger: remove(d.ledger, year, month) });
 }
 
+/**
+ * A pure change for Vault.update: the selected plan's monthly budgets.
+ * Merged by default (0 removes one); `replace` starts from none. The plan is
+ * re-validated, so nothing the web app wouldn't accept can be written.
+ */
+export function setBudgetsChange(budgets: Budgets, replace = false) {
+  return (d: VaultData): VaultData => {
+    const i = Math.max(
+      0,
+      d.scenarios.findIndex((s) => s.id === d.selectedId),
+    );
+    const plan = d.scenarios[i]!;
+    const merged: Budgets = { ...(replace ? {} : (plan.assumptions.monthlyBudgets ?? {})) };
+    for (const [id, v] of Object.entries(budgets) as Array<[keyof Budgets, number | undefined]>) {
+      if (v === undefined) continue;
+      if (v > 0) merged[id] = v;
+      else delete merged[id];
+    }
+    const assumptions = assumptionsSchema.parse({ ...plan.assumptions, monthlyBudgets: merged });
+    const scenarios = [...d.scenarios];
+    scenarios[i] = { ...plan, assumptions };
+    return { ...d, scenarios };
+  };
+}
+
 /** The answer a person wants after logging: what was kept, and how it splits. */
-export function monthSummary(e: MonthEntry) {
+export function monthSummary(e: MonthEntry, budgets: Budgets = {}) {
   const s = totalSaved([e]);
   const t = tierTotals(e);
   return {
@@ -101,5 +129,16 @@ export function monthSummary(e: MonthEntry) {
     byKind: e.categories
       ? { essentials: t.needs, lifestyle: t.lifestyle, splurges: t.splurge }
       : null,
+    ...(e.categories && budgetLines(e.categories, budgets).length
+      ? {
+          budgets: budgetLines(e.categories, budgets).map((l) => ({
+            category: l.id,
+            budget: l.budget,
+            spent: l.spent,
+            left: l.left,
+            over: l.over,
+          })),
+        }
+      : {}),
   };
 }

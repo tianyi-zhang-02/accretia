@@ -54,8 +54,12 @@ describe('restore treats the file as untrusted', () => {
     });
   });
 
+  it('still reads version-1 files (written before budgets existed)', () => {
+    expect(parseBackup(JSON.stringify({ ...good(), version: 1 })).ok).toBe(true);
+  });
+
   it('refuses a newer format instead of silently dropping its fields', () => {
-    expect(parseBackup(JSON.stringify({ ...good(), version: 2 }))).toEqual({
+    expect(parseBackup(JSON.stringify({ ...good(), version: 3 }))).toEqual({
       ok: false,
       reason: 'newerVersion',
     });

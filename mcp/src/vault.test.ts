@@ -8,9 +8,15 @@ import { buildBackup, parseBackup } from '@/lib/backup/backup';
 import { createVault, open, seal, unlock, type Envelope } from '@/lib/cloud/crypto';
 import { defaultAssumptions } from '@/components/simulator/default-assumptions';
 
-import { applyMonthEdit, clearMonthChange, logMonthChange } from './edits';
+import {
+  applyMonthEdit,
+  clearMonthChange,
+  logMonthChange,
+  monthSummary,
+  setBudgetsChange,
+} from './edits';
 import { Store } from './store';
-import { Vault, VaultError, type Remote } from './vault';
+import { Vault, VaultError, type Remote, type VaultData } from './vault';
 
 const PASS = 'correct horse battery staple';
 const T = 60_000; // real 600k-iteration PBKDF2 in places
@@ -252,4 +258,44 @@ describe('sync with the web app', () => {
     },
     T,
   );
+});
+
+describe('budgets', () => {
+  const data = (): VaultData => {
+    const d = {
+      scenarios: [
+        { id: 'a', name: 'A', assumptions: defaultAssumptions() },
+        {
+          id: 'b',
+          name: 'B',
+          assumptions: { ...defaultAssumptions(), monthlyBudgets: { fun: 300 } },
+        },
+      ],
+      selectedId: 'b',
+      ledger: [],
+    };
+    return d as VaultData;
+  };
+
+  it('merge into the selected plan only; 0 removes; replace starts over', () => {
+    const d1 = setBudgetsChange({ food: 800, fun: 0 })(data());
+    expect(d1.scenarios[1]!.assumptions.monthlyBudgets).toEqual({ food: 800 });
+    expect(d1.scenarios[0]!.assumptions.monthlyBudgets).toBeUndefined();
+    const d2 = setBudgetsChange({ health: 100 }, true)(d1);
+    expect(d2.scenarios[1]!.assumptions.monthlyBudgets).toEqual({ health: 100 });
+  });
+
+  it('the month summary says which categories went over', () => {
+    const m = applyMonthEdit(undefined, {
+      year: 2026,
+      month: 9,
+      income: 9_000,
+      categories: { food: 950, fun: 100 },
+    });
+    expect(monthSummary(m, { food: 800, fun: 300 }).budgets).toEqual([
+      { category: 'food', budget: 800, spent: 950, left: -150, over: true },
+      { category: 'fun', budget: 300, spent: 100, left: 200, over: false },
+    ]);
+    expect(monthSummary(m).budgets).toBeUndefined();
+  });
 });

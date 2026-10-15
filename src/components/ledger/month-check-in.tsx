@@ -30,6 +30,8 @@ import {
 } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
 
+import type { Budgets } from '@/lib/ledger/budgets';
+
 import { SectionLabel } from '../ui/icon';
 
 /**
@@ -145,6 +147,20 @@ function FixedTag() {
   );
 }
 
+/** "Budget $800 · $150 left" — or, past it, "$120 over" in red. */
+function BudgetHint({ budget, spent }: { budget: number; spent: number }) {
+  const { t, fmt } = useI18n();
+  const C = t.track.checkIn;
+  const left = budget - spent;
+  return (
+    <span className={`block truncate text-[11px] ${left < 0 ? 'text-negative' : 'text-muted'}`}>
+      {left < 0
+        ? C.budgetOver(fmt.currency0(budget), fmt.currency0(-left))
+        : C.budgetLeft(fmt.currency0(budget), fmt.currency0(left))}
+    </span>
+  );
+}
+
 function Form({
   ym,
   entry,
@@ -158,6 +174,7 @@ function Form({
   onSave,
   onClear,
   onDirty,
+  budgets,
 }: {
   ym: YearMonth;
   entry: MonthEntry | undefined;
@@ -173,6 +190,8 @@ function Form({
   onSave: (e: MonthEntry) => void;
   onClear: (ym: YearMonth) => void;
   onDirty: () => void;
+  /** Monthly budget per category, from the plan. */
+  budgets: Budgets;
 }) {
   const { t, fmt, locale } = useI18n();
   const C = t.track.checkIn;
@@ -637,7 +656,12 @@ function Form({
                           {t.track.categories[id]}
                           {isCarried(cats[id], carried?.categories[id]) ? <FixedTag /> : null}
                         </span>
-                        {id === 'housing' && plan && plan.monthlyHousing > 0 ? (
+                        {budgets[id] ? (
+                          <BudgetHint
+                            budget={budgets[id]!}
+                            spent={typeof value === 'number' ? value : 0}
+                          />
+                        ) : id === 'housing' && plan && plan.monthlyHousing > 0 ? (
                           <span className="text-muted block truncate text-[11px]">
                             {C.housingPlan(fmt.currency0(plan.monthlyHousing))}
                           </span>
@@ -788,6 +812,7 @@ export default function MonthCheckIn({
   onSelect,
   onSave,
   onClear,
+  budgets,
 }: {
   entries: MonthEntry[];
   sel: YearMonth;
@@ -797,6 +822,7 @@ export default function MonthCheckIn({
   onSelect: (ym: YearMonth) => void;
   onSave: (e: MonthEntry) => void;
   onClear: (ym: YearMonth) => void;
+  budgets: Budgets;
 }) {
   const { t, locale } = useI18n();
   const C = t.track.checkIn;
@@ -869,6 +895,7 @@ export default function MonthCheckIn({
         planRows={planRows}
         startingNetWorth={startingNetWorth}
         monthLabel={monthLabel}
+        budgets={budgets}
         justSaved={savedKey === selKey}
         nextUp={nextUp}
         onSelect={onSelect}

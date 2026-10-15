@@ -143,6 +143,40 @@ it('ranks what is new information first', () => {
   expect(ids(r).indexOf('netWorthChange')).toBeLessThan(ids(r).indexOf('savingsRate'));
 });
 
+describe('budgets in the findings', () => {
+  it('names the category furthest over, and how many are over', () => {
+    const r = ledgerInsights(
+      [m(8, 10_000, 0, { categories: { food: 1_000, fun: 450, housing: 3_000 } })],
+      [],
+      4,
+      {
+        food: 800,
+        fun: 300,
+        housing: 3_200,
+      },
+    );
+    expect(r.insights[0]).toEqual({
+      id: 'overBudget',
+      tone: 'warn',
+      count: 2,
+      category: 'food',
+      over: 200,
+    });
+  });
+
+  it('says so when everything budgeted stayed within', () => {
+    const r = ledgerInsights([m(8, 10_000, 0, { categories: { food: 700 } })], [], 4, {
+      food: 800,
+    });
+    expect(r.insights).toContainEqual({ id: 'withinBudget', tone: 'good', count: 1 });
+  });
+
+  it('a month logged as one total says nothing about budgets', () => {
+    const r = ledgerInsights([m(8, 10_000, 5_000)], [], 4, { food: 800 });
+    expect(ids(r).filter((i) => i.includes('Budget'))).toEqual([]);
+  });
+});
+
 describe('categoryByMonth', () => {
   it('twelve slots, null where the month was not logged by category', () => {
     const entries = [

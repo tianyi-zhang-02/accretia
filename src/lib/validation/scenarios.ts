@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { CATEGORY_IDS, type CategoryId } from '@/lib/ledger/ledger';
+
 // ---------- Building blocks ----------
 
 const label = z.string().trim().min(1).max(80);
@@ -277,6 +279,15 @@ export const assumptionsSchema = z
     // Retirement-phase knobs (spending change, post-retirement return),
     // active from the primary person's retireAge. Optional.
     retirement: retirementSchema.optional(),
+    // Monthly spending budget per ledger category (owner-approved, 2026-10).
+    // Optional; the ENGINE IGNORES IT — budgets are for tracking, compared
+    // against logged months. Lives with the plan so it rides in backups and
+    // the encrypted vault (which is why the backup format is v2).
+    monthlyBudgets: (
+      z.object(
+        Object.fromEntries(CATEGORY_IDS.map((c) => [c, positiveMoney.optional()])),
+      ) as unknown as z.ZodType<Partial<Record<CategoryId, number>>>
+    ).optional(),
   })
   .refine((v) => v.horizonEndYear >= v.horizonStartYear, {
     message: 'horizonEndYear must be ≥ horizonStartYear',
