@@ -10,6 +10,7 @@ import {
   categoryBreakdown,
   incomeBreakdown,
   planAt,
+  recurringFor,
   subsOf,
   tierOf,
   totalSaved,
@@ -38,7 +39,7 @@ import { Vault, VaultError, type VaultData } from './vault';
  * may ever print to it.
  */
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const cfg = readConfig();
 const store = new Store(cfg.home);
 const cloud: Cloud | null =
@@ -275,6 +276,35 @@ server.registerTool(
         ? `\n\nA new encrypted vault was created on this computer. Its recovery code was written to ${recoveryCodeFile} — tell the user to move it into a password manager and delete the file. Do not read or repeat it.`
         : '';
       return text(`Saved.\n${JSON.stringify(out, null, 2)}${note}`);
+    }),
+);
+
+server.registerTool(
+  'recurring_bills',
+  {
+    title: 'Amounts that repeat',
+    description:
+      'Amounts that were identical in the last two logged months (rent, insurance, salary, 401(k)…). Before logging a new month, offer these to the user — "rent 3,200 and car insurance 140 as usual?" — and include only the ones they confirm.',
+    inputSchema: {
+      year: z.number().int().min(1900).max(2200),
+      month: z.number().int().min(1).max(12),
+    },
+    annotations: { readOnlyHint: true },
+  },
+  async ({ year, month }) =>
+    guarded(async () => {
+      const { data } = await needVault().read();
+      const r = recurringFor(data.ledger, { year, month });
+      if (r.count === 0) return text('Nothing repeated exactly in the last two logged months.');
+      return json(
+        `${r.count} amount(s) repeated in the last two months. Confirm with the user before logging.`,
+        {
+          line_items: r.lineItems,
+          categories: r.categories,
+          income_sources: r.incomeSources,
+          ...(r.pretaxSavings !== undefined ? { pretax_savings: r.pretaxSavings } : {}),
+        },
+      );
     }),
 );
 

@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed bills fill themselves in
+
+- **A new month starts with what repeats.** Rent, insurance, a car payment,
+  your salary, the 401(k) — anything that was *exactly* the same in your last
+  two logged months is filled in and tagged **repeats**. A note at the top
+  says how many; change any that differ, or **Clear them** in one tap (an
+  amount you already edited stays). Net worth and one-number totals never
+  carry, and nothing carries over a gap of more than a few months.
+- **Fixed:** a new month could open in the wrong mode (one total instead of
+  by category) and without placeholders, because the form was set up a
+  moment before your saved ledger finished loading.
+- **Claude extension 0.2.0:** new `recurring_bills` tool, so Claude can ask
+  "rent 3,200 and car insurance 140 as usual?" instead of making you repeat
+  them.
+
 ### What this month shows
 
 A new card on Track, under *Am I on track?*, reads your latest month against
