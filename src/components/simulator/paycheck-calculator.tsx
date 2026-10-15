@@ -6,6 +6,7 @@ import { useI18n } from '@/lib/i18n/locale';
 import { STATE_TAXES } from '@/lib/simulator/tax-presets';
 import {
   CA_TAX_YEAR,
+  exactState as isExactState,
   K401_LIMIT,
   K401_LIMIT_50_PLUS,
   NO_WAGE_TAX_STATES,
@@ -90,12 +91,15 @@ export default function PaycheckCalculator({
   const [state, setState] = useState('CA');
   const [stateRate, setStateRate] = useState<string | null>(null);
   const [cityRate, setCityRate] = useState('');
+  const [nyc, setNyc] = useState(false);
   const [k401, setK401] = useState('');
   const [age50, setAge50] = useState(false);
   const [hsa, setHsa] = useState('');
   const [other, setOther] = useState('');
 
-  const exactState = state === 'CA' || (NO_WAGE_TAX_STATES as readonly string[]).includes(state);
+  const exactState = isExactState(state);
+  const noTax = (NO_WAGE_TAX_STATES as readonly string[]).includes(state);
+  const ny = state === 'NY';
   const presetRate = STATE_TAXES.find((s) => s.code === state)?.rate ?? 0;
 
   const r = useMemo(
@@ -107,12 +111,27 @@ export default function PaycheckCalculator({
         state,
         stateRatePct: stateRate === null ? presetRate : pct(stateRate),
         cityRatePct: pct(cityRate),
+        nyc: ny && nyc,
         k401: money(k401),
         age50Plus: age50,
         hsa: money(hsa),
         otherPretax: money(other),
       }),
-    [salary, bonus, filing, state, stateRate, presetRate, cityRate, k401, age50, hsa, other],
+    [
+      salary,
+      bonus,
+      filing,
+      state,
+      stateRate,
+      presetRate,
+      cityRate,
+      nyc,
+      ny,
+      k401,
+      age50,
+      hsa,
+      other,
+    ],
   );
 
   const c = fmt.currency0;
@@ -182,7 +201,12 @@ export default function PaycheckCalculator({
                 ))}
               </select>
             </label>
-            {exactState ? (
+            {ny ? (
+              <label className="text-muted flex items-center gap-2 self-end pb-2.5 text-[13px]">
+                <input type="checkbox" checked={nyc} onChange={(e) => setNyc(e.target.checked)} />
+                {P.nycResident}
+              </label>
+            ) : exactState ? (
               <Field label={P.city} value={cityRate} onChange={setCityRate} prefix="" suffix="%" />
             ) : (
               <Field
@@ -194,7 +218,7 @@ export default function PaycheckCalculator({
               />
             )}
           </div>
-          {!exactState ? (
+          {!exactState || (ny && !nyc) ? (
             <div className="grid grid-cols-2 gap-3">
               <Field label={P.city} value={cityRate} onChange={setCityRate} prefix="" suffix="%" />
               <p className="text-muted self-end text-[11px]">{P.cityHint}</p>
@@ -272,15 +296,22 @@ export default function PaycheckCalculator({
                     note={
                       state === 'CA'
                         ? P.caNote(CA_TAX_YEAR)
-                        : exactState
-                          ? P.noStateTax
-                          : P.estimated
+                        : ny
+                          ? P.nyNote
+                          : noTax
+                            ? P.noStateTax
+                            : P.estimated
                     }
                     value={minus(r.state)}
                   />
-                  {r.sdi > 0 ? <Row label={P.sdi} value={minus(r.sdi)} /> : null}
+                  {r.sdi > 0 ? <Row label={ny ? P.nySdi : P.sdi} value={minus(r.sdi)} /> : null}
+                  {r.pfl > 0 ? <Row label={P.pfl} value={minus(r.pfl)} /> : null}
                   {r.city > 0 ? (
-                    <Row label={P.cityTax} note={P.estimated} value={minus(r.city)} />
+                    <Row
+                      label={P.cityTax}
+                      note={r.cityExact ? P.nycNote : P.estimated}
+                      value={minus(r.city)}
+                    />
                   ) : null}
                   <Row
                     label={P.totalTax}

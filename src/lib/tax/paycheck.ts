@@ -15,11 +15,20 @@
  *     Services Tax over $1M, and SDI at 1.3% with no wage cap (EDD, 2026).
  *     California does not recognise HSAs, so HSA payroll contributions stay
  *     in CA taxable income.
+ *   - New York, tax year 2026: the rate schedules of Tax Law §601(a)–(c)
+ *     as amended by L.2025 ch.59 (the 0.1-point cut to the bottom five
+ *     rates), the benefit recapture of §601(d-5) for NY AGI over $107,650,
+ *     and the standard deduction ($8,000 / $16,050 / $11,200). New York
+ *     follows the federal treatment of 401(k), HSA and cafeteria-plan
+ *     deductions. Plus NY SDI (0.5% up to $0.60 a week) and 2026 Paid
+ *     Family Leave (0.432% up to $411.91).
+ *   - New York City residents: the NYC rate schedule and both school tax
+ *     credits (fixed amount; rate reduction), from the IT-201 instructions.
  *   - States with no wage income tax: 0.
  *
- * ESTIMATED elsewhere: other states (New York included) use a flat rate on
- * state-taxable wages that the person can edit; city tax likewise. The UI
- * labels these as estimates.
+ * ESTIMATED elsewhere: other states use a flat rate on state-taxable wages
+ * that the person can edit; city tax outside NYC likewise. The UI labels
+ * these as estimates.
  *
  * It computes the YEAR's tax liability, not paycheck withholding. A bonus's
  * take-home is its marginal share: tax with the bonus minus tax without it —
@@ -134,7 +143,179 @@ const CA_MENTAL_HEALTH_RATE = 0.01;
 export const CA_SDI_RATE = 0.013;
 export const CA_TAX_YEAR = 2025;
 
+/**
+ * New York, tax year 2026. Rows are the statute's own form —
+ * [over, tax at `over`, rate on the excess] — so the rounded base amounts
+ * match the published schedule to the dollar.
+ */
+type Schedule = ReadonlyArray<readonly [number, number, number]>;
+const NEW_YORK: Record<FilingStatus, Schedule> = {
+  single: [
+    [0, 0, 0.039],
+    [8_500, 332, 0.044],
+    [11_700, 473, 0.0515],
+    [13_900, 586, 0.054],
+    [80_650, 4_191, 0.059],
+    [215_400, 12_141, 0.0685],
+    [1_077_550, 71_198, 0.0965],
+    [5_000_000, 449_714, 0.103],
+    [25_000_000, 2_509_714, 0.109],
+  ],
+  mfj: [
+    [0, 0, 0.039],
+    [17_150, 669, 0.044],
+    [23_600, 953, 0.0515],
+    [27_900, 1_174, 0.054],
+    [161_550, 8_391, 0.059],
+    [323_200, 17_928, 0.0685],
+    [2_155_350, 143_430, 0.0965],
+    [5_000_000, 417_939, 0.103],
+    [25_000_000, 2_477_939, 0.109],
+  ],
+  hoh: [
+    [0, 0, 0.039],
+    [12_800, 499, 0.044],
+    [17_650, 712, 0.0515],
+    [20_900, 879, 0.054],
+    [107_650, 5_564, 0.059],
+    [269_300, 15_101, 0.0685],
+    [1_616_450, 107_381, 0.0965],
+    [5_000_000, 433_894, 0.103],
+    [25_000_000, 2_493_894, 0.109],
+  ],
+};
+/**
+ * §601(d-5), 2026: above NY AGI $107,650 the benefit of the lower rates is
+ * taken back, phased in over $50,000. `low` applies below the first tier:
+ * (rate × taxable − schedule tax) × phase-in. Each tier is
+ * [taxable over, recapture base, incremental benefit, AGI phase-in start].
+ */
+const NY_RECAPTURE: Record<
+  FilingStatus,
+  {
+    low: { below: number; rate: number };
+    tiers: ReadonlyArray<readonly [number, number, number, number]>;
+  }
+> = {
+  single: {
+    low: { below: 80_650, rate: 0.059 },
+    tiers: [
+      [80_650, 0, 567, 107_650],
+      [215_400, 567, 2_047, 215_400],
+      [1_077_550, 2_614, 30_172, 1_077_550],
+      [5_000_000, 32_786, 32_500, 5_000_000],
+    ],
+  },
+  mfj: {
+    low: { below: 27_900, rate: 0.054 },
+    tiers: [
+      [27_900, 0, 333, 107_650],
+      [161_550, 333, 807, 161_550],
+      [323_200, 1_140, 3_071, 323_200],
+      [2_155_350, 4_211, 60_350, 2_155_350],
+      [5_000_000, 64_561, 32_500, 5_000_000],
+    ],
+  },
+  hoh: {
+    low: { below: 107_650, rate: 0.059 },
+    tiers: [
+      [107_650, 0, 787, 107_650],
+      [269_300, 787, 2_559, 269_300],
+      [1_616_450, 3_346, 45_260, 1_616_450],
+      [5_000_000, 48_606, 32_500, 5_000_000],
+    ],
+  },
+};
+const NY_RECAPTURE_AGI = 107_650;
+const NY_FLAT_AGI = 25_000_000;
+const NY_STANDARD_DEDUCTION: Record<FilingStatus, number> = {
+  single: 8_000,
+  mfj: 16_050,
+  hoh: 11_200,
+};
+/** NY disability: 0.5% of wages, at most $0.60 a week. */
+const NY_SDI_MAX = 0.6 * 52;
+const NY_SDI_RATE = 0.005;
+/** NY Paid Family Leave, 2026. */
+export const NY_PFL_RATE = 0.00432;
+export const NY_PFL_MAX = 411.91;
+
+/** New York City resident tax (IT-201 instructions, NYC rate schedule). */
+const NYC: Record<FilingStatus, Schedule> = {
+  single: [
+    [0, 0, 0.03078],
+    [12_000, 369, 0.03762],
+    [25_000, 858, 0.03819],
+    [50_000, 1_813, 0.03876],
+  ],
+  mfj: [
+    [0, 0, 0.03078],
+    [21_600, 665, 0.03762],
+    [45_000, 1_545, 0.03819],
+    [90_000, 3_264, 0.03876],
+  ],
+  hoh: [
+    [0, 0, 0.03078],
+    [14_400, 443, 0.03762],
+    [30_000, 1_030, 0.03819],
+    [60_000, 2_176, 0.03876],
+  ],
+};
+/** NYC school tax credits: fixed amount (income ≤ $250k) and rate reduction (taxable ≤ $500k). */
+const NYC_SCHOOL_FIXED: Record<FilingStatus, number> = { single: 63, mfj: 125, hoh: 63 };
+const NYC_SCHOOL_REDUCTION: Record<FilingStatus, Schedule> = {
+  single: [
+    [0, 0, 0.00171],
+    [12_000, 21, 0.00228],
+  ],
+  mfj: [
+    [0, 0, 0.00171],
+    [21_600, 37, 0.00228],
+  ],
+  hoh: [
+    [0, 0, 0.00171],
+    [14_400, 25, 0.00228],
+  ],
+};
+
+/** Tax from a statutory schedule: the base at the row's threshold + rate × the excess. */
+export function scheduleTax(taxable: number, rows: Schedule): number {
+  if (taxable <= 0) return 0;
+  let row = rows[0]!;
+  for (const r of rows) if (taxable > r[0]) row = r;
+  return round2(row[1] + (taxable - row[0]) * row[2]);
+}
+
+/** New York State tax, 2026: the schedule plus the §601(d-5) recapture. */
+export function newYorkTax(taxable: number, agi: number, filing: FilingStatus): number {
+  const t = Math.max(0, taxable);
+  const sched = scheduleTax(t, NEW_YORK[filing]);
+  if (agi <= NY_RECAPTURE_AGI) return sched;
+  if (agi > NY_FLAT_AGI) return round2(t * 0.109);
+  const phase = (from: number) => Math.min(50_000, Math.max(0, agi - from)) / 50_000;
+  const r = NY_RECAPTURE[filing];
+  if (t < r.low.below) {
+    return round2(sched + Math.max(0, r.low.rate * t - sched) * phase(NY_RECAPTURE_AGI));
+  }
+  let tier = r.tiers[0]!;
+  for (const x of r.tiers) if (t > x[0]) tier = x;
+  return round2(sched + tier[1] + tier[2] * phase(tier[3]));
+}
+
+/** NYC resident tax less the school tax credits. `income` ≈ federal AGI. */
+export function nycTax(taxable: number, income: number, filing: FilingStatus): number {
+  const t = Math.max(0, taxable);
+  const tax = scheduleTax(t, NYC[filing]);
+  const fixed = income <= 250_000 ? NYC_SCHOOL_FIXED[filing] : 0;
+  const reduction = t <= 500_000 ? scheduleTax(t, NYC_SCHOOL_REDUCTION[filing]) : 0;
+  return round2(Math.max(0, tax - fixed - reduction));
+}
+
 /** States that don't tax wages. */
+/** States computed exactly here (CA, NY) or with no wage tax. */
+export const exactState = (code: string) =>
+  code === 'CA' || code === 'NY' || (NO_WAGE_TAX_STATES as readonly string[]).includes(code);
+
 export const NO_WAGE_TAX_STATES = ['AK', 'FL', 'NV', 'NH', 'SD', 'TN', 'TX', 'WA', 'WY'] as const;
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -165,8 +346,10 @@ export type PaycheckInput = {
   state: string;
   /** Flat state rate (%) used for states without an exact schedule here. */
   stateRatePct: number;
-  /** Flat city rate (%) — e.g. New York City. 0 for none. */
+  /** Flat city rate (%) for a city other than NYC. 0 for none. */
   cityRatePct: number;
+  /** New York only: a New York City resident (computed exactly; replaces cityRatePct). */
+  nyc?: boolean;
   /** Traditional (pre-tax) 401(k) per year; capped at the IRS limit. */
   k401: number;
   /** Age 50+ — raises the 401(k) limit by the catch-up. */
@@ -192,9 +375,13 @@ export type PaycheckResult = {
   state: number;
   /** True when `state` came from an exact schedule (or is a no-tax state). */
   stateExact: boolean;
-  /** California SDI; 0 elsewhere. */
+  /** State disability insurance: California SDI or New York SDI; 0 elsewhere. */
   sdi: number;
+  /** New York Paid Family Leave; 0 elsewhere. */
+  pfl: number;
   city: number;
+  /** True when `city` is New York City's, computed from its schedule. */
+  cityExact: boolean;
   totalTax: number;
   /** Take-home for the year: gross − pre-tax deductions − taxes. */
   takeHome: number;
@@ -230,7 +417,10 @@ function liability(input: PaycheckInput, salary: number, bonus: number): Paychec
   // State.
   let state = 0;
   let sdi = 0;
+  let pfl = 0;
   let stateExact = true;
+  const nyc = input.state === 'NY' && input.nyc === true;
+  let city = 0;
   if (input.state === 'CA') {
     // California adds HSA contributions back.
     const caWages = gross - k401 - otherPretax;
@@ -241,15 +431,22 @@ function liability(input: PaycheckInput, salary: number, bonus: number): Paychec
     state = round2(Math.max(0, caTax - CA_EXEMPTION_CREDIT[input.filing]));
     // SDI is on gross wages, 401(k) deferrals included; no wage cap.
     sdi = round2((gross - hsa - otherPretax) * CA_SDI_RATE);
+  } else if (input.state === 'NY') {
+    // New York follows the federal treatment of 401(k), HSA and premiums.
+    const nyTaxable = Math.max(0, federalWages - NY_STANDARD_DEDUCTION[input.filing]);
+    state = newYorkTax(nyTaxable, federalWages, input.filing);
+    sdi = round2(Math.min(gross * NY_SDI_RATE, NY_SDI_MAX));
+    pfl = round2(Math.min(gross * NY_PFL_RATE, NY_PFL_MAX));
+    if (nyc) city = nycTax(nyTaxable, federalWages, input.filing);
   } else if ((NO_WAGE_TAX_STATES as readonly string[]).includes(input.state)) {
     state = 0;
   } else {
     stateExact = false;
     state = round2(federalWages * (Math.max(0, Math.min(20, input.stateRatePct)) / 100));
   }
-  const city = round2(federalWages * (Math.max(0, Math.min(10, input.cityRatePct)) / 100));
+  if (!nyc) city = round2(federalWages * (Math.max(0, Math.min(10, input.cityRatePct)) / 100));
 
-  const totalTax = round2(federal + socialSecurity + medicare + state + sdi + city);
+  const totalTax = round2(federal + socialSecurity + medicare + state + sdi + pfl + city);
   return {
     gross,
     k401,
@@ -264,7 +461,9 @@ function liability(input: PaycheckInput, salary: number, bonus: number): Paychec
     state,
     stateExact,
     sdi,
+    pfl,
     city,
+    cityExact: nyc,
     totalTax,
     takeHome: round2(gross - k401 - hsa - otherPretax - totalTax),
     effectiveTaxPct: gross > 0 ? (totalTax / gross) * 100 : 0,

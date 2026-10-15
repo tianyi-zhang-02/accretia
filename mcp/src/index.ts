@@ -21,7 +21,7 @@ import {
 import { budgetTotal, yearBudget } from '@/lib/ledger/budgets';
 import { simulate } from '@/lib/simulator/engine';
 import { fireHeadline } from '@/lib/simulator/insights';
-import { NO_WAGE_TAX_STATES, paycheck } from '@/lib/tax/paycheck';
+import { exactState, paycheck } from '@/lib/tax/paycheck';
 
 import { isEmail, makeCloud, type Cloud } from './cloud';
 import { readConfig } from './config';
@@ -47,7 +47,7 @@ import { Vault, VaultError, type VaultData } from './vault';
  * may ever print to it.
  */
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const cfg = readConfig();
 const store = new Store(cfg.home);
 const cloud: Cloud | null =
@@ -468,7 +468,7 @@ server.registerTool(
   {
     title: 'Take-home pay estimate',
     description:
-      'Gross salary/bonus → each tax and take-home per year, month and paycheck (tax year 2026). Federal, Social Security, Medicare, 401(k) limits and California are computed from published tables; other states are a flat estimate.',
+      'Gross salary/bonus → each tax and take-home per year, month and paycheck (tax year 2026). Federal, Social Security, Medicare, 401(k) limits, California, New York State and New York City are computed from published tables; other states and cities are a flat estimate.',
     inputSchema: {
       salary: amount,
       bonus: amount.optional(),
@@ -482,8 +482,17 @@ server.registerTool(
         .min(0)
         .max(20)
         .optional()
-        .describe('Flat estimate for states other than CA and the no-tax states.'),
-      city_rate_pct: z.number().min(0).max(10).optional(),
+        .describe('Flat estimate for states other than CA, NY and the no-tax states.'),
+      nyc: z
+        .boolean()
+        .optional()
+        .describe('New York only: lives in New York City (city tax computed exactly).'),
+      city_rate_pct: z
+        .number()
+        .min(0)
+        .max(10)
+        .optional()
+        .describe('Flat local income tax for a city other than NYC.'),
       k401: amount.optional().describe('Pre-tax 401(k) per year; capped at the IRS limit.'),
       age_50_plus: z.boolean().optional(),
       hsa: amount.optional(),
@@ -501,12 +510,13 @@ server.registerTool(
         state,
         stateRatePct: a.state_rate_pct ?? 0,
         cityRatePct: a.city_rate_pct ?? 0,
+        nyc: a.nyc ?? false,
         k401: a.k401 ?? 0,
         age50Plus: a.age_50_plus ?? false,
         hsa: a.hsa ?? 0,
         otherPretax: a.other_pretax ?? 0,
       });
-      const exact = state === 'CA' || (NO_WAGE_TAX_STATES as readonly string[]).includes(state);
+      const exact = exactState(state);
       return json('Take-home estimate (an estimate, not tax advice).', {
         gross: p.gross,
         pretax: { k401: p.k401, k401Capped: p.k401Capped, hsa: p.hsa, other: p.otherPretax },
@@ -519,8 +529,12 @@ server.registerTool(
           stateIs: exact
             ? 'computed from the state schedule'
             : 'a flat estimate from state_rate_pct',
-          californiaSDI: p.sdi,
+          stateDisabilitySDI: p.sdi,
+          paidFamilyLeave: p.pfl,
           city: p.city,
+          cityIs: p.cityExact
+            ? 'New York City, from its schedule'
+            : 'a flat estimate from city_rate_pct',
           total: p.totalTax,
           effectivePct: Math.round(p.effectiveTaxPct * 10) / 10,
         },
