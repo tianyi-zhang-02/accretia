@@ -113,6 +113,9 @@ export default function CloudSync({
   // Signature of the data as of the last upload / download, to say whether
   // this device has anything the cloud doesn't. Memory only, like the key.
   const [syncedSig, setSyncedSig] = useState<string | null>(null);
+  // The cloud version this device last matched (unlock / upload / download).
+  // A newer one means another device — or Claude — wrote since.
+  const [seenAt, setSeenAt] = useState<string | null>(null);
   const passRef = useRef<HTMLInputElement>(null);
   const currentSig = useMemo(() => signature(scenarios, ledger), [scenarios, ledger]);
 
@@ -145,6 +148,7 @@ export default function CloudSync({
         setRemote(undefined);
         setPending(null);
         setSyncedSig(null);
+        setSeenAt(null);
         setFreshCode(null);
         setForgot(false);
         setChangingPass(false);
@@ -184,6 +188,24 @@ export default function CloudSync({
     };
     // C is stable per locale; refetching on language change is pointless.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email]);
+
+  // Coming back to the app: look again, so changes made elsewhere (another
+  // device, or Claude through the extension) show up without a reload.
+  useEffect(() => {
+    if (!email) return;
+    const look = () => {
+      if (document.visibilityState !== 'visible') return;
+      void fetchVault()
+        .then((v) => setRemote(v))
+        .catch(() => {});
+    };
+    window.addEventListener('focus', look);
+    document.addEventListener('visibilitychange', look);
+    return () => {
+      window.removeEventListener('focus', look);
+      document.removeEventListener('visibilitychange', look);
+    };
   }, [email]);
 
   async function run(fn: () => Promise<void>) {
@@ -373,6 +395,7 @@ export default function CloudSync({
                 if (vault.v !== 2) throw new WrongPassphraseError();
                 const r = parseBackup(await open(remote.envelope, vault));
                 setSyncedSig(r.ok ? signature(r.scenarios, r.ledger) : null);
+                setSeenAt(remote.updatedAt);
                 // The old passphrase is retired: a new one must be chosen.
                 setUnlocked({ ...vault, pass: null });
                 setRecoveryInput('');
@@ -482,6 +505,7 @@ export default function CloudSync({
                 // already matches it.
                 const r = parseBackup(await open(remote!.envelope, vault));
                 setSyncedSig(r.ok ? signature(r.scenarios, r.ledger) : null);
+                setSeenAt(remote!.updatedAt);
                 setUnlocked(vault);
                 good(C.unlockedNote);
               }
@@ -624,6 +648,11 @@ export default function CloudSync({
               <p className="text-muted mt-2 text-[11px]">{C.codeUploadNote}</p>
             </div>
           ) : null}
+          {remote && seenAt && remote.updatedAt !== seenAt ? (
+            <p className="bg-surface-2 text-accent mb-3 rounded-[10px] px-3 py-2 text-[13px]">
+              {C.remoteNewer}
+            </p>
+          ) : null}
           <ul className="rows">
             <li className="row items-center">
               <span className="text-[13px]">{C.cloudCopy}</span>
@@ -693,6 +722,7 @@ export default function CloudSync({
                   if (!res.ok) return setConflict(true);
                   setRemote({ envelope: env, updatedAt: res.updatedAt });
                   setSyncedSig(currentSig);
+                  setSeenAt(res.updatedAt);
                   good(C.uploaded);
                 })
               }
@@ -760,6 +790,7 @@ export default function CloudSync({
                   onClick={() => {
                     onRestore(pending);
                     setSyncedSig(signature(pending.scenarios, pending.ledger));
+                    setSeenAt(remote?.updatedAt ?? null);
                     setPending(null);
                     good(C.downloaded);
                   }}

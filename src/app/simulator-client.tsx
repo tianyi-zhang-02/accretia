@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 
 import GuidedSetup from '@/components/agent/guided-setup';
+import ClaudeCard from '@/components/data/claude-card';
 import DataCard, { downloadBackup } from '@/components/data/data-card';
 import Icon, { SectionLabel } from '@/components/ui/icon';
 import InsightsPanel from '@/components/agent/insights-panel';
@@ -728,6 +729,7 @@ function SimulatorInner() {
               onRestore={(r) => replaceAll(r, t.toast.restored)}
             />
             <InstallCard state={install} />
+            <ClaudeCard />
           </div>
           {/* Signing in is what people come here for — first on a phone. */}
           <div className="order-first lg:order-last">

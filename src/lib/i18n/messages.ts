@@ -424,6 +424,8 @@ const en = {
     strength: ['Too short', 'Okay', 'Strong'],
     thisDevice: 'This device',
     inSync: 'Matches the cloud copy',
+    remoteNewer:
+      'The cloud copy has newer changes — from another device, or from Claude. Download to bring them here.',
     needsUpload: 'Has changes that aren’t uploaded',
     neverUploaded: 'Not uploaded yet',
     signOut: 'Sign out',
@@ -679,6 +681,23 @@ const en = {
     stale: (days: number) => `Your last backup was ${days} days ago.`,
     backUp: 'Back up now',
     dismiss: 'Not now',
+  },
+  claude: {
+    heading: 'Use it in Claude',
+    body: 'Tell Claude your month in plain words — “take-home 11,000, rent 3,200, groceries 600, 401k 1,958” — and it files it here. It runs on your own computer as a Claude extension; your data stays end-to-end encrypted, and Claude Desktop keeps your passphrase in the system keychain.',
+    steps: [
+      'Download the extension and open it — Claude Desktop installs it.',
+      'In its settings, enter your sync passphrase (the same one you use here) and the sync key below.',
+      'In Claude, say “sign in to Work Optional with you@example.com”, then copy the link from the email into the chat — don’t open it.',
+    ],
+    download: 'Download for Claude Desktop',
+    codeLink: 'Using Claude Code instead',
+    keyLabel: 'Sync key',
+    keyHint: 'Public by design — it identifies this site’s sync service, it can’t unlock anything.',
+    copy: 'Copy',
+    copied: 'Copied',
+    noSync:
+      'Sync is off on this site, so the extension keeps an encrypted file on your computer only.',
   },
   install: {
     heading: 'Use it as an app',
@@ -1347,6 +1366,7 @@ const zh: Messages = {
     strength: ['太短', '还行', '很强'],
     thisDevice: '这台设备',
     inSync: '和云端一致',
+    remoteNewer: '云端有新的改动（来自另一台设备或 Claude）。点「下载」同步到这台设备。',
     needsUpload: '有改动还没上传',
     neverUploaded: '还没上传过',
     signOut: '退出登录',
@@ -1589,6 +1609,22 @@ const zh: Messages = {
     stale: (days: number) => `上次备份是 ${days} 天前。`,
     backUp: '现在备份',
     dismiss: '以后再说',
+  },
+  claude: {
+    heading: '在 Claude 里用',
+    body: '直接跟 Claude 说这个月的情况，比如“到手 11,000，房租 3,200，买菜 600，401k 存了 1,958”，它会帮你记到这里对应的分类里。它作为 Claude 扩展跑在你自己的电脑上，数据端到端加密，口令由 Claude Desktop 存在系统钥匙串里。',
+    steps: [
+      '下载扩展并打开，Claude Desktop 会自动安装。',
+      '在扩展设置里填同步口令（和这里用的是同一个），再填下面的同步密钥。',
+      '在 Claude 里说“用 you@example.com 登录 Work Optional”，然后把邮件里的链接复制到对话里，不要点开。',
+    ],
+    download: '下载 Claude Desktop 扩展',
+    codeLink: '用 Claude Code 的话看这里',
+    keyLabel: '同步密钥',
+    keyHint: '这个密钥本来就是公开的，只用来指明本站的同步服务，解不开任何数据。',
+    copy: '复制',
+    copied: '已复制',
+    noSync: '本站没开同步，扩展只会在你电脑上保存一份加密文件。',
   },
   install: {
     heading: '当成 app 用',

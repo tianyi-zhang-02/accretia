@@ -2,7 +2,8 @@ name: CI
 
 # The same gate used locally before every merge: if any of these fail, the
 # change doesn't go in. The test suite includes src/lib/isolation.test.ts,
-# which pins the "nothing leaves the browser / two storage keys" guarantee.
+# which pins the "nothing leaves the browser / two storage keys" guarantee,
+# and mcp/src/isolation.test.ts, which pins the Claude extension's.
 
 on:
   pull_request:
@@ -26,3 +27,12 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      # The Claude extension (mcp/): its own dependencies, type-check, bundle,
+      # and the official manifest validation + pack. Its tests run above
+      # (vitest includes mcp/src), incl. mcp/src/isolation.test.ts.
+      - run: npm ci
+        working-directory: mcp
+      - run: npm run typecheck
+        working-directory: mcp
+      - run: npm run pack:mcpb
+        working-directory: mcp

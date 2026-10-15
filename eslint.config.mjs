@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // The MCP server's build output and its own installed packages.
+    'mcp/dist/**',
+    'mcp/.build-mcpb/**',
+    'mcp/node_modules/**',
+    'mcp/*.mjs',
   ]),
 ]);
 

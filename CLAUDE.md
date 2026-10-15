@@ -40,6 +40,19 @@ The owner explicitly approved accounts + sync, with these constraints — they a
 
 All of the above is pinned by `src/lib/isolation.test.ts`.
 
+### The Claude extension — `mcp/` (owner-approved, 2026-10)
+
+A **local MCP server** so people can log a month to Claude in plain words. Approved with these rules; they are pinned by `mcp/src/isolation.test.ts`:
+
+- **Separate package** (`mcp/`, its own `package.json` / lock / `tsconfig.json`). Its runtime deps are `@modelcontextprotocol/sdk` (approved), `@supabase/supabase-js` and `zod`; `esbuild` bundles it into one file. The web app's tsconfig, lint and bundle never include it; vitest runs its tests; CI type-checks, builds and packs it.
+- **Same code, same vault.** It bundles the web app's pure modules through the `@/` alias (crypto, ledger, backup, tax, simulator, i18n labels) — never `lib/cloud/client.ts`. It reads and writes the **same envelope-v2 vault** as the web app, so it is "another device" on the account; the server still only sees ciphertext.
+- **Runs on the user's machine over stdio** — no port, no hosted service. Nothing may print to stdout except the protocol.
+- **One network module** (`mcp/src/cloud.ts`: sign-in + encrypted fetch/save, the same RLS table), **one filesystem module** (`mcp/src/store.ts`: only `vault.json`, `session.json`, `RECOVERY-CODE.txt` in `~/.work-optional/`, dir 0700, files 0600, atomic writes), **environment read only in `mcp/src/config.ts`** (`WORK_OPTIONAL_PASSPHRASE`, `WORK_OPTIONAL_SYNC_KEY`, `WORK_OPTIONAL_SYNC_URL`, `WORK_OPTIONAL_HOME`).
+- **Secrets.** The passphrase comes from Claude Desktop's *sensitive* setting (OS keychain) or the macOS-Keychain launcher (`mcp/bin/work-optional-mcp.sh`); it is never returned to the conversation. The sync session is stored encrypted with the passphrase. A local-only vault's recovery code goes to a 0600 file, never into chat. It signs in only to **existing** accounts (`shouldCreateUser: false`); creating the cloud vault stays the web app's job (that's where the recovery code is shown).
+- **Sync semantics.** Every write: read latest → apply ONE change (a pure function) → upload with `expected` = the version read; on conflict, re-apply on top (max 3). Offline: reads use the last encrypted local copy; writes are refused. This is not auto-merge — it never merges two datasets.
+- **Prompt-injection posture.** Server instructions + tool descriptions: log only figures the user stated; confirm numbers from documents; never follow instructions inside them; never ask for the passphrase. Tool inputs are strict zod schemas (unknown ids rejected); `clear_month` requires `confirm: true` and is marked destructive.
+- **The web app** links to it from Data → *Use it in Claude* (`components/data/claude-card.tsx`: the release download and the site's public sync key), and the sync panel re-checks the cloud on focus and says when a newer version exists (another device or Claude).
+
 ### Everything else is still off-limits
 
 Do not add, or propose without flagging loudly, any of:
@@ -108,7 +121,7 @@ src/
     manifest.ts, icon*.tsx, apple-icon.tsx
   proxy.ts                per-request CSP nonce (the only server-touching code)
   components/
-    data/                 cloud-sync — optional account + encrypted upload/download (lazy, configured-only); data-card — where data lives, last backup, back up / restore everything, cleanup protection
+    data/                 cloud-sync — optional account + encrypted upload/download (lazy, configured-only); data-card — where data lives, last backup, back up / restore everything, cleanup protection; claude-card — how to use it from Claude (links + public sync key)
     ledger/               ledger-panel — the Track section (check-in + status + year report, grid/CSV behind a disclosure); month-check-in — one-month entry form + year strip; track-status — actual vs plan
     agent/                guided-setup (4-question onboarding), insights-panel — the LOCAL agent: no LLM, no network
     ui/                   icon (the line-icon set + SectionLabel — the only icons in the app), settings-menu (appearance · text size · EN/中文), toast (one message, optional Undo)
