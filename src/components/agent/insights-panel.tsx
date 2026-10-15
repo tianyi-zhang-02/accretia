@@ -6,7 +6,8 @@ import { useI18n } from '@/lib/i18n/locale';
 import { buildInsights, type Insight } from '@/lib/simulator/insights';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
-import Icon, { SectionLabel, type IconName } from '../ui/icon';
+import Icon, { type IconName } from '../ui/icon';
+import MetalCard, { Chip } from '../ui/metal-card';
 
 /** Each finding gets the icon of the thing it's about. */
 const ICON_FOR: Record<Insight['id'], IconName> = {
@@ -45,64 +46,71 @@ export default function InsightsPanel({
   const [headline, ...rest] = insights;
 
   return (
-    <section className="card">
-      <SectionLabel icon="gem" className="mb-4">
-        {t.insights.heading}
-      </SectionLabel>
+    <>
+      {/* The headline — the sentence the app is named after — on the metal card. */}
+      {headline ? (
+        <MetalCard className="flex min-h-[176px] flex-col justify-between gap-5">
+          <div className="flex items-start justify-between gap-3">
+            <span className="metal-muted text-[13px]">{t.insights.heading}</span>
+            <Chip />
+          </div>
+          <Headline insight={headline} />
+          <div className="flex justify-end">
+            <span className="metal-mark">Work Optional</span>
+          </div>
+        </MetalCard>
+      ) : null}
 
-      {headline ? <Headline insight={headline} /> : null}
+      <section className="card">
+        {/* Rows, not boxes: one hairline between siblings. */}
+        <ul className="rows">
+          {rest.map((ins, i) => (
+            <li key={`${ins.id}-${i}`} className="row">
+              <span className="flex items-start gap-3 text-[13px] leading-relaxed">
+                <Icon
+                  name={ICON_FOR[ins.id]}
+                  size={14}
+                  className={`mt-0.5 ${ins.tone === 'warn' ? 'text-negative' : 'text-muted'}`}
+                />
+                <Message insight={ins} />
+              </span>
+              {'patch' in ins ? (
+                <button
+                  type="button"
+                  onClick={() => onChange({ ...assumptions, ...ins.patch })}
+                  className="btn btn-primary shrink-0"
+                >
+                  {t.insights.apply}
+                </button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
 
-      <hr className="rule mt-5 mb-1" />
-
-      {/* Rows, not boxes: one hairline between siblings. */}
-      <ul className="rows">
-        {rest.map((ins, i) => (
-          <li key={`${ins.id}-${i}`} className="row">
-            <span className="flex items-start gap-3 text-[13px] leading-relaxed">
-              <Icon
-                name={ICON_FOR[ins.id]}
-                size={14}
-                className={`mt-0.5 ${ins.tone === 'warn' ? 'text-negative' : 'text-muted'}`}
-              />
-              <Message insight={ins} />
-            </span>
-            {'patch' in ins ? (
-              <button
-                type="button"
-                onClick={() => onChange({ ...assumptions, ...ins.patch })}
-                className="btn btn-primary shrink-0"
-              >
-                {t.insights.apply}
-              </button>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-
-      <p className="text-muted mt-5 flex items-start gap-2 text-[11px] italic">
-        <Icon name="shield" size={11} className="mt-px shrink-0" />
-        {t.insights.disclaimer}
-      </p>
-    </section>
+        <p className="text-muted mt-5 flex items-start gap-2 text-[11px] italic">
+          <Icon name="shield" size={11} className="mt-px shrink-0" />
+          {t.insights.disclaimer}
+        </p>
+      </section>
+    </>
   );
 }
 
 /**
  * The hero. This sentence is the whole product — the app is literally named
- * after it — so it gets the largest type on the page and a pixel house to
- * anchor it.
+ * after it — so it gets the largest type on the page, engraved on the metal
+ * card.
  */
 function Headline({ insight }: { insight: Insight }) {
   const { t } = useI18n();
   if (insight.id === 'fireAge') {
     return (
       <div className="flex items-start gap-3">
-        <Icon name="house" size={34} className="text-foreground mt-1" />
         <div className="min-w-0">
-          <p className="figure text-[30px] text-balance sm:text-[38px]">
+          <p className="metal-figure text-[30px] text-balance sm:text-[36px]">
             {t.insights.fireAge(insight.age)}
           </p>
-          <p className="text-muted mt-1 text-[13px]">{t.insights.fireAgeSub(insight.year)}</p>
+          <p className="metal-muted mt-1.5 text-[13px]">{t.insights.fireAgeSub(insight.year)}</p>
         </div>
       </div>
     );
@@ -110,8 +118,8 @@ function Headline({ insight }: { insight: Insight }) {
   if (insight.id === 'fireNever') {
     return (
       <div className="flex items-start gap-3">
-        <Icon name="cloud" size={30} className="text-negative mt-0.5" />
-        <p className="text-negative text-sm leading-relaxed">{t.insights.fireNever}</p>
+        <Icon name="cloud" size={28} className="text-negative mt-0.5" />
+        <p className="text-sm leading-relaxed">{t.insights.fireNever}</p>
       </div>
     );
   }
