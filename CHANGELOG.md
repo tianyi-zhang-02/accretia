@@ -6,6 +6,19 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Log a month in 30 seconds
+
+- **Same as last month**: a new month opens with one button that fills every
+  blank from the last month you logged — income (or its sources), 401(k),
+  spending (or its categories and line items). Net worth is never copied.
+  Copied amounts are tagged *last month*; change the ones that differ, or
+  **Undo**.
+- **Only the categories you use** are listed (this month's, last month's and
+  any with a budget); the rest wait behind *+ N more*.
+- **On phones, Save stays in reach** — pinned above the tab bar, with what
+  you kept this month updating as you type.
+- **Enter moves to the next amount**, like a spreadsheet.
+
 ### Year in review
 
 - **The year report has a *Year in review* button**: one card with the year

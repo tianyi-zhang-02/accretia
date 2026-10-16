@@ -463,6 +463,20 @@ body {
   animation: fade-in 180ms ease-out;
 }
 
+/* The check-in's Save row stays in reach on phones, above the tab bar. */
+@media (max-width: 639px) {
+  .savebar {
+    position: sticky;
+    bottom: calc(66px + env(safe-area-inset-bottom));
+    z-index: 5;
+    margin: 0 -20px -20px;
+    padding: 10px 20px 14px;
+    background: var(--surface);
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 -1px 0 var(--hairline);
+  }
+}
+
 /* The year in review: a native <dialog>, centred, scrolling inside. */
 .review {
   width: min(30rem, calc(100vw - 32px));
