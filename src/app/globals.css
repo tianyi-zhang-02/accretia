@@ -463,6 +463,31 @@ body {
   animation: fade-in 180ms ease-out;
 }
 
+/* The year in review: a native <dialog>, centred, scrolling inside. */
+.review {
+  width: min(30rem, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--background);
+  color: var(--foreground);
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.45);
+}
+.review[open] {
+  animation: fade-in 180ms ease-out;
+}
+.review::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+@media (prefers-reduced-motion: reduce) {
+  .review[open] {
+    animation: none;
+  }
+}
+
 /* Floating popover (settings) and toast. */
 .popover {
   position: absolute;

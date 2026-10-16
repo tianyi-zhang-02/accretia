@@ -29,11 +29,13 @@ import { categoryByMonth } from '@/lib/ledger/insights';
 
 import { yearBudget, type Budgets } from '@/lib/ledger/budgets';
 import { yearOverYear } from '@/lib/ledger/compare';
+import { yearInReview } from '@/lib/ledger/review';
 import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { SavingsGoal } from '@/lib/ledger/goals';
 
 import AnnualCard from './annual-card';
 import BudgetCard from './budget-card';
+import YearReview from './year-review';
 import GoalsCard from './goals-card';
 import MonthCheckIn, { TierBar } from './month-check-in';
 import TrackStatus from './track-status';
@@ -178,6 +180,11 @@ export default function LedgerPanel({
     () => assumptions.savingsGoals ?? [],
     [assumptions.savingsGoals],
   );
+  const review = useMemo(
+    () => yearInReview(entries, year, { planRows, budgets, goals, today }),
+    [entries, year, planRows, budgets, goals, today],
+  );
+  const [reviewOpen, setReviewOpen] = useState(false);
   const yearBudgets = useMemo(() => {
     const y = yearBudget(entries, year, budgets);
     return new Map((y?.lines ?? []).map((l) => [l.id, l]));
@@ -309,6 +316,11 @@ export default function LedgerPanel({
             >
               ›
             </button>
+            {review ? (
+              <button type="button" className="btn btn-ghost" onClick={() => setReviewOpen(true)}>
+                {t.track.review.open}
+              </button>
+            ) : null}
             {report.monthsRecorded > 0 ? (
               <button type="button" className="btn btn-ghost" onClick={() => window.print()}>
                 {L.print}
@@ -805,6 +817,9 @@ export default function LedgerPanel({
             {L.privacy}
           </p>
         </div>
+      ) : null}
+      {review ? (
+        <YearReview review={review} open={reviewOpen} onClose={() => setReviewOpen(false)} />
       ) : null}
     </section>
   );
