@@ -76,13 +76,21 @@ codex mcp add work-optional --env WORK_OPTIONAL_SYNC_KEY=<sync key> -- ~/.work-o
 Each release also has `SHA256SUMS` (`shasum -a 256 -c SHA256SUMS` checks the
 two files). Leave out the sync key for a local-only encrypted file.
 
-For Codex the same thing in `~/.codex/config.toml`:
+For Codex the same thing in `~/.codex/config.toml` — with the recommended
+approval setting, which lets read-only tools (status, reports, months) run
+and asks you before anything that writes (logging a month, budgets, goals,
+clearing):
 
 ```toml
 [mcp_servers.work-optional]
 command = "/Users/you/.work-optional-mcp/work-optional-mcp.sh"
 env = { WORK_OPTIONAL_SYNC_KEY = "<sync key>" }
+default_tools_approval_mode = "writes"
 ```
+
+(`codex mcp add` doesn't set it; add the line to the server's table. In
+`codex exec`, writes are refused unless approved — that is Codex keeping you
+in charge, not an error.)
 
 ## Linux, Windows, other clients
 
