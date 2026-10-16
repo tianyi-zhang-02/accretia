@@ -706,6 +706,16 @@ const en = {
     later: 'Later',
     refreshToUpdate: 'Refresh to update',
   },
+  demo: {
+    try: 'Try it with sample data first',
+    tryHint: 'A made-up household, 20 months logged. Look around — nothing is saved.',
+    banner: 'You’re looking at sample data — click around and change anything; nothing is saved.',
+    exit: 'Use my own data',
+    dataNote:
+      'Backup, restore and sync are off while you look at sample data, so it can never mix with yours. Nothing here is saved.',
+    person: 'Alex',
+    plan: 'Sample plan',
+  },
   nextStep: {
     title: 'Next: log last month',
     body: 'The plan is the yardstick; the monthly check-in shows whether you’re keeping up. One minute.',
@@ -1844,6 +1854,16 @@ const zh: Messages = {
     refresh: '刷新',
     later: '稍后',
     refreshToUpdate: '刷新并更新',
+  },
+  demo: {
+    try: '先用示例数据看看',
+    tryHint: '一个虚构的家庭，记了 20 个月。随便看，什么都不会保存。',
+    banner: '你在看示例数据——随便点、随便改，都不会保存。',
+    exit: '用我自己的数据',
+    dataNote:
+      '看示例数据时，备份、恢复和同步都先关着，示例永远不会混进你的数据。这里的一切都不会保存。',
+    person: '小林',
+    plan: '示例方案',
   },
   nextStep: {
     title: '下一步：记上个月的账',

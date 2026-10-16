@@ -111,9 +111,12 @@ export function buildFromAnswers(raw: Answers): Assumptions {
 export default function GuidedSetup({
   onComplete,
   onCancel,
+  onDemo,
 }: {
   onComplete: (a: Assumptions) => void;
   onCancel: () => void;
+  /** Look around with sample data first. */
+  onDemo?: () => void;
 }) {
   const { t, fmt } = useI18n();
   const [step, setStep] = useState(0);
@@ -151,6 +154,21 @@ export default function GuidedSetup({
           {g.skip}
         </button>
       </div>
+      {onDemo ? (
+        <button
+          type="button"
+          onClick={onDemo}
+          className="bg-surface-2 hover:bg-surface-2/70 mb-4 flex w-full items-center justify-between gap-3 rounded-[12px] px-3.5 py-3 text-left transition-colors"
+        >
+          <span>
+            <span className="block text-[13px] font-medium">{t.demo.try}</span>
+            <span className="text-muted block text-[11px]">{t.demo.tryHint}</span>
+          </span>
+          <span aria-hidden className="text-muted">
+            ›
+          </span>
+        </button>
+      ) : null}
 
       {/* progress dots — four questions, no scrollbar of inputs */}
       <div className="mb-5 flex gap-1.5">

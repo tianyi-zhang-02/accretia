@@ -22,6 +22,7 @@ import GoalSeekPanel from '@/components/simulator/goal-seek-panel';
 import StressPanel from '@/components/simulator/stress-panel';
 import YearTable from '@/components/simulator/year-table';
 import { CLOUD } from '@/lib/cloud/config';
+import { sampleData } from '@/lib/demo/sample';
 import { LocaleProvider, useI18n } from '@/lib/i18n/locale';
 import { ledgerSchema, type MonthEntry } from '@/lib/ledger/ledger';
 import { simulate } from '@/lib/simulator/engine';
@@ -213,7 +214,22 @@ function SimulatorInner() {
   // Without this gate the persist effect (now on by default) fires first on
   // mount and overwrites a saved session with the blank default scenario.
   const hydrated = useRef(false);
-  useAppBadge(ledger);
+  // "Try it with sample data": the person's own plan and ledger wait here
+  // while a sample household is shown. Nothing is written to storage, no
+  // other tab is adopted, and backup / restore / sync are out of reach until
+  // they leave — the sample can never land in their data.
+  const [demo, setDemo] = useState<null | {
+    scenarios: ComparableScenario[];
+    selectedId: string;
+    ledger: MonthEntry[];
+    guiding: boolean;
+  }>(null);
+  const [wantDemo, setWantDemo] = useState(false);
+  // Leaving the sample puts back exactly what storage already holds — so the
+  // write that follows is skipped (a first visitor must not get a blank plan
+  // saved, or the guided setup wouldn't open next time).
+  const skipPersist = useRef(false);
+  useAppBadge(demo ? demo.ledger : ledger);
 
   /**
    * Read the saved plan, ledger and preferences from this device and adopt
@@ -288,6 +304,47 @@ function SimulatorInner() {
     return true;
   }
 
+  function enterDemo() {
+    if (demo) return;
+    const now = new Date();
+    const sample = sampleData(
+      { year: now.getFullYear(), month: now.getMonth() + 1 },
+      t.demo.person,
+    );
+    setDemo({ scenarios, selectedId, ledger, guiding });
+    setScenarios([{ id: 'sample', name: t.demo.plan, assumptions: sample.assumptions }]);
+    setSelectedId('sample');
+    setLedger(sample.ledger);
+    setGuiding(false);
+    setTab('track');
+    window.scrollTo({ top: 0 });
+  }
+  function exitDemo() {
+    if (!demo) return;
+    setScenarios(demo.scenarios);
+    setSelectedId(demo.selectedId);
+    setLedger(demo.ledger);
+    setGuiding(demo.guiding);
+    skipPersist.current = true;
+    setDemo(null);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('demo')) {
+      url.searchParams.delete('demo');
+      window.history.replaceState(null, '', url.pathname + url.search);
+    }
+    window.scrollTo({ top: 0 });
+  }
+  useEffect(() => {
+    if (!wantDemo) return;
+    const id = window.setTimeout(() => {
+      setWantDemo(false);
+      enterDemo();
+    }, 0);
+    return () => window.clearTimeout(id);
+    // enterDemo reads the state just restored; it only calls setters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantDemo]);
+
   // Restore a saved session once, after mount (deferred a tick so the SSR
   // and hydration renders agree; storage is untrusted → validate everything).
   useEffect(() => {
@@ -310,6 +367,8 @@ function SimulatorInner() {
       } finally {
         // Restore is done (found, missing, or broken) — writing is now safe.
         hydrated.current = true;
+        // A link to ?demo opens the sample straight away.
+        if (new URLSearchParams(window.location.search).has('demo')) setWantDemo(true);
       }
     }, 0);
     return () => window.clearTimeout(id);
@@ -322,7 +381,7 @@ function SimulatorInner() {
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key !== STORAGE_KEY && e.key !== LEDGER_KEY) return;
-      if (!saveLocal || !hydrated.current) return;
+      if (demo || !saveLocal || !hydrated.current) return;
       try {
         adopting.current = true;
         adoptSaved(false);
@@ -334,11 +393,15 @@ function SimulatorInner() {
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saveLocal, t]);
+  }, [saveLocal, t, demo]);
 
   // While enabled, mirror every change to localStorage (device-only).
   useEffect(() => {
-    if (!saveLocal || !hydrated.current) return;
+    if (demo || !saveLocal || !hydrated.current) return;
+    if (skipPersist.current) {
+      skipPersist.current = false;
+      return;
+    }
     if (adopting.current) {
       adopting.current = false; // just read from storage — nothing to write
       return;
@@ -359,7 +422,7 @@ function SimulatorInner() {
     }
     const id = window.setTimeout(() => setStorageError(failed), 0);
     return () => window.clearTimeout(id);
-  }, [saveLocal, scenarios, selectedId, ledger, lastBackupAt, themePref, fontScale, locale]);
+  }, [demo, saveLocal, scenarios, selectedId, ledger, lastBackupAt, themePref, fontScale, locale]);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document
@@ -506,6 +569,7 @@ function SimulatorInner() {
   // (signed-in people have the encrypted copy).
   const backupDays = daysSince(lastBackupAt);
   const showNudge =
+    !demo &&
     !nudgeDismissed &&
     !accountEmail &&
     ledger.length >= 2 &&
@@ -655,11 +719,21 @@ function SimulatorInner() {
             setTab('plan');
           }}
           onCancel={() => setGuiding(false)}
+          onDemo={enterDemo}
         />
       ) : null}
 
       {/* A newer version is installed behind this page: on every section. */}
       <UpdateBanner />
+
+      {demo ? (
+        <section className="card card-tight fade-in flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[13px]">{t.demo.banner}</p>
+          <button type="button" className="btn btn-primary shrink-0" onClick={exitDemo}>
+            {t.demo.exit}
+          </button>
+        </section>
+      ) : null}
 
       {tab === 'track' && showNudge ? (
         <div className="card card-tight fade-in flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -717,10 +791,21 @@ function SimulatorInner() {
         </div>
       ) : null}
 
+      {tab === 'data' && demo ? (
+        <section className="card fade-in">
+          <p className="text-[13px]">{t.demo.dataNote}</p>
+          <button type="button" className="btn btn-primary mt-3" onClick={exitDemo}>
+            {t.demo.exit}
+          </button>
+        </section>
+      ) : null}
+
       {dataMounted ? (
         <div
           className={
-            tab === 'data' ? 'fade-in grid grid-cols-1 items-start gap-4 lg:grid-cols-2' : 'hidden'
+            tab === 'data' && !demo
+              ? 'fade-in grid grid-cols-1 items-start gap-4 lg:grid-cols-2'
+              : 'hidden'
           }
         >
           <div className="flex flex-col gap-4">
