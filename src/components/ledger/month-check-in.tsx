@@ -141,12 +141,26 @@ export function TierBar({
 }
 
 /** A small mark on an amount that came over from last month unchanged. */
-function FixedTag() {
+function FixedTag({ last = false }: { last?: boolean }) {
   const { t } = useI18n();
   return (
-    <span className="text-accent shrink-0 text-[10px] font-medium">{t.track.checkIn.fixedTag}</span>
+    <span className={`shrink-0 text-[10px] font-medium ${last ? 'text-muted' : 'text-accent'}`}>
+      {last ? t.track.checkIn.lastTag : t.track.checkIn.fixedTag}
+    </span>
   );
 }
+
+/** What "Same as last month" filled in, so it can be tagged and taken back. */
+type Copied = {
+  from: YearMonth;
+  income?: number;
+  spending?: number;
+  pretax?: number;
+  lineItems: Breakdown;
+  categories: Categories;
+  incomeSources: IncomeSources;
+  count: number;
+};
 
 /** "Budget $800 · $150 left" — or, past it, "$120 over" in red. */
 function BudgetHint({ budget, spent }: { budget: number; spent: number }) {
@@ -248,6 +262,20 @@ function Form({
     ),
   );
   const [pretax, setPretax] = useState(() => str(entry?.pretaxSavings ?? carried?.pretaxSavings));
+  const [copied, setCopied] = useState<Copied | null>(null);
+  // Only the categories in use are listed; the rest wait behind "+ N more".
+  const [inUse] = useState(
+    () =>
+      new Set<CategoryId>(
+        CATEGORY_IDS.filter(
+          (id) =>
+            (entry?.categories?.[id] ?? 0) > 0 ||
+            (lastLogged?.categories?.[id] ?? 0) > 0 ||
+            (budgets[id] ?? 0) > 0,
+        ),
+      ),
+  );
+  const [showAll, setShowAll] = useState(() => inUse.size === 0);
 
   /** Take back what was carried over (anything the person changed stays). */
   function clearCarried() {
@@ -280,6 +308,9 @@ function Form({
   /** True for a field whose value came over unchanged from last month. */
   const isCarried = (now: string | undefined, was: number | undefined) =>
     carried !== null && was !== undefined && (now ?? '') === str(was);
+  /** True for a field "Same as last month" filled and nobody has changed since. */
+  const isCopied = (now: string | undefined, was: number | undefined) =>
+    copied !== null && was !== undefined && (now ?? '') === str(was);
   const [touched, setTouched] = useState(false);
 
   const usual = useMemo(() => recentAverage(entries, ym), [entries, ym]);
@@ -448,12 +479,127 @@ function Form({
     onDirty();
   }
 
+  /**
+   * "Same as last month": every blank gets last logged month's figure —
+   * income (or its sources), pre-tax savings, spending (or its categories
+   * and line items). Net worth never: it's a fact about this month. Then
+   * only what changed needs typing.
+   */
+  const source = entry ? undefined : lastLogged;
+  function copyLast() {
+    if (!source) return;
+    const got: Copied = {
+      from: { year: source.year, month: source.month },
+      lineItems: {},
+      categories: {},
+      incomeSources: {},
+      count: 0,
+    };
+    if (source.incomeSources) {
+      const next = { ...srcs };
+      for (const [id, v] of Object.entries(source.incomeSources) as Array<[IncomeSourceId, number]>)
+        if (blank(next[id])) {
+          next[id] = String(v);
+          got.incomeSources[id] = v;
+          got.count += 1;
+        }
+      setBySource(true);
+      setSrcs(next);
+    } else if (!bySource && blank(income) && source.income > 0) {
+      setIncome(String(source.income));
+      got.income = source.income;
+      got.count += 1;
+    }
+    if (blank(pretax) && source.pretaxSavings !== undefined) {
+      setPretax(String(source.pretaxSavings));
+      got.pretax = source.pretaxSavings;
+      got.count += 1;
+    }
+    if (source.categories) {
+      const itemizedLast = (id: CategoryId) =>
+        subsOf(id).some((sub) => source.breakdown?.[sub] !== undefined);
+      const nextSubs = { ...subs };
+      for (const [sub, v] of Object.entries(source.breakdown ?? {}) as Array<[SubId, number]>)
+        if (blank(nextSubs[sub])) {
+          nextSubs[sub] = String(v);
+          got.lineItems[sub] = v;
+          got.count += 1;
+        }
+      const nextCats = { ...cats };
+      for (const id of CATEGORY_IDS) {
+        const v = source.categories[id];
+        if (v !== undefined && blank(nextCats[id]) && !itemizedLast(id)) {
+          nextCats[id] = String(v);
+          got.categories[id] = v;
+          got.count += 1;
+        }
+      }
+      setDetailed(true);
+      setSubs(nextSubs);
+      setCats(nextCats);
+    } else if (!detailed && blank(spending) && source.spending > 0) {
+      setSpending(String(source.spending));
+      got.spending = source.spending;
+      got.count += 1;
+    }
+    setCopied(got.count > 0 ? got : null);
+    setTouched(true);
+    onDirty();
+  }
+  /** Take back what was copied (anything changed since stays). */
+  function undoCopy() {
+    if (!copied) return;
+    const same = (now: string | undefined, was: number | undefined) =>
+      was !== undefined && (now ?? '') === str(was);
+    if (same(income, copied.income)) setIncome('');
+    if (same(spending, copied.spending)) setSpending('');
+    if (same(pretax, copied.pretax)) setPretax('');
+    setSubs((c) => {
+      const out = { ...c };
+      for (const [id, v] of Object.entries(copied.lineItems) as Array<[SubId, number]>)
+        if (same(out[id], v)) out[id] = '';
+      return out;
+    });
+    setCats((c) => {
+      const out = { ...c };
+      for (const [id, v] of Object.entries(copied.categories) as Array<[CategoryId, number]>)
+        if (same(out[id], v)) out[id] = '';
+      return out;
+    });
+    setSrcs((c) => {
+      const out = { ...c };
+      for (const [id, v] of Object.entries(copied.incomeSources) as Array<[IncomeSourceId, number]>)
+        if (same(out[id], v)) out[id] = '';
+      return out;
+    });
+    setCopied(null);
+  }
+  const canCopy =
+    source !== undefined &&
+    copied === null &&
+    (blank(income) || (source.categories ? catFilled.length === 0 : blank(spending)));
+
   const kept = typeof inc === 'number' && typeof sp === 'number' ? inc - sp : null;
   const rate = kept !== null && typeof inc === 'number' && inc > 0 ? (kept / inc) * 100 : null;
 
   return (
     <form
       className="flex flex-col gap-4"
+      onKeyDown={(e) => {
+        // Enter moves on to the next amount, like a spreadsheet; on the last one it saves.
+        const el = e.target as HTMLElement;
+        if (e.key !== 'Enter' || el.tagName !== 'INPUT' || e.nativeEvent.isComposing) return;
+        const fields = [
+          ...e.currentTarget.querySelectorAll<HTMLInputElement>(
+            'input[inputmode="decimal"]:not([readonly])',
+          ),
+        ];
+        const i = fields.indexOf(el as HTMLInputElement);
+        if (i >= 0 && i < fields.length - 1) {
+          e.preventDefault();
+          fields[i + 1]!.focus();
+        }
+      }}
       onSubmit={(e) => {
         e.preventDefault();
         if (!canSave) return;
@@ -480,6 +626,21 @@ function Form({
         setTouched(false);
       }}
     >
+      {canCopy ? (
+        <button type="button" className="btn w-full justify-center" onClick={copyLast}>
+          {C.copyLast(monthLabel(source!, 'short'))}
+        </button>
+      ) : null}
+      {copied ? (
+        <div className="bg-surface-2 flex items-center justify-between gap-3 rounded-[10px] px-3 py-2">
+          <span className="text-xs">
+            {C.copiedBanner(monthLabel(copied.from, 'short'), copied.count)}
+          </span>
+          <button type="button" className="btn btn-ghost btn-sm shrink-0" onClick={undoCopy}>
+            {C.undoCopy}
+          </button>
+        </div>
+      ) : null}
       {carried ? (
         <div className="bg-surface-2 flex items-center justify-between gap-3 rounded-[10px] px-3 py-2">
           <span className="text-xs">{C.carried(carried.count)}</span>
@@ -602,7 +763,11 @@ function Form({
                 <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
                   <span className="flex items-center gap-1.5 truncate text-[13px]">
                     {t.track.incomeSources[id]}
-                    {isCarried(srcs[id], carried?.incomeSources[id]) ? <FixedTag /> : null}
+                    {isCarried(srcs[id], carried?.incomeSources[id]) ? (
+                      <FixedTag />
+                    ) : isCopied(srcs[id], copied?.incomeSources[id]) ? (
+                      <FixedTag last />
+                    ) : null}
                   </span>
                   <span className="relative">
                     <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
@@ -671,114 +836,142 @@ function Form({
           </div>
           <p className="text-muted text-[11px]">{C.breakdownHint}</p>
           <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-            {catValues.map(({ id, value, items, itemized }) => {
-              const isOpen = open.includes(id);
-              return (
-                <li key={id} className={isOpen ? 'sm:col-span-2' : ''}>
-                  <div className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
-                    <button
-                      type="button"
-                      aria-expanded={isOpen}
-                      onClick={() => toggleOpen(id)}
-                      className="hover:text-foreground flex min-w-0 items-center gap-2 text-left"
-                    >
-                      <span
-                        aria-hidden
-                        className={`text-muted inline-block w-3 shrink-0 text-xs transition-transform ${isOpen ? 'rotate-90' : ''}`}
+            {catValues
+              .filter(
+                ({ id, value }) =>
+                  showAll || inUse.has(id) || value !== undefined || open.includes(id),
+              )
+              .map(({ id, value, items, itemized }) => {
+                const isOpen = open.includes(id);
+                return (
+                  <li key={id} className={isOpen ? 'sm:col-span-2' : ''}>
+                    <div className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
+                      <button
+                        type="button"
+                        aria-expanded={isOpen}
+                        onClick={() => toggleOpen(id)}
+                        className="hover:text-foreground flex min-w-0 items-center gap-2 text-left"
                       >
-                        ›
-                      </span>
-                      <span className="min-w-0">
-                        <span className="flex items-center gap-1.5 truncate text-[13px]">
-                          {t.track.categories[id]}
-                          {isCarried(cats[id], carried?.categories[id]) ? <FixedTag /> : null}
+                        <span
+                          aria-hidden
+                          className={`text-muted inline-block w-3 shrink-0 text-xs transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                        >
+                          ›
                         </span>
-                        {budgets[id] ? (
-                          <BudgetHint
-                            budget={budgets[id]!}
-                            spent={typeof value === 'number' ? value : 0}
-                          />
-                        ) : id === 'housing' && plan && plan.monthlyHousing > 0 ? (
-                          <span className="text-muted block truncate text-[11px]">
-                            {C.housingPlan(fmt.currency0(plan.monthlyHousing))}
+                        <span className="min-w-0">
+                          <span className="flex items-center gap-1.5 truncate text-[13px]">
+                            {t.track.categories[id]}
+                            {isCarried(cats[id], carried?.categories[id]) ? (
+                              <FixedTag />
+                            ) : isCopied(cats[id], copied?.categories[id]) ? (
+                              <FixedTag last />
+                            ) : null}
                           </span>
-                        ) : itemized && !isOpen ? (
-                          <span className="text-muted block truncate text-[11px]">
-                            {C.itemCount(items.filter((i) => typeof i.value === 'number').length)}
-                          </span>
-                        ) : null}
+                          {budgets[id] ? (
+                            <BudgetHint
+                              budget={budgets[id]!}
+                              spent={typeof value === 'number' ? value : 0}
+                            />
+                          ) : id === 'housing' && plan && plan.monthlyHousing > 0 ? (
+                            <span className="text-muted block truncate text-[11px]">
+                              {C.housingPlan(fmt.currency0(plan.monthlyHousing))}
+                            </span>
+                          ) : itemized && !isOpen ? (
+                            <span className="text-muted block truncate text-[11px]">
+                              {C.itemCount(items.filter((i) => typeof i.value === 'number').length)}
+                            </span>
+                          ) : null}
+                        </span>
+                      </button>
+                      <span className="relative">
+                        <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
+                          $
+                        </span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          aria-label={t.track.categories[id]}
+                          value={itemized ? String(value ?? '') : (cats[id] ?? '')}
+                          readOnly={itemized}
+                          title={itemized ? C.sumOfItems : undefined}
+                          placeholder={
+                            prev?.categories?.[id] !== undefined ? plain(prev.categories[id]!) : '0'
+                          }
+                          aria-invalid={value === null}
+                          onChange={(e) => editCat(id, e.target.value)}
+                          className={`field field-money nums h-10 min-h-0 w-full text-right text-[15px] ${
+                            value === null ? 'text-negative' : ''
+                          } ${itemized ? 'opacity-70' : ''}`}
+                        />
                       </span>
-                    </button>
-                    <span className="relative">
-                      <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
-                        $
-                      </span>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        autoComplete="off"
-                        aria-label={t.track.categories[id]}
-                        value={itemized ? String(value ?? '') : (cats[id] ?? '')}
-                        readOnly={itemized}
-                        title={itemized ? C.sumOfItems : undefined}
-                        placeholder={
-                          prev?.categories?.[id] !== undefined ? plain(prev.categories[id]!) : '0'
-                        }
-                        aria-invalid={value === null}
-                        onChange={(e) => editCat(id, e.target.value)}
-                        className={`field field-money nums h-10 min-h-0 w-full text-right text-[15px] ${
-                          value === null ? 'text-negative' : ''
-                        } ${itemized ? 'opacity-70' : ''}`}
-                      />
-                    </span>
-                  </div>
+                    </div>
 
-                  {isOpen ? (
-                    <ul className="bg-surface-2/50 mt-2 grid grid-cols-1 gap-x-4 gap-y-2 rounded-[12px] p-3 sm:grid-cols-2">
-                      {items.map((item) => (
-                        <li key={item.id}>
-                          <label className="grid grid-cols-[1fr_7.5rem] items-center gap-3">
-                            <span className="text-muted flex min-w-0 items-center gap-2 text-[13px]">
-                              <span
-                                aria-hidden
-                                title={t.track.tiers[tierOf(item.id)]}
-                                className={`h-1.5 w-1.5 shrink-0 rounded-full ${TIER_DOT[tierOf(item.id)]}`}
-                              />
-                              <span className="truncate">{t.track.subcategories[item.id]}</span>
-                              {isCarried(subs[item.id], carried?.lineItems[item.id]) ? (
-                                <FixedTag />
-                              ) : null}
-                            </span>
-                            <span className="relative">
-                              <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs">
-                                $
+                    {isOpen ? (
+                      <ul className="bg-surface-2/50 mt-2 grid grid-cols-1 gap-x-4 gap-y-2 rounded-[12px] p-3 sm:grid-cols-2">
+                        {items.map((item) => (
+                          <li key={item.id}>
+                            <label className="grid grid-cols-[1fr_7.5rem] items-center gap-3">
+                              <span className="text-muted flex min-w-0 items-center gap-2 text-[13px]">
+                                <span
+                                  aria-hidden
+                                  title={t.track.tiers[tierOf(item.id)]}
+                                  className={`h-1.5 w-1.5 shrink-0 rounded-full ${TIER_DOT[tierOf(item.id)]}`}
+                                />
+                                <span className="truncate">{t.track.subcategories[item.id]}</span>
+                                {isCarried(subs[item.id], carried?.lineItems[item.id]) ? (
+                                  <FixedTag />
+                                ) : isCopied(subs[item.id], copied?.lineItems[item.id]) ? (
+                                  <FixedTag last />
+                                ) : null}
                               </span>
-                              <input
-                                type="text"
-                                inputMode="decimal"
-                                autoComplete="off"
-                                value={subs[item.id] ?? ''}
-                                placeholder={
-                                  prev?.breakdown?.[item.id] !== undefined
-                                    ? plain(prev.breakdown[item.id]!)
-                                    : '0'
-                                }
-                                aria-invalid={item.value === null}
-                                onChange={(e) => editSub(item.id, e.target.value)}
-                                className={`field field-money nums h-9 min-h-0 w-full text-right text-sm ${
-                                  item.value === null ? 'text-negative' : ''
-                                }`}
-                              />
-                            </span>
-                          </label>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              );
-            })}
+                              <span className="relative">
+                                <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs">
+                                  $
+                                </span>
+                                <input
+                                  type="text"
+                                  inputMode="decimal"
+                                  autoComplete="off"
+                                  value={subs[item.id] ?? ''}
+                                  placeholder={
+                                    prev?.breakdown?.[item.id] !== undefined
+                                      ? plain(prev.breakdown[item.id]!)
+                                      : '0'
+                                  }
+                                  aria-invalid={item.value === null}
+                                  onChange={(e) => editSub(item.id, e.target.value)}
+                                  className={`field field-money nums h-9 min-h-0 w-full text-right text-sm ${
+                                    item.value === null ? 'text-negative' : ''
+                                  }`}
+                                />
+                              </span>
+                            </label>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                );
+              })}
           </ul>
+          {inUse.size > 0 ? (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm self-start px-0"
+              aria-expanded={showAll}
+              onClick={() => setShowAll((v) => !v)}
+            >
+              {showAll
+                ? C.fewerCategories
+                : C.moreCategories(
+                    catValues.filter(
+                      ({ id, value }) =>
+                        !(inUse.has(id) || value !== undefined || open.includes(id)),
+                    ).length,
+                  )}
+            </button>
+          ) : null}
           <p className="rule" />
           <p className="flex items-center justify-between text-[13px]">
             <span className="text-muted">{C.total}</span>
@@ -816,7 +1009,12 @@ function Form({
       ) : null}
       {anyInvalid ? <p className="text-negative text-xs">{C.invalid}</p> : null}
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="savebar flex flex-wrap items-center gap-2">
+        {kept !== null ? (
+          <span className="nums text-muted w-full text-[12px] sm:hidden">
+            {kept >= 0 ? C.kept(fmt.currency0(kept)) : C.overspent(fmt.currency0(-kept))}
+          </span>
+        ) : null}
         <button
           type="submit"
           className="btn btn-primary min-w-32 flex-1 sm:flex-none"
