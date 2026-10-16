@@ -169,4 +169,4 @@ Underneath it is still a live side-by-side editor: **Assumptions** (the form) on
 
 ## Current state
 
-Purely client-side simulator, deployed to Vercel. No backend, no env vars, `npm audit` clean. Formerly a full tracker (see git history / older CHANGELOG entries); stripped to the simulator in the "simulator-only" change.
+**Work Optional 2.0 (2026-10)**: a local-first monthly money tracker (Track is home) with the projection as the yardstick, an optional end-to-end-encrypted sync (two PUBLIC env vars + the explicit switch, see above), an installable offline PWA with an update prompt, a sample-data mode, and the **Work Optional extension 1.0** (`mcp/`) for Claude Desktop, Claude Code and Codex. Deployed on Vercel; `npm audit` clean; backup / vault format **v4**. Versions: app `package.json` 2.0.0 (tags `vN.N.N`), extension `mcp/` 1.0.0 (tags `mcp-vN.N.N`, each release carries the `.mcpb`, the single-file server, the launcher and `SHA256SUMS`). The original full tracker (accounts, transactions, holdings) was removed long ago and is NOT coming back — see the rules above.
