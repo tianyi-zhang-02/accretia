@@ -6,6 +6,37 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-10-16
+
+**Live:** https://accretia.vercel.app · **Try it with sample data:** https://accretia.vercel.app/?demo
+
+Work Optional 2.0 turns the projection tool into **a money tracker you'll keep
+using** — one minute a month — with the plan as the yardstick.
+
+**Highlights**
+
+- **Tracking is the home screen.** Log a month in 30 seconds ("same as last
+  month", then change what's different), as one total or by category and line
+  item, with income sources and pre-tax 401(k).
+- **See where you stand.** *Am I on track?*, what's left for everyday
+  spending, what this month shows (against your own usual and last year), a
+  year report and a shareable **Year in review**.
+- **Budgets & goals.** Monthly budgets per category, once-a-year bills with
+  what to set aside, and savings goals that say whether they fit.
+- **The plan, in plain words** — the year work becomes optional, in today's
+  dollars — plus a **paycheck calculator** exact for federal, California and
+  New York.
+- **Private by design.** Local-first; optional **end-to-end-encrypted sync**
+  with a recovery code; no tracking. Installable as an app, works offline, and
+  tells you when there's a new version.
+- **Use it in Claude or Codex** — the Work Optional extension 1.0 (local MCP
+  server, same encrypted vault).
+- **Try it first** with a made-up household, nothing saved.
+
+**Upgrading:** backups and the encrypted vault are now **format 4**. Older
+copies of the app refuse newer files instead of silently dropping data; just
+refresh. Everything below is the full list.
+
 ### Try it with sample data
 
 - **New visitors can look around before typing anything**: *Try it with
