@@ -2,6 +2,12 @@
  * Service worker for Work Optional — the part that makes "add to home
  * screen" behave like an app: the whole shell works offline.
  *
+ * THIS IS THE SOURCE. `npm run build` (prebuild → scripts/build-sw.mjs)
+ * copies it to public/sw.js with a build stamp on the first line, so every
+ * deploy changes the worker's bytes — which is what lets an open or
+ * installed app notice the deploy (see src/lib/pwa/update.ts). public/sw.js
+ * is generated and not committed; edit this file.
+ *
  * Strategy (deliberately conservative — a financial app, no offline writes):
  *   - Cross-origin (the sync service)  → never intercepted; always network.
  *   - /_next/static/*                   → cache-first. These URLs are
@@ -14,17 +20,33 @@
  *     "no internet" page.
  *   - Everything else                   → pass-through.
  *
+ * Updates (v4): a new worker installs next to the running one — caching the
+ * new shell AND the scripts it references, so the offline copy is never a
+ * shell without its chunks — and then WAITS. The page shows "A new version
+ * is ready"; pressing Refresh posts SKIP_WAITING, this worker takes over and
+ * the page reloads once. Until then an open app keeps the worker it started
+ * with. A first install has nothing to wait for and activates at once.
+ *
  * Nothing the user typed is ever cached here: the ledger and plan live in
  * localStorage, which the app reads itself. Bump CACHE_VERSION to drop old
  * caches on activate.
  */
 
-const CACHE_VERSION = 'workoptional-v3';
+const CACHE_VERSION = 'workoptional-v4';
 const SHELL = '/';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_VERSION).then((cache) => cache.add(SHELL)));
-  self.skipWaiting();
+  event.waitUntil(
+    fetch(SHELL, { cache: 'no-store' }).then((res) => {
+      if (!res.ok) throw new Error(`shell ${res.status}`);
+      return refreshShell(res);
+    }),
+  );
+});
+
+// The page asks for the hand-over only when the person pressed Refresh.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

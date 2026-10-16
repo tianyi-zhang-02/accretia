@@ -36,6 +36,7 @@ import {
 import { useI18n } from '@/lib/i18n/locale';
 import type { MonthEntry } from '@/lib/ledger/ledger';
 
+import { RefreshToUpdate } from '../pwa/update-banner';
 import Icon from '../ui/icon';
 
 /**
@@ -62,6 +63,9 @@ const RESEND_SECONDS = 60;
 /** What "the same data" means for the upload-needed indicator. */
 const signature = (scenarios: BackupScenario[], ledger: MonthEntry[]) =>
   JSON.stringify({ scenarios, ledger });
+
+/** The cloud copy needs a newer app than this one to read it. */
+const needsNewerApp = (r: RestoreResult) => !r.ok && r.reason === 'newerVersion';
 
 /** 0 too short · 1 okay · 2 strong. Length is what matters for a passphrase. */
 const strengthOf = (pass: string) =>
@@ -116,6 +120,10 @@ export default function CloudSync({
   // The cloud version this device last matched (unlock / upload / download).
   // A newer one means another device — or Claude — wrote since.
   const [seenAt, setSeenAt] = useState<string | null>(null);
+  // The cloud copy was written by a newer version of the app (another device,
+  // or Claude). This build can't read it, so it mustn't overwrite it either:
+  // upload pauses and the panel offers the refresh that brings the update.
+  const [tooNew, setTooNew] = useState(false);
   const passRef = useRef<HTMLInputElement>(null);
   const currentSig = useMemo(() => signature(scenarios, ledger), [scenarios, ledger]);
 
@@ -149,6 +157,7 @@ export default function CloudSync({
         setPending(null);
         setSyncedSig(null);
         setSeenAt(null);
+        setTooNew(false);
         setFreshCode(null);
         setForgot(false);
         setChangingPass(false);
@@ -395,6 +404,7 @@ export default function CloudSync({
                 if (vault.v !== 2) throw new WrongPassphraseError();
                 const r = parseBackup(await open(remote.envelope, vault));
                 setSyncedSig(r.ok ? signature(r.scenarios, r.ledger) : null);
+                setTooNew(needsNewerApp(r));
                 setSeenAt(remote.updatedAt);
                 // The old passphrase is retired: a new one must be chosen.
                 setUnlocked({ ...vault, pass: null });
@@ -505,6 +515,7 @@ export default function CloudSync({
                 // already matches it.
                 const r = parseBackup(await open(remote!.envelope, vault));
                 setSyncedSig(r.ok ? signature(r.scenarios, r.ledger) : null);
+                setTooNew(needsNewerApp(r));
                 setSeenAt(remote!.updatedAt);
                 setUnlocked(vault);
                 good(C.unlockedNote);
@@ -648,7 +659,12 @@ export default function CloudSync({
               <p className="text-muted mt-2 text-[11px]">{C.codeUploadNote}</p>
             </div>
           ) : null}
-          {remote && seenAt && remote.updatedAt !== seenAt ? (
+          {tooNew ? (
+            <div className="bg-surface-2 mb-3 rounded-[10px] px-3 py-2">
+              <p className="text-[13px]">{C.newerVersion}</p>
+              <RefreshToUpdate className="mt-2" />
+            </div>
+          ) : remote && seenAt && remote.updatedAt !== seenAt ? (
             <p className="bg-surface-2 text-accent mb-3 rounded-[10px] px-3 py-2 text-[13px]">
               {C.remoteNewer}
             </p>
@@ -712,10 +728,14 @@ export default function CloudSync({
             <button
               type="button"
               className="btn btn-primary"
-              disabled={busy}
+              disabled={busy || tooNew}
               onClick={() =>
                 void run(async () => {
                   setConflict(false);
+                  // Never write over a copy this version can't read.
+                  if (remote && (await cloudNeedsNewerApp(remote, unlocked))) {
+                    return setTooNew(true);
+                  }
                   const text = JSON.stringify(buildBackup(scenarios, selectedId, ledger));
                   const env = await seal(text, unlocked);
                   const res = await saveVault(env, remote?.updatedAt ?? null);
@@ -739,6 +759,8 @@ export default function CloudSync({
                   if (!latest) return bad(C.err.noCloud);
                   setRemote(latest);
                   const r = parseBackup(await open(latest.envelope, unlocked));
+                  setTooNew(needsNewerApp(r));
+                  if (needsNewerApp(r)) return; // the panel says why, and offers the refresh
                   if (!r.ok) return bad(C.err.unreadable);
                   setPending(r); // replaced only after the confirm below
                 })
@@ -826,6 +848,7 @@ export default function CloudSync({
                     setRemote(null);
                     setUnlocked(null);
                     setSyncedSig(null);
+                    setTooNew(false);
                     setConfirmDelete(false);
                     good(C.deleted);
                   })
@@ -847,6 +870,19 @@ export default function CloudSync({
       <Note note={note} />
     </section>
   );
+}
+
+/**
+ * The upload guard: was the cloud copy written by a newer version of the app?
+ * A copy these keys can't open at all (deleted and re-created elsewhere) says
+ * no, which leaves upload exactly as it was.
+ */
+async function cloudNeedsNewerApp(remote: RemoteVault, keys: VaultKeys) {
+  try {
+    return needsNewerApp(parseBackup(await open(remote.envelope, keys)));
+  } catch {
+    return false;
+  }
 }
 
 function Header({ title }: { title: string }) {

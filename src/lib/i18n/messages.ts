@@ -426,6 +426,8 @@ const en = {
     inSync: 'Matches the cloud copy',
     remoteNewer:
       'The cloud copy has newer changes — from another device, or from Claude. Download to bring them here.',
+    newerVersion:
+      'The cloud copy was saved by a newer version of the app — on another device, or by Claude. Refresh to update before you download or upload; nothing was changed.',
     needsUpload: 'Has changes that aren’t uploaded',
     neverUploaded: 'Not uploaded yet',
     signOut: 'Sign out',
@@ -546,7 +548,7 @@ const en = {
       notJson: 'Could not read that file.',
       notBackup: 'That isn’t a Work Optional backup file.',
       newerVersion:
-        'This backup was made by a newer version of the app. Reload the page to update, then try again.',
+        'This backup comes from a newer version of the app. Refresh to update, then try again — nothing was changed.',
       empty: 'No usable plan survived validation in that file, so nothing was changed.',
     },
   },
@@ -699,6 +701,13 @@ const en = {
     stale: (days: number) => `Your last backup was ${days} days ago.`,
     backUp: 'Back up now',
     dismiss: 'Not now',
+  },
+  update: {
+    ready: 'A new version is ready.',
+    body: 'Refresh to start using it — everything you’ve saved stays as it is.',
+    refresh: 'Refresh',
+    later: 'Later',
+    refreshToUpdate: 'Refresh to update',
   },
   claude: {
     heading: 'Use it in Claude',
@@ -1560,6 +1569,8 @@ const zh: Messages = {
     thisDevice: '这台设备',
     inSync: '和云端一致',
     remoteNewer: '云端有新的改动（来自另一台设备或 Claude）。点「下载」同步到这台设备。',
+    newerVersion:
+      '云端这份数据是更新版本的 app 存的（另一台设备或 Claude）。先刷新页面更新，再下载或上传，什么都没有改动。',
     needsUpload: '有改动还没上传',
     neverUploaded: '还没上传过',
     signOut: '退出登录',
@@ -1671,7 +1682,7 @@ const zh: Messages = {
       tooLarge: '文件太大了，不像是备份（上限 2 MB）。',
       notJson: '读不了这个文件。',
       notBackup: '这不是 Work Optional 的备份文件。',
-      newerVersion: '这份备份来自更新版本的 App。刷新页面更新之后再试。',
+      newerVersion: '这份备份来自更新版本的 app，刷新页面更新后再试，什么都没有改动。',
       empty: '文件里没有一个方案能通过校验，所以什么都没改。',
     },
   },
@@ -1817,6 +1828,13 @@ const zh: Messages = {
     stale: (days: number) => `上次备份是 ${days} 天前。`,
     backUp: '现在备份',
     dismiss: '以后再说',
+  },
+  update: {
+    ready: '有新版本了。',
+    body: '刷新一下就能用上，已经保存的内容不会变。',
+    refresh: '刷新',
+    later: '稍后',
+    refreshToUpdate: '刷新并更新',
   },
   claude: {
     heading: '在 Claude 里用',

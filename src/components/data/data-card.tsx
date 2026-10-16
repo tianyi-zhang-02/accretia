@@ -14,6 +14,7 @@ import {
 import { useI18n } from '@/lib/i18n/locale';
 import type { MonthEntry } from '@/lib/ledger/ledger';
 
+import { RefreshToUpdate } from '../pwa/update-banner';
 import Icon from '../ui/icon';
 
 /**
@@ -75,7 +76,12 @@ export default function DataCard({
   const K = t.track.data;
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<Ok | null>(null);
-  const [note, setNote] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
+  // `update`: the file needs a newer app — offer the refresh that gets it.
+  const [note, setNote] = useState<{
+    tone: 'ok' | 'bad';
+    text: string;
+    update?: boolean;
+  } | null>(null);
   // null = unknown / unsupported.
   const [persisted, setPersisted] = useState<boolean | null>(null);
   const [canPersist, setCanPersist] = useState(false);
@@ -112,7 +118,9 @@ export default function DataCard({
       return setNote({ tone: 'bad', text: D.fail.notJson });
     }
     const r = parseBackup(text);
-    if (!r.ok) return setNote({ tone: 'bad', text: D.fail[r.reason] });
+    if (!r.ok) {
+      return setNote({ tone: 'bad', text: D.fail[r.reason], update: r.reason === 'newerVersion' });
+    }
     setNote(null);
     setPending(r); // nothing is replaced until the user confirms
   }
@@ -243,6 +251,7 @@ export default function DataCard({
           {note.text}
         </p>
       ) : null}
+      {note?.update ? <RefreshToUpdate className="mt-2" /> : null}
     </section>
   );
 }
