@@ -6,6 +6,14 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: latest net worth from an out-of-order ledger
+
+- A ledger restored from a hand-edited or merged backup could be out of
+  date order, and Track then showed an **old month's net worth as the
+  latest** (e.g. Sep 2025 instead of Aug 2026). The ledger is now put back
+  in order — and a month listed twice keeps its last entry — whenever it is
+  read from this device, a backup, the cloud copy or the Claude extension.
+
 ### Once-a-year bills
 
 - **A new card on Track for bills that come once a year** — car insurance,

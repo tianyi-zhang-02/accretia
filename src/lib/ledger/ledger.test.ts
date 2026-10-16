@@ -130,6 +130,21 @@ describe('CSV — untrusted input', () => {
       false,
     );
   });
+
+  it('a ledger read back is oldest → newest, one entry per month', () => {
+    // e.g. a hand-edited backup with the years interleaved and a month twice
+    const parsed = ledgerSchema.parse([
+      { year: 2026, month: 2, income: 1, spending: 1 },
+      { year: 2025, month: 9, income: 2, spending: 2 },
+      { year: 2026, month: 1, income: 3, spending: 3 },
+      { year: 2026, month: 2, income: 4, spending: 4 },
+    ]);
+    expect(parsed.map((e) => [e.year, e.month, e.income])).toEqual([
+      [2025, 9, 2],
+      [2026, 1, 3],
+      [2026, 2, 4],
+    ]);
+  });
 });
 
 describe('yearReport', () => {

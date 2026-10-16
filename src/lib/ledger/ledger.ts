@@ -238,9 +238,23 @@ export const monthEntrySchema = z
 export type MonthEntry = z.infer<typeof monthEntrySchema>;
 
 /** 50 years of months is plenty; the cap keeps stored data bounded. */
-export const ledgerSchema = z.array(monthEntrySchema).max(600);
-
 const key = (e: Pick<MonthEntry, 'year' | 'month'>) => e.year * 12 + (e.month - 1);
+
+/**
+ * A whole ledger as read from storage, a backup or the vault. Everything
+ * downstream ("latest net worth", streaks, the year strip) assumes oldest →
+ * newest with one entry per month — which the app's own writes guarantee,
+ * but a hand-edited or merged file doesn't. So order is restored here, at
+ * the boundary, and a duplicated month keeps its last occurrence.
+ */
+export const ledgerSchema = z
+  .array(monthEntrySchema)
+  .max(600)
+  .transform((es) => {
+    const byMonth = new Map<number, MonthEntry>();
+    for (const e of es) byMonth.set(key(e), e);
+    return [...byMonth.values()].sort((a, b) => key(a) - key(b));
+  });
 
 /** Insert or replace one month; result stays sorted and de-duplicated. */
 export function upsert(entries: MonthEntry[], entry: MonthEntry): MonthEntry[] {
