@@ -292,6 +292,7 @@ export default function LedgerPanel({
             onBudgets={onBudgets}
             onAnnual={onAnnual}
             onGoals={onGoals}
+            notify={notify}
           />
         </div>
         <div className="flex flex-col gap-4">

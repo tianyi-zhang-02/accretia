@@ -25,12 +25,15 @@ export default function AnnualCard({
   today,
   onChange,
   embedded = false,
+  notify,
 }: {
   annual: AnnualExpense[];
   today: YearMonth;
   onChange: (next: AnnualExpense[]) => void;
   /** Inside the Budgets & goals card: just the content, no card or header. */
   embedded?: boolean;
+  /** Undoable removals: a toast with Undo, as for clearing a month. */
+  notify?: (text: string, undo?: () => void) => void;
 }) {
   const { t, fmt, locale } = useI18n();
   const A = t.track.annual;
@@ -54,8 +57,10 @@ export default function AnnualCard({
     setOpen(true);
   }
   function remove(i: number) {
+    const before = annual;
     setDrafts({});
     onChange(annual.filter((_, j) => j !== i));
+    notify?.(t.toast.removed(label(annual[i]!.item)), () => onChange(before));
   }
   const suggestions = ANNUAL_SUGGESTIONS.filter((id) => !annual.some((x) => x.item === id));
 
