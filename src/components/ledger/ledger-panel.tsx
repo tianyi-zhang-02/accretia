@@ -30,9 +30,11 @@ import { categoryByMonth } from '@/lib/ledger/insights';
 import { yearBudget, type Budgets } from '@/lib/ledger/budgets';
 import { yearOverYear } from '@/lib/ledger/compare';
 import type { AnnualExpense } from '@/lib/ledger/annual';
+import type { SavingsGoal } from '@/lib/ledger/goals';
 
 import AnnualCard from './annual-card';
 import BudgetCard from './budget-card';
+import GoalsCard from './goals-card';
 import MonthCheckIn, { TierBar } from './month-check-in';
 import TrackStatus from './track-status';
 
@@ -114,6 +116,7 @@ export default function LedgerPanel({
   notify,
   onBudgets,
   onAnnual,
+  onGoals,
 }: {
   entries: MonthEntry[];
   onChange: (next: MonthEntry[]) => void;
@@ -128,6 +131,8 @@ export default function LedgerPanel({
   onBudgets: (next: Budgets) => void;
   /** Save the plan's once-a-year bills. */
   onAnnual: (next: AnnualExpense[]) => void;
+  /** Save the plan's savings goals. */
+  onGoals: (next: SavingsGoal[]) => void;
 }) {
   const { t, fmt, locale } = useI18n();
   const L = t.ledger;
@@ -168,6 +173,10 @@ export default function LedgerPanel({
   const annual: AnnualExpense[] = useMemo(
     () => assumptions.annualExpenses ?? [],
     [assumptions.annualExpenses],
+  );
+  const goals: SavingsGoal[] = useMemo(
+    () => assumptions.savingsGoals ?? [],
+    [assumptions.savingsGoals],
   );
   const yearBudgets = useMemo(() => {
     const y = yearBudget(entries, year, budgets);
@@ -262,17 +271,20 @@ export default function LedgerPanel({
           />
           <AnnualCard annual={annual} today={today} onChange={onAnnual} />
         </div>
-        <TrackStatus
-          budgets={budgets}
-          annual={annual}
-          entries={entries}
-          report={report}
-          planRows={planRows}
-          startingNetWorth={assumptions.startingNetWorth}
-          at={sel}
-          fire={fire}
-          onOpenPlan={onOpenPlan}
-        />
+        <div className="flex flex-col gap-4">
+          <TrackStatus
+            budgets={budgets}
+            annual={annual}
+            entries={entries}
+            report={report}
+            planRows={planRows}
+            startingNetWorth={assumptions.startingNetWorth}
+            at={sel}
+            fire={fire}
+            onOpenPlan={onOpenPlan}
+          />
+          <GoalsCard goals={goals} entries={entries} today={today} onChange={onGoals} />
+        </div>
       </div>
 
       {/* Year-end report — also the print area. */}

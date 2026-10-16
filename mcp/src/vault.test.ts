@@ -14,6 +14,7 @@ import {
   logMonthChange,
   monthSummary,
   setAnnualChange,
+  setGoalsChange,
   setBudgetsChange,
 } from './edits';
 import { Store } from './store';
@@ -312,5 +313,20 @@ describe('once-a-year bills', () => {
     expect(setAnnualChange(bills)(d).scenarios[0]!.assumptions.annualExpenses).toEqual(bills);
     expect(setAnnualChange([])(d).scenarios[0]!.assumptions.annualExpenses).toEqual([]);
     expect(() => setAnnualChange([{ item: 'insurance.auto', amount: 1, month: 13 }])(d)).toThrow();
+  });
+});
+
+describe('savings goals', () => {
+  it('replace the selected plan’s goals, validated like the web app', () => {
+    const d = {
+      scenarios: [{ id: 'a', name: 'A', assumptions: defaultAssumptions() }],
+      selectedId: 'a',
+      ledger: [],
+    } as VaultData;
+    const goals = [
+      { kind: 'downPayment' as const, target: 100_000, saved: 40_000, year: 2028, month: 6 },
+    ];
+    expect(setGoalsChange(goals)(d).scenarios[0]!.assumptions.savingsGoals).toEqual(goals);
+    expect(() => setGoalsChange([{ ...goals[0]!, kind: 'yacht' as 'car' }])(d)).toThrow();
   });
 });

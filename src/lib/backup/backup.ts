@@ -21,8 +21,9 @@ export const BACKUP_APP = 'work-optional';
  * — a cached app, an old Claude extension — refuses the file instead of
  * reading it and silently dropping the budgets on its next save.
  * v3 (2026-10): plans may carry `annualExpenses`, for the same reason.
+ * v4 (2026-10): plans may carry `savingsGoals`.
  */
-export const BACKUP_VERSION = 3;
+export const BACKUP_VERSION = 4;
 const MAX_BYTES = 2_000_000;
 const MAX_SCENARIOS = 50;
 
