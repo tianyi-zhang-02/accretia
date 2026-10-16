@@ -6,6 +6,16 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Try it with sample data
+
+- **New visitors can look around before typing anything**: *Try it with
+  sample data first* in the setup — or a link to
+  [accretia.vercel.app/?demo](https://accretia.vercel.app/?demo) — opens a
+  made-up household with 20 months logged, budgets, yearly bills and goals.
+- **Nothing is saved while you look**: the sample never touches your device's
+  storage, backup, restore and sync are off, and *Use my own data* puts
+  everything back exactly as it was.
+
 ### Plan, in plain words
 
 - **The chart opens in today's dollars**, like the headline figure above it —
