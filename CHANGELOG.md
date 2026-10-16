@@ -6,6 +6,14 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### A reminder on the app icon
+
+- **Installed app, last month not logged yet → a dot on its icon.** It clears
+  as soon as you log the month. Nothing is sent and nothing asks for
+  permission: the app checks your ledger on your device whenever it's open.
+  It never nags before you've logged anything, and never for the month in
+  progress. (Where the system doesn't support app badges, nothing changes.)
+
 ### Against last year
 
 - **The year report compares with last year, like for like** — only the
