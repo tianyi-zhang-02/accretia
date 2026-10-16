@@ -6,6 +6,15 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### A calmer Track page
+
+- **Budgets, once-a-year bills and savings goals now share one card** —
+  *Budgets & goals*, collapsed by default, with a tab for each. Its heading
+  says what's set (*"3 budgets · $1,200/yr bills · 2 goals"*), so Track is
+  back to its one job: log the month, see where you stand.
+- **Goal progress stays in sight**: *Am I on track?* gains a line —
+  *"Savings goals: $4,525/mo needed · fits"* — that opens the goals tab.
+
 ### Log a month in 30 seconds
 
 - **Same as last month**: a new month opens with one button that fills every

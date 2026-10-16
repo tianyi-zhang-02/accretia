@@ -67,11 +67,14 @@ export default function GoalsCard({
   entries,
   today,
   onChange,
+  embedded = false,
 }: {
   goals: SavingsGoal[];
   entries: MonthEntry[];
   today: YearMonth;
   onChange: (next: SavingsGoal[]) => void;
+  /** Inside the Budgets & goals card: no card chrome or heading. */
+  embedded?: boolean;
 }) {
   const { t, fmt, locale } = useI18n();
   const G = t.track.goals;
@@ -102,10 +105,11 @@ export default function GoalsCard({
     setEditing(true);
   }
 
+  const Wrapper = embedded ? 'div' : 'section';
   return (
-    <section className="card">
-      <div className="flex items-center justify-between gap-3">
-        <SectionLabel icon="gem">{G.heading}</SectionLabel>
+    <Wrapper className={embedded ? '' : 'card'}>
+      <div className={`flex items-center gap-3 ${embedded ? 'justify-end' : 'justify-between'}`}>
+        {embedded ? null : <SectionLabel icon="gem">{G.heading}</SectionLabel>}
         {goals.length ? (
           <button
             type="button"
@@ -279,6 +283,6 @@ export default function GoalsCard({
           </button>
         )
       ) : null}
-    </section>
+    </Wrapper>
   );
 }
