@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { planAt } from '@/lib/ledger/ledger';
 import { yearInReview } from '@/lib/ledger/review';
+import { simulate } from '@/lib/simulator/engine';
 
 import { SAMPLE_MONTHS, sampleData } from './sample';
 
@@ -30,4 +32,19 @@ describe('sample data', () => {
     expect(r.savingsRatePct).toBeGreaterThan(30);
     expect(r.savingsRatePct).toBeLessThan(65);
   });
+});
+
+it('reads as a household roughly on its plan — the first thing a visitor sees', () => {
+  const today = { year: 2026, month: 10 };
+  const s = sampleData(today, 'Alex');
+  const rows = simulate(s.assumptions).rows;
+  const latest = s.ledger.at(-1)!;
+  const plan = planAt(rows, s.assumptions.startingNetWorth, latest)!;
+  // Net worth at or a little ahead of the plan, not far behind or absurdly ahead.
+  expect(latest.netWorth! / plan.netWorth).toBeGreaterThan(1);
+  expect(latest.netWorth! / plan.netWorth).toBeLessThan(1.2);
+  // This year's savings within ±15% of what the plan expected.
+  const vs = yearInReview(s.ledger, 2026, { planRows: rows })!.vsPlan!;
+  expect(Math.abs(vs)).toBeLessThan(0.15 * 60_000);
+  expect(vs).toBeGreaterThanOrEqual(0);
 });

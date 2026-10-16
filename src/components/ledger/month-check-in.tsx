@@ -761,7 +761,7 @@ function Form({
             {srcValues.map(({ id, value }) => (
               <li key={id}>
                 <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
-                  <span className="flex items-center gap-1.5 truncate text-[13px]">
+                  <span className="flex min-w-0 items-center gap-1.5 text-[13px] leading-snug">
                     {t.track.incomeSources[id]}
                     {isCarried(srcs[id], carried?.incomeSources[id]) ? (
                       <FixedTag />
