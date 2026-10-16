@@ -100,6 +100,12 @@ export function sampleData(today: YearMonth, name: string): Sample {
   ];
 
   const year = today.year;
+  // The plan starts where the year started: last December's net worth. Its
+  // income is set so after-tax pay ≈ the take-home the ledger shows (the
+  // 401(k) comes out before take-home, as in real life) — so the sample is a
+  // household roughly on its plan, not one that looks behind by design.
+  const startNw =
+    ledger.find((e) => e.year === year - 1 && e.month === 12)?.netWorth ?? ledger[0]!.netWorth!;
   const assumptions = assumptionsSchema.parse({
     horizonStartYear: year,
     horizonEndYear: year + 30,
@@ -112,16 +118,17 @@ export function sampleData(today: YearMonth, name: string): Sample {
           {
             label: 'Software engineer',
             startAge: 24,
-            baseSalary: 175_000,
+            // Raises compound from startAge: ≈ $173k a year by now (31).
+            baseSalary: 130_000,
             annualRaisePct: 3,
-            bonusPct: 12,
-            annualEquity: 40_000,
+            bonusPct: 8,
+            annualEquity: 0,
           },
         ],
       },
     ],
-    startingNetWorth: ledger.at(-1)!.netWorth,
-    startingInvested: Math.round(ledger.at(-1)!.netWorth! * 0.8),
+    startingNetWorth: startNw,
+    startingInvested: Math.round(startNw * 0.8),
     investedSharePct: 80,
     effectiveTaxRatePct: 30,
     investment: { returnPct: 6, returnPctLow: 3, returnPctHigh: 9 },

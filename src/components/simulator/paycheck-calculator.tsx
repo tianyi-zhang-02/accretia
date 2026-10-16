@@ -236,7 +236,7 @@ export default function PaycheckCalculator({
                 >
                   {P.maxOut(c(limit))}
                 </button>
-                <label className="text-muted flex items-center gap-1.5 text-[11px]">
+                <label className="text-muted flex shrink-0 items-center gap-1.5 text-[11px] whitespace-nowrap">
                   <input
                     type="checkbox"
                     checked={age50}
@@ -380,7 +380,11 @@ function Row({
         {label}
         {note ? <span className="text-muted block text-[11px]">{note}</span> : null}
       </span>
-      <span className={`nums text-[13px] ${strong ? 'font-semibold' : ''}`}>{value}</span>
+      <span
+        className={`nums shrink-0 text-[13px] whitespace-nowrap ${strong ? 'font-semibold' : ''}`}
+      >
+        {value}
+      </span>
     </li>
   );
 }
