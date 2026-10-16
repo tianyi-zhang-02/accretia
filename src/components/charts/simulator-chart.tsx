@@ -116,6 +116,8 @@ export default function SimulatorChart({
     });
   }, [result, bandMode]);
 
+  const yMax = Math.max(1, ...data.map((d) => Math.max(d.nominal, d.real, d.band[1])));
+
   if (data.length === 0) {
     return (
       <div className="bg-surface-2 text-muted flex h-[220px] items-center justify-center rounded-[14px] text-[13px]">
@@ -138,6 +140,11 @@ export default function SimulatorChart({
             minTickGap={24}
           />
           <YAxis
+            // Start at 0 unless the plan really goes negative: a sliver of
+            // the weak-market band below zero shouldn't stretch the axis to
+            // a large negative tick nobody's money is anywhere near.
+            domain={[(dataMin: number) => (dataMin < -0.05 * yMax ? dataMin : 0), 'auto']}
+            allowDataOverflow
             tickFormatter={fmt.compact}
             tick={{ fill: 'var(--muted)', fontSize: 10 }}
             tickLine={false}

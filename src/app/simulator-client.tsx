@@ -126,7 +126,9 @@ function SimulatorInner() {
     { id: newId(), name: t.scenarioBar.defaultName(1), assumptions: defaultAssumptions() },
   ]);
   const [selectedId, setSelectedId] = useState<string>(() => scenarios[0]!.id);
-  const [displayMode, setDisplayMode] = useState<DisplayMode>('nominal');
+  // Today's dollars by default: the headline figure is in them, and a nominal
+  // line decades out reads as a fantasy.
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('real');
   // Deterministic band vs probabilistic Monte-Carlo fan (a chart-level switch).
   const [chartEngine, setChartEngine] = useState<'deterministic' | 'probabilistic'>(
     'deterministic',
@@ -511,8 +513,6 @@ function SimulatorInner() {
 
   const lastNominal = result?.rows[result.rows.length - 1]?.netWorth ?? 0;
   const lastReal = result?.rows[result.rows.length - 1]?.netWorthRealTodayDollars ?? 0;
-  const firstNominal = result?.rows[0]?.netWorth ?? 0;
-  const totalGrowth = firstNominal > 0 ? (lastNominal / firstNominal - 1) * 100 : 0;
 
   // Savings is derived (after-tax income − spending); surface the implied
   // rate for the first year so the number the old "savings rate" input used
@@ -768,6 +768,25 @@ function SimulatorInner() {
 
       {tab === 'plan' ? (
         <div className="fade-in flex flex-col gap-5">
+          {/* Just made a plan, nothing logged: the next step is the habit. */}
+          {ledger.length === 0 ? (
+            <section className="card card-tight flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[14px] font-medium">{t.nextStep.title}</p>
+                <p className="text-muted mt-0.5 text-xs">{t.nextStep.body}</p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary shrink-0"
+                onClick={() => {
+                  setTab('track');
+                  window.scrollTo({ top: 0 });
+                }}
+              >
+                {t.nextStep.cta} ›
+              </button>
+            </section>
+          ) : null}
           {/* Scenario bar — pick / name / manage the current scenario. */}
           <section className="card card-tight flex flex-col gap-3">
             <div className="flex items-center gap-2">
@@ -918,10 +937,7 @@ function SimulatorInner() {
                     </SectionLabel>
                     <p className="figure mt-2 text-[30px]">{fmt.currency0(lastReal)}</p>
                     <p className="text-muted nums mt-1 text-[13px]">
-                      {t.projection.nominalNote(
-                        fmt.currency0(lastNominal),
-                        fmt.signedPct1(totalGrowth),
-                      )}
+                      {t.projection.nominalNote(fmt.currency0(lastNominal))}
                     </p>
                     {impliedSavingsRate !== null ? (
                       <p className="text-muted nums mt-1 text-xs">
