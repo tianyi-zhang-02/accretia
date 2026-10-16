@@ -8,6 +8,7 @@ import {
   categoryBreakdown,
   categoryTotal,
   checkInTarget,
+  monthWaiting,
   isAfter,
   ledgerSchema,
   monthEntrySchema,
@@ -214,6 +215,14 @@ describe('monthly check-in', () => {
     expect(checkInTarget([m(8, 1, 1)], sep)).toEqual(sep);
     // January looks back into the previous year.
     expect(checkInTarget([], { year: 2026, month: 1 })).toEqual({ year: 2025, month: 12 });
+  });
+
+  it('a finished month waiting: last month, only once something was ever logged', () => {
+    expect(monthWaiting([], sep)).toBeNull();
+    expect(monthWaiting([m(6, 1, 1)], sep)).toEqual({ year: 2026, month: 8 });
+    expect(monthWaiting([m(8, 1, 1)], sep)).toBeNull();
+    // the month in progress never counts
+    expect(monthWaiting([m(8, 1, 1)], { year: 2026, month: 9 })).toBeNull();
   });
 
   it('streak: an unfinished current month does not break it, a gap does', () => {

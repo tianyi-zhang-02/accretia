@@ -683,6 +683,17 @@ export function checkInTarget(entries: MonthEntry[], today: YearMonth): YearMont
 }
 
 /**
+ * The finished month still waiting to be logged — last month, when it
+ * isn't — or null. Someone who has never logged anything isn't nagged, and
+ * the month in progress never counts (its numbers aren't final).
+ */
+export function monthWaiting(entries: MonthEntry[], today: YearMonth): YearMonth | null {
+  if (entries.length === 0) return null;
+  const last = shiftMonth(today, -1);
+  return has(entries, last) ? null : last;
+}
+
+/**
  * Consecutive logged months, counted back from this month (if logged) or
  * from last month — not having logged a month that isn't over yet must not
  * break a streak.

@@ -26,6 +26,7 @@ import { LocaleProvider, useI18n } from '@/lib/i18n/locale';
 import { ledgerSchema, type MonthEntry } from '@/lib/ledger/ledger';
 import { simulate } from '@/lib/simulator/engine';
 import { fireHeadline } from '@/lib/simulator/insights';
+import { useAppBadge } from '@/components/pwa/app-badge';
 import InstallCard, { useInstallState } from '@/components/pwa/install-card';
 import SettingsMenu, { type ThemePref } from '@/components/ui/settings-menu';
 import Toast, { type ToastMessage } from '@/components/ui/toast';
@@ -209,6 +210,7 @@ function SimulatorInner() {
   // Without this gate the persist effect (now on by default) fires first on
   // mount and overwrites a saved session with the blank default scenario.
   const hydrated = useRef(false);
+  useAppBadge(ledger);
 
   /**
    * Read the saved plan, ledger and preferences from this device and adopt
