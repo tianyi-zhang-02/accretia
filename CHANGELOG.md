@@ -6,6 +6,12 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Claude extension 0.8.1
+
+- When your data was saved by a newer version of the app, the extension now
+  says exactly that — and how to update it — instead of "did not pass
+  validation". It still never writes over data it can't read.
+
 ### Every removal can be undone
 
 - Clearing your budgets, removing a once-a-year bill and removing a savings

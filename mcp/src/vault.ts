@@ -51,7 +51,8 @@ export type VaultErrorCode =
   | 'noCloudVault'
   | 'offline'
   | 'conflict'
-  | 'unreadable';
+  | 'unreadable'
+  | 'newerVersion';
 
 export class VaultError extends Error {
   constructor(readonly code: VaultErrorCode) {
@@ -120,7 +121,9 @@ export class Vault {
       throw new VaultError('wrongPassphrase');
     }
     const r = parseBackup(text);
-    if (!r.ok) throw new VaultError('unreadable');
+    // A newer app wrote it: say so (the fix is updating the extension), and
+    // never write over what this version can't read.
+    if (!r.ok) throw new VaultError(r.reason === 'newerVersion' ? 'newerVersion' : 'unreadable');
     return { scenarios: r.scenarios, selectedId: r.selectedId, ledger: r.ledger };
   }
 

@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "work-optional",
   "display_name": "Work Optional",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Log your month in plain words and check whether you're on track. End-to-end encrypted: decrypted only on this computer with your passphrase.",
   "long_description": "Tell Claude \"this month: take-home 11,000, rent 3,200, groceries 600, 401k 1,958\" and it is filed into the right categories of your Work Optional ledger. Ask for a year report, whether you're on track, or what a salary nets after tax.\n\nYour data stays encrypted. With sync, this extension is another device on your Work Optional account: it reads and writes the same end-to-end-encrypted vault as the web app, so the server only ever holds ciphertext. Without a sync key it keeps an encrypted file on this computer only. Your passphrase is stored in your OS keychain by Claude Desktop and is never sent anywhere.",
   "author": { "name": "Work Optional" },
