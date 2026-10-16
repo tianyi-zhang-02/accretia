@@ -63,7 +63,7 @@ A local-first money app: three numbers a month (money in, money out, net worth),
     </td>
     <td>
       <h3>Am I on track?</h3>
-      Your real net worth against where the plan said you'd be, the year so far, and <b>what's left for everyday spending</b>: the plan's monthly spending, minus the bills that repeat and a twelfth of the yearly ones. Below it, what this month shows compared with your own last three.
+      Your real net worth against where the plan said you'd be, the year so far, and <b>what's left for everyday spending</b>: the plan's monthly spending, minus the bills that repeat and a twelfth of the yearly ones. Below it, what this month shows — against your own last three months and the same month last year, never anyone else.
     </td>
   </tr>
   <tr>
