@@ -59,7 +59,7 @@ import { Vault, VaultError, type VaultData } from './vault';
  * may ever print to it.
  */
 
-const VERSION = '0.8.0';
+const VERSION = '0.8.1';
 const cfg = readConfig();
 const store = new Store(cfg.home);
 const cloud: Cloud | null =
@@ -89,8 +89,9 @@ const ERRORS: Record<VaultError['code'], string> = {
     'This account has no cloud copy yet. The user should open the web app → Data → Account & sync, set their sync passphrase there (that is where the recovery code is shown) and upload once. Then try again. Nothing was written.',
   offline: 'The sync service could not be reached. Nothing was written.',
   conflict: 'The cloud copy kept changing while writing. Nothing was written — try again.',
-  unreadable:
-    'The vault decrypted but did not pass validation (it may come from a newer app version). Nothing was changed.',
+  unreadable: 'The vault decrypted but did not pass validation. Nothing was changed.',
+  newerVersion:
+    'The data was saved by a newer version of Work Optional than this extension understands. Nothing was read or changed. Ask the user to download the latest extension (https://github.com/tianyi-zhang-02/accretia/releases/latest — the work-optional.mcpb file) and open it to update; their data is safe.',
 };
 
 function fail(message: string) {

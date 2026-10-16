@@ -210,6 +210,27 @@ describe('sync with the web app', () => {
   );
 
   it(
+    'a vault written by a newer app: says so, reads nothing, never writes over it',
+    async () => {
+      const f = fakeRemote();
+      const { vault: keys } = await webAppVault();
+      const newer = {
+        ...buildBackup([{ id: 'p1', name: 'Plan', assumptions: defaultAssumptions() }], 'p1', []),
+        version: 99,
+      };
+      const envelope = await seal(JSON.stringify(newer), keys);
+      f.state.row = { envelope, updatedAt: f.stamp() };
+      const v = new Vault(new Store(dir), PASS, f.remote);
+      await expect(v.read()).rejects.toMatchObject({ code: 'newerVersion' });
+      await expect(
+        v.update(logMonthChange({ year: 2026, month: 9, income: 1 })),
+      ).rejects.toMatchObject({ code: 'newerVersion' });
+      expect(f.state.row!.envelope).toBe(envelope);
+    },
+    T,
+  );
+
+  it(
     'offline: reads fall back to this machine’s encrypted copy; writes are refused',
     async () => {
       const f = fakeRemote();
