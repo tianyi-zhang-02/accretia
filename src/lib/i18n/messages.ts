@@ -770,8 +770,8 @@ const en = {
       fillAnnual: 'Fill them in',
       clearCarried: 'Clear them',
       fixedTag: 'repeats',
-      budgetLeft: (budget: string, left: string) => `budget ${budget} · ${left} left`,
-      budgetOver: (budget: string, over: string) => `budget ${budget} · ${over} over`,
+      budgetLeft: (budget: string, left: string) => `${left} left of ${budget}`,
+      budgetOver: (budget: string, over: string) => `${over} over the ${budget} budget`,
       bySourceHide: 'One number',
       sumOfSources: 'The sum of the sources below.',
       sourcesHint: 'Take-home amounts — what actually landed in your account.',
@@ -792,6 +792,12 @@ const en = {
       monthsLogged: (n: number) => `${n} of 12 logged`,
     },
     status: {
+      allowanceHeading: 'Left for everyday spending, to stay on plan',
+      allowanceMath: (plan: string, fixed: string, annual: string | null) =>
+        `plan ${plan} a month − repeating bills ${fixed}${annual ? ` − ${annual} set aside for yearly bills` : ''}`,
+      allowanceUsual: (amount: string) => `lately about ${amount} a month`,
+      allowanceShort:
+        'Your repeating bills alone are more than the plan allows — its spending may be set too low.',
       heading: 'Am I on track?',
       how: [
         'Once a month, enter three numbers: money in, money out, and your net worth.',
@@ -1785,8 +1791,8 @@ const zh: Messages = {
       fillAnnual: '填进去',
       clearCarried: '全部清空',
       fixedTag: '固定',
-      budgetLeft: (budget: string, left: string) => `预算 ${budget} · 还剩 ${left}`,
-      budgetOver: (budget: string, over: string) => `预算 ${budget} · 超了 ${over}`,
+      budgetLeft: (budget: string, left: string) => `还剩 ${left}（预算 ${budget}）`,
+      budgetOver: (budget: string, over: string) => `超了 ${over}（预算 ${budget}）`,
       bySourceHide: '只填一个数',
       sumOfSources: '这是下面各来源的合计。',
       sourcesHint: '填到手的金额，也就是真正进到账户里的钱。',
@@ -1807,6 +1813,11 @@ const zh: Messages = {
       monthsLogged: (n: number) => `已记 ${n}／12 个月`,
     },
     status: {
+      allowanceHeading: '要跟上规划，每月日常还能花',
+      allowanceMath: (plan: string, fixed: string, annual: string | null) =>
+        `规划月开支 ${plan} − 固定账单 ${fixed}${annual ? ` − 年度开支预留 ${annual}` : ''}`,
+      allowanceUsual: (amount: string) => `最近平均每月日常约 ${amount}`,
+      allowanceShort: '光固定账单就超过了规划的月开支——规划里的开支可能定低了。',
       heading: '我跟上规划了吗？',
       how: [
         '每个月填三个数：进账、花销、净资产。',

@@ -154,7 +154,7 @@ function BudgetHint({ budget, spent }: { budget: number; spent: number }) {
   const C = t.track.checkIn;
   const left = budget - spent;
   return (
-    <span className={`block truncate text-[11px] ${left < 0 ? 'text-negative' : 'text-muted'}`}>
+    <span className={`block text-[11px] leading-snug ${left < 0 ? 'text-negative' : 'text-muted'}`}>
       {left < 0
         ? C.budgetOver(fmt.currency0(budget), fmt.currency0(-left))
         : C.budgetLeft(fmt.currency0(budget), fmt.currency0(left))}

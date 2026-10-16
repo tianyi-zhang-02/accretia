@@ -9,6 +9,7 @@ import type { YearRow } from '@/lib/simulator/engine';
 import { SectionLabel } from '../ui/icon';
 import MetalCard, { Chip } from '../ui/metal-card';
 import LedgerFindings from './ledger-findings';
+import { monthAllowance } from '@/lib/ledger/allowance';
 import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { Budgets } from '@/lib/ledger/budgets';
 
@@ -92,6 +93,10 @@ export default function TrackStatus({
   );
   const latest = withNw.at(-1);
   const loanLeft = planAt(planRows, startingNetWorth, at)?.mortgageBalance ?? 0;
+  const allowance = useMemo(
+    () => monthAllowance(entries, at, planRows, startingNetWorth, annual),
+    [entries, at, planRows, startingNetWorth, annual],
+  );
   const planNow = latest ? planAt(planRows, startingNetWorth, latest) : null;
   const planLine = useMemo(
     () => withNw.map((e) => planAt(planRows, startingNetWorth, e)?.netWorth ?? null),
@@ -229,6 +234,33 @@ export default function TrackStatus({
             </ul>
           </>
         )}
+
+        {allowance && entries.length > 0 ? (
+          <div className="bg-surface-2 mt-4 rounded-[12px] p-3.5">
+            <p className="text-muted text-xs">{S.allowanceHeading}</p>
+            <p
+              className={`figure mt-1 text-[26px] ${allowance.flexible < 0 ? 'text-negative' : ''}`}
+            >
+              {fmt.currency0(allowance.flexible)}
+            </p>
+            <p className="text-muted mt-1 text-[11px] leading-snug">
+              {S.allowanceMath(
+                fmt.currency0(allowance.plan),
+                fmt.currency0(allowance.fixed),
+                allowance.annualReserve > 0 ? fmt.currency0(allowance.annualReserve) : null,
+              )}
+            </p>
+            {allowance.flexible < 0 ? (
+              <p className="text-negative mt-1.5 text-[11px] leading-snug">{S.allowanceShort}</p>
+            ) : allowance.usualFlexible !== null ? (
+              <p
+                className={`mt-1.5 text-[11px] ${allowance.usualFlexible <= allowance.flexible ? 'text-positive' : 'text-negative'}`}
+              >
+                {S.allowanceUsual(fmt.currency0(allowance.usualFlexible))}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         {loanLeft > 0 ? (
           <p className="mt-3 flex items-center justify-between text-[13px]">

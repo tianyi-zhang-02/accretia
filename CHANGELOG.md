@@ -6,6 +6,18 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### What's left for everyday spending
+
+- **Am I on track?** now answers *"how much can I spend day to day and stay
+  on plan?"* — your plan's monthly spending, less the bills that repeat
+  every month and a twelfth of your once-a-year bills — next to what your
+  everyday spending has actually been lately (green if it fits, red if not).
+  If the fixed bills alone exceed the plan, it says the plan's spending may be
+  set too low.
+- **Budget hints read better on phones:** the figure comes first (*"$120
+  left of $880"*) and the line wraps instead of being cut off.
+- **Claude extension 0.7.0:** `on_track` includes the everyday allowance.
+
 ### Fixed: latest net worth from an out-of-order ledger
 
 - A ledger restored from a hand-edited or merged backup could be out of

@@ -20,6 +20,7 @@ import {
 } from '@/lib/ledger/ledger';
 import { MAX_ANNUAL, annualTotal, dueItems, monthlyReserve, upcoming } from '@/lib/ledger/annual';
 import { budgetTotal, yearBudget } from '@/lib/ledger/budgets';
+import { monthAllowance } from '@/lib/ledger/allowance';
 import { yearOverYear } from '@/lib/ledger/compare';
 import { simulate } from '@/lib/simulator/engine';
 import { fireHeadline } from '@/lib/simulator/insights';
@@ -50,7 +51,7 @@ import { Vault, VaultError, type VaultData } from './vault';
  * may ever print to it.
  */
 
-const VERSION = '0.6.0';
+const VERSION = '0.7.0';
 const cfg = readConfig();
 const store = new Store(cfg.home);
 const cloud: Cloud | null =
@@ -499,7 +500,7 @@ server.registerTool(
   {
     title: 'Am I on track?',
     description:
-      'Latest net worth against what the plan expected for that month, this year’s savings against plan, and the age work becomes optional on the current plan.',
+      'Latest net worth against what the plan expected for that month, this year’s savings against plan, what is left each month for everyday spending to stay on plan, and the age work becomes optional on the current plan.',
     inputSchema: {},
     annotations: { readOnlyHint: true },
   },
@@ -531,6 +532,26 @@ server.registerTool(
           spending: r.spending,
           planExpectedSpending: r.plan ? Math.round(r.plan.spending) : null,
         },
+        everydayAllowance: (() => {
+          const d = new Date();
+          const a = monthAllowance(
+            data.ledger,
+            { year: d.getFullYear(), month: d.getMonth() + 1 },
+            rows,
+            plan.assumptions.startingNetWorth,
+            plan.assumptions.annualExpenses ?? [],
+          );
+          return a
+            ? {
+                note: 'Plan’s monthly spending − bills that repeated in the last two months − 1/12 of once-a-year bills.',
+                planMonthlySpending: a.plan,
+                repeatingBills: a.fixed,
+                yearlyBillsReserve: a.annualReserve,
+                leftForEverydaySpending: a.flexible,
+                everydaySpendingLately: a.usualFlexible,
+              }
+            : null;
+        })(),
         workBecomesOptional: fire ? { age: fire.age, year: fire.year } : 'not on the current plan',
       });
     }),
