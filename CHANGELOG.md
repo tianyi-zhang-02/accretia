@@ -6,6 +6,17 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Year in review
+
+- **The year report has a *Year in review* button**: one card with the year
+  — what you saved and at what rate, how net worth moved, where most of the
+  money went and the biggest single line, your best month, the longest run
+  of months logged, the savings rate against the same months last year,
+  months every budget held, ahead of or behind the plan, goals reached.
+- **Hide amounts** turns every dollar figure into dots (percentages stay),
+  for sharing a screenshot; **Copy as text** puts the same facts on the
+  clipboard. It's all made on your device.
+
 ### Savings goals
 
 - **A new card on Track: savings goals** — emergency fund, down payment,
