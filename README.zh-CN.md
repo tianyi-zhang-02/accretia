@@ -1,73 +1,134 @@
-# Work Optional
+<p align="center">
+  <img src="docs/media/hero-zh.svg" width="960" alt="Work Optional：30 秒记完一个月，看自己有没有跟上规划，算出哪一年工作变成可选">
+</p>
 
-[English](README.md) · **简体中文**
+<h1 align="center">Work Optional</h1>
 
-[![release](https://img.shields.io/github/v/release/tianyi-zhang-02/accretia)](https://github.com/tianyi-zhang-02/accretia/releases) [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+<p align="center">
+  <b>每月花一分钟记账，算出哪一年，工作变成可选。</b>
+</p>
 
-> **关于两个名字:** 应用界面叫 **Work Optional**——这正是它告诉你的那句话。仓库和网站沿用原名 **Accretia**(源自 _accretion_,靠累积而增长),因为美国已有一家财富管理公司以 Work Optional 经营,我们不去争那块地方。
+<p align="center">
+  <a href="https://accretia.vercel.app/?demo&lang=zh"><b>▶ 用示例数据在线试试</b></a>
+  &nbsp;·&nbsp; <a href="https://accretia.vercel.app/?lang=zh">打开应用</a>
+  &nbsp;·&nbsp; <a href="README.md">English</a> · <b>简体中文</b>
+</p>
 
-_算出你哪一年可以不上班，并且每个月看一眼自己有没有跟上。_ 一个单页、**纯前端**的应用，分三个栏目：**记账**（首页：每月花一分钟填三个数——进账、花销、净资产——花销有**三档粗细：只记总数、分十类、每类再拆小项**（住房 → 房贷月供、房产税、物业费、维修；保险 → 医疗险、车险、房屋险、寿险……），每个小项都归到**必要开支、生活品质或随性花销**，填的时候就显示三者的比例；进账可以**按来源拆分**（工资、奖金、副业、分红、利息），还能记 **401(k) / 税前储蓄**，储蓄率会把它算进去。**固定账单自动带入**：前两个月金额一样的（房租、保险、工资、401(k)）新月份会自动填好并标上「固定」，一键可清空。**30 秒记完一个月**：一键照上个月填好，只改变了的几项；只列出你用到的分类，手机上「保存」按钮一直在手边，旁边实时显示这个月攒下多少。**年度回顾**：一张卡片看完一整年——存下多少、储蓄率、净资产涨了多少、钱主要花在哪、最好的一个月、最长连续记账、和去年及规划比；分享截图前可以一键「隐藏金额」，也能复制成文字。**存钱目标**：应急金、首付、买车……设金额和截止月份，随时更新「已经存了多少」，就能看到每个目标每月要存多少，以及加起来你最近攒下的钱够不够。**每月日常还能花多少**：规划的月开支，减去每月固定账单和年度开支的月度预留，就是要跟上规划时日常还能花的钱，旁边对照你最近实际花了多少。**一年一次的大额开支**：车险、房产税、学费、每年的大旅行，填上到期月份，就能看到每个月该预留多少、接下来要交哪几笔；到期那个月记账时一键填进去，「这个月的发现」也会说明这个月多花的里有多少是年度开支。**图标提醒**：装到桌面后，上个月还没记时 app 图标上会有个小标记，完全在本机判断，不发通知、不要权限。**和去年同期比**：年度报表只拿两年都记了的月份对比——收入、支出、存下、储蓄率、净资产，以及变化最大的分类；「这个月的发现」也会在明显比去年同月多花或少花时提一句。**每类预算**：给每个分类设月度上限（可一键按最近三个月的平均填），记账时每类旁边显示「还剩多少 / 超了多少」，「这个月的发现」会点出超支的分类，年度报表里每类都和全年预算对照。「**这个月的发现**」会把最新一个月和你自己最近三个月比：花得比平时多还是少、哪个分类涨了、净资产比上次变了多少、照这个节奏年底和规划差多少；年度报表里每个分类都有 12 个月的趋势小图，填完当场告诉你「这个月攒下多少、规划要求多少」；「我跟上规划了吗？」卡片把真实净资产和规划放在一起比；年底出一份可打印的年度报表）、**规划**（财富推算模拟器）和**数据**（备份、恢复、可选的加密同步）。推算是尺子，记账才是习惯。
+<p align="center">
+  <a href="https://github.com/tianyi-zhang-02/accretia/releases"><img src="https://img.shields.io/github/v/release/tianyi-zhang-02/accretia?filter=v*&label=release" alt="release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+</p>
 
-**在 Claude 或 Codex 里用**（`mcp/`）：跑在你自己电脑上的端到端加密 MCP 服务，支持 Claude Desktop、Claude Code 和 Codex。说一句“到手 11,000，房租 3,200，买菜 600，401k 存了 1,958”，就会记进账本，并像另一台设备一样和网页版同步；也可以让它出年度报表、看是否跟上规划，或者说一句“把吃饭预算设成 800”。安全设计见 [`mcp/README.md`](mcp/README.md)。
+一个本地优先的记账应用：每月三个数（进账、花销、净资产），一份告诉你哪一年可以不再为钱上班的规划，再回答一个最实际的问题——_我跟上了吗？_ 它在浏览器里运行，能装成离线可用的 app，数据留在你自己的设备上。上面的示例链接会打开一个虚构的家庭，已经记了 20 个月——你怎么改都不会保存。
 
-**工资到手计算器**（在规划里）：年薪加奖金，像预算表一样逐项列出每一种税（联邦 2026 年税档、社安税、医保税、州税、加州 SDI、城市税），算出每年、每月、每次发薪到手多少，以及奖金实际到手多少；一键把真实的综合税率填进规划。联邦、FICA、401(k) 上限、加州、纽约州（2026 年税表，含高收入的优惠回收）和纽约市按官方税表计算，并含纽约州 SDI 和带薪家庭假；其他州是可以修改的估算。
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/media/zh/track-light.webp">
+        <img src="docs/media/zh/track.webp" width="260" alt="手机上的每月记账">
+      </picture>
+      <br><b>记账</b><br>30 秒记完一个月，当场看到攒下多少。
+    </td>
+    <td align="center" width="33%">
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/media/zh/plan-light.webp">
+        <img src="docs/media/zh/plan.webp" width="260" alt="规划：41 岁起工作变成可选项，以及推算图">
+      </picture>
+      <br><b>规划</b><br>哪一年工作变成可选，按今天的钱算。
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/zh/assistants.webp" width="260" alt="数据 → 在 Claude 或 Codex 里用">
+      <br><b>数据</b><br>归你所有：备份、加密同步，还能交给 AI 助手。
+    </td>
+  </tr>
+</table>
 
-在**规划**里，根据你自己的假设——职业收入、额外收入、大额支出、消费升级，以及低/中/高三档收益率——逐年推算家庭净资产，并回答「要在 Y 岁前达到 X 元，需要什么条件？」。
+## 快速看一遍
 
-一切都在浏览器里运行，**默认不需要账号，任何数据都不会上传。** 部署方可以选择开启**登录 + 端到端加密同步**：数据先在你的设备上用只有你知道的口令加密再上传，服务器（以及运营者）存的只是读不了的密文。设口令时会给你一串一次性的**恢复码**，忘了口令只有它能打开云端副本。故意不做邮箱重置，因为那意味着服务器得存一把钥匙。见 [`docs/cloud-setup.md`](docs/cloud-setup.md)。 方案——以及你的每月记账(如果你记的话)——默认保存在你自己的设备上(此浏览器的本地存储)，下次打开还在——不想留就取消勾选**「在本设备保存」**。要长期用的话，**「备份全部数据」**会把所有方案和每个月的记账打包成一个文件，换任何设备都能用**「从备份恢复」**找回来。
+<table>
+  <tr>
+    <td width="300"><img src="docs/media/zh/track.webp" width="280" alt="每月记账"></td>
+    <td>
+      <h3>30 秒记完一个月</h3>
+      新的一个月点一下<b>「照上个月填一遍」</b>，空着的地方全按上个月填好，你只改变了的那几项。每月固定的账单会自动带入并标上「固定」。花销可以只记总数、分十类，或者拆到小项（房租、房产税、车险……）；进账可以按来源拆开，401(k) 等税前储蓄也算进储蓄率。
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/media/zh/on-track-light.webp">
+        <img src="docs/media/zh/on-track.webp" width="280" alt="净资产卡片和「我跟上规划了吗？」">
+      </picture>
+    </td>
+    <td>
+      <h3>我跟上规划了吗？</h3>
+      真实净资产和规划里这个月该有的数放在一起，今年到目前为止攒了多少、花了多少，还有<b>每月日常还能花多少</b>：规划的月开支，减去每月固定的账单和年度开支的十二分之一。下面是「这个月的发现」——只和你自己最近三个月比。
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/zh/goals.webp" width="280" alt="存钱目标"></td>
+    <td>
+      <h3>预算、年度开支和存钱目标</h3>
+      每类花销一个月度上限，记账时直接显示还剩多少、超了多少；一年一次的大额开支，算好每月该预留多少；应急金、首付这样的目标，看每个每月要存多少，以及你最近攒下的钱够不够。
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/zh/review.webp" width="280" alt="年度回顾"></td>
+    <td>
+      <h3>年度回顾</h3>
+      一张卡片看完一整年：存了多少、储蓄率、净资产变化、钱主要花在哪、最好的一个月、最长连续记账，再和去年、和规划比一比。分享截图前打开<b>「隐藏金额」</b>，所有金额都变成圆点。另有一份可打印的年度报表。
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/media/zh/plan-light.webp">
+        <img src="docs/media/zh/plan.webp" width="280" alt="规划的结论和推算图">
+      </picture>
+    </td>
+    <td>
+      <h3>规划</h3>
+      根据你自己的假设——职业收入、开支、买房、额外收入——逐年推算，回答<i>哪一年工作变成可选？</i>（完全 / 精简 / Coast FIRE），默认按今天的钱显示。高级工具里还有目标求解、蒙特卡洛和压力测试。
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/zh/paycheck.webp" width="280" alt="加州年薪的工资到手计算"></td>
+    <td>
+      <h3>工资到手计算器</h3>
+      年薪加奖金，像预算表一样逐项列出每一种税，算出每年、每月、每次发薪到手多少。联邦 2026、社安税、医保税、加州、纽约州和纽约市按官方税表精确计算；其他州是可以修改的估算。一键把综合税率填进规划。
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/zh/assistants.webp" width="280" alt="在 Claude 或 Codex 里用"></td>
+    <td>
+      <h3>在 Claude 或 Codex 里用</h3>
+      给 Claude Desktop、Claude Code 和 Codex 用的本地 MCP 服务：说一句<i>“到手 11,000，房租 3,200，买菜 600”</i>，就记进账本。它跑在你自己的电脑上，数据端到端加密；开了同步，它就是你账户里的另一台设备。也可以让它出年度报表，或者问问有没有跟上规划。安装和安全设计见 <a href="mcp/README.md"><code>mcp/README.md</code></a>。
+    </td>
+  </tr>
+</table>
 
-> 技术栈:Next.js 16(App Router)· TypeScript · Tailwind v4 · Recharts · Zod。没有环境变量,没有服务器。
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/media/zh/desktop-light.webp">
+    <img src="docs/media/zh/desktop.webp" width="860" alt="电脑上的记账页：左边记账，右边净资产和「我跟上规划了吗？」">
+  </picture>
+</p>
 
-**线上地址:** https://accretia.vercel.app
+每个版本改了什么，见 [`CHANGELOG.md`](CHANGELOG.md)（英文）。
 
----
+## 隐私是设计出来的
 
-## 功能
+- **本地优先。** 规划和账本存在这个浏览器的本地存储里，只在你的设备上；取消勾选「在本设备保存」就只放在内存里。「备份全部数据」会给你一个自己保管的文件。
+- **可选的端到端加密同步。** 数据先在你的设备上用只有你知道的口令加密，服务器只存读不了的密文。设口令时给你一串一次性的恢复码，是唯一的另一条路——故意不做邮箱重置。见 [`docs/cloud-setup.md`](docs/cloud-setup.md)。
+- **不追踪。** 没有统计、遥测和 Cookie，内容安全策略严格（`connect-src 'self'`）。CI 里有一个测试，代码一旦加了未经批准的网络请求或存储就会失败。
+- **开源**，MIT 许可证，每一行都可以看。
 
-**为自己的情况建模**
+## 装成 app
 
-- **逐年推算** — 纯粹、确定性、有测试覆盖的引擎(通胀口径明确,收益率低/中/高三档)。
-- **含股权的职业收入** — 多成员、多阶段,含基本工资、奖金和**每年股权／RSU**。内置可浏览、可搜索、双语的**职业库**——科技(L3–L7)、医疗、法律、金融——提供示例起始数字。
-- **储蓄为推导值,复利够诚实** — 无储蓄率输入项:每年税后扣开支后剩多少就是你留下的。但先付账单——你可以设置**结余里实际投资的比例**,其余以现金留存:计入净资产,却不产生收益。只有投进去的钱才吃复利。
-- **税率预设** — 粗略的州 + 联邦实际税率(全 50 州 + 特区),可完全自定义。
-- **房产与房贷 what-if** — 把房产计为资产、房贷计为负债:首付→房产净值,利息/房产税/维护为成本,本金转净值,房产逐年增值;显示月供。
-- **资产配比计算器** — 从股票、高息存款、债券、房产混合出一个收益率(扣除房产税等持有成本),一键应用到收益率区间。
-- **额外收入、大额支出、消费升级。**
+它是一个 PWA：数据 → 「当成 app 用」（Chrome / Edge / 安卓直接安装，iPhone 用 分享 → 添加到主屏幕）。全屏打开、离线可用，有新版本时会提醒你。
 
-**回答问题**
-
-- **FIRE** — 工作变成可选的那一年:**完全 / 精简 / Coast**,可设医保预留。
-- **目标求解** — 设「50 岁前 500 万」,对四个可调项(多存、提高收益、少花、多给时间)二分求解。
-- **蒙特卡洛** — **确定性 ⇄ 概率** 开关:1000 条随机市场路径 → p10/p50/p90 扇形 + **达标概率**。
-- **压力测试** — 失业 / 股灾 what-if(冲击多大、最低点在哪、能否恢复)。
-- **名义 vs 实际**(通胀调整),含阴影「差异」视图;**方案对比**;逐年明细表。
-
-**按你的方式用**
-
-- **像素之旅** 🕹 — 把推算变成一个会动的像素小世界:地形跟随实际净资产起伏,里程碑化作地标(FIRE 金旗小屋、目标旗、宝箱、股灾年的乌云暴雨),一个小人——身后跟着一只猫——在日月交替下走向地平线。纯程序化 canvas,零图片、零依赖。
-- **100% 前端** — 不保存、不上传。**导出／导入** JSON 是唯一的持久化方式。
-- **中英双语**(原生中文,非机翻)、**明暗主题**、**字体缩放**,以及**默认精简** + 「高级工具」开关。
-- **当成 app 用，不用应用商店。** 数据 → 「当成 app 用」：Chrome／Edge／安卓有「安装」按钮，iPhone 的 Safari 给出两步操作（分享 → 添加到主屏幕）。装好后有自己的图标、全屏打开，**完全离线可用**：服务工作线程会保留上次打开的页面和脚本，数据本来就在设备上。**有新版本会告诉你**：开着的页面或装好的 app，每次切回来都会检查一下，有更新就显示「有新版本了 · 刷新」；备份文件或云端副本如果是更新版本存的，也会直接说明，并给出「刷新并更新」按钮，不再卡住。
-
-导航是三个栏目——**记账 · 规划 · 数据**——电脑上是分段切换，手机上是底部标签栏。**规划**是一个**实时并排编辑器**:左侧假设条件,右侧固定显示推算结果(期末净资产 + 图表 + 高级工具),改动任一假设图表即时更新。手机上改为上下堆叠(结果在上)。
-
----
-
-## 隐私与安全
-
-因为没有后端,安全模型非常简单:
-
-- **数据不离开你的设备。** 没有任何 API 调用、埋点、遥测或 Cookie。打开开发者工具的「网络」面板,你只会看到页面本身的加载,别无其他。
-- **只存在你自己的设备上,不存在别处。** **「在本设备保存」**会把方案存进此浏览器的 `localStorage`——只在你的设备上、绝不上传,载入时按不可信输入校验,取消勾选立即清除。取消后 App 就只在内存里跑,和以前完全一样。
-- **没有任何密钥或环境变量。** 没有可泄露的东西。
-- **严格的内容安全策略(CSP)**,每次请求都带随机 nonce(`src/proxy.ts`):`script-src 'self' 'nonce-…' 'strict-dynamic'`(不含 `unsafe-inline`、`unsafe-eval`),`connect-src 'self'`;并在 `next.config.ts` 中附加静态加固响应头(HSTS、X-Frame-Options DENY、nosniff、Referrer-Policy、Permissions-Policy)。
-- **导入的 JSON 先经校验** —— 在使用前用引擎的 Zod schema 校验,格式错误的文件不会拖垮推算。
-
----
-
-## 本地运行
-
-不需要账号、数据库或密钥——克隆下来即可运行。
+## 自己运行
 
 ```bash
 git clone https://github.com/tianyi-zhang-02/accretia.git
@@ -76,46 +137,40 @@ npm install
 npm run dev     # → http://localhost:3000
 ```
 
-可部署到任何支持 Next.js 的平台(Vercel:导入仓库、点击部署即可——没有环境变量需要配置)。
+需要 Node 22（见 `.nvmrc`）。不需要任何环境变量——除非部署方主动打开，同步一直是关的（见 [`docs/cloud-setup.md`](docs/cloud-setup.md)）。任何能跑 Next.js 的地方都能部署。
 
-## 脚本
+## 给开发者
 
-| 命令                                 | 作用                              |
-| ------------------------------------ | --------------------------------- |
-| `npm run dev`                        | 在 `localhost:3000` 启动开发服务器 |
-| `npm run build` / `npm run start`    | 生产构建 / 启动                    |
-| `npm run lint` / `npm run typecheck` | ESLint / TypeScript 检查          |
-| `npm test`                           | Vitest——引擎、FIRE、蒙特卡洛、房贷、压力测试、目标求解 |
-| `npm run format`                     | Prettier                          |
+| 命令                                 | 作用                                                         |
+| ------------------------------------ | ------------------------------------------------------------ |
+| `npm run dev`                        | 在 `localhost:3000` 启动开发服务器                           |
+| `npm run build` / `npm run start`    | 生产构建 / 启动                                              |
+| `npm run lint` / `npm run typecheck` | ESLint / TypeScript 检查                                     |
+| `npm test`                           | Vitest——引擎、账本、税表、加密、MCP 服务，以及隔离规则       |
+| `npm run format`                     | Prettier                                                     |
+| `npm run screenshots`                | 用示例数据重新生成 README 的截图和动图（需要 Google Chrome） |
 
----
+**技术栈：** Next.js 16（App Router）· TypeScript · Tailwind v4 · Recharts · Zod。运行时依赖就这些，外加只在开启同步时才加载的 `@supabase/supabase-js`。
 
-## 架构
-
-刻意做得很小。
+**结构一览**
 
 ```
 src/
-  app/
-    page.tsx              入口:渲染模拟器客户端
-    simulator-client.tsx  全部 UI 状态(方案、实时编辑器、导出/导入)
-    layout.tsx            字体 + 全局样式 + PWA 注册
-    manifest.ts, icon*.tsx, apple-icon.tsx   PWA 资源
-  proxy.ts                每次请求的 CSP nonce(唯一的「服务端」代码)
-  components/
-    simulator/            假设表单、对比、目标求解、FIRE、压力测试、逐年表
-    charts/               推算图表 + 蒙特卡洛扇形
-    i18n/lang-switch.tsx  EN · 中文 切换
-    pwa/sw-register.tsx
-  lib/
-    simulator/            引擎 + 目标求解 + 蒙特卡洛 + FIRE + 预设(含测试)
-    i18n/                 中英文案目录 + 语言 Provider
-    validation/scenarios.ts   引擎读取的 Zod schema
-    format/money.ts
+  app/simulator-client.tsx   唯一的页面：记账 · 规划 · 数据，全部 UI 状态
+  components/ledger/         记账、是否跟上、预算与目标、年度报表与回顾
+  components/simulator/      规划摘要、假设、工资到手计算器
+  lib/simulator/             引擎——纯函数 simulate(assumptions) → 逐年数据
+  lib/ledger/                月份、CSV、报表、预算、目标、日常额度（纯函数，有测试）
+  lib/tax/                   工资税表（手算核对的测试）
+  lib/cloud/                 端到端加密 + 唯一的联网模块
+  lib/i18n/                  English / 简体中文
+mcp/                         Claude / Codex 扩展（独立的包）
 ```
 
-**引擎**(`src/lib/simulator/engine.ts`)是纯函数:`simulate(assumptions) → 逐年数据`,无 I/O。其余功能都**附加**在它之上:二分法目标求解、FIRE、蒙特卡洛、压力测试都复用同一套数学;设了房贷时会给净资产加上房产资产与房贷负债。全部有单元测试覆盖(`npm test`)——包括「无房贷 / 波动率为 0 = 原始推算,完全一致」的回归测试。
+引擎没有任何 I/O；目标求解（二分法）、FIRE、蒙特卡洛和压力测试都复用它。`src/lib/isolation.test.ts` 把隐私规则钉死——不许新增网络请求、存储键、环境变量或 Cookie——每个 PR 都在 CI 里跑。
 
 ## 许可证
 
 MIT——见 [LICENSE](LICENSE)。
+
+> **两个名字是故意的。** 应用叫 **Work Optional**——这正是它告诉你的那句话。仓库和网站沿用原名 **Accretia**（源自 _accretion_，靠累积而增长），因为美国已有一家财富管理公司以 Work Optional 经营。

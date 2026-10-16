@@ -1,73 +1,134 @@
-# Work Optional
+<p align="center">
+  <img src="docs/media/hero.svg" width="960" alt="Work Optional: log a month in 30 seconds, see whether you're on track, and find the year work becomes optional">
+</p>
 
-**English** · [简体中文](README.zh-CN.md)
+<h1 align="center">Work Optional</h1>
 
-[![release](https://img.shields.io/github/v/release/tianyi-zhang-02/accretia)](https://github.com/tianyi-zhang-02/accretia/releases) [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+<p align="center">
+  <b>Log your money in a minute a month — and see the year work becomes optional.</b>
+</p>
 
-> **On the two names:** the app calls itself **Work Optional** — that's what it tells you, and what people see. The repo and the site keep the original **Accretia** (from _accretion_: growth by accumulation), because a US wealth-management firm already trades as Work Optional and we're not competing for that ground.
+<p align="center">
+  <a href="https://accretia.vercel.app/?demo"><b>▶ Try it live with sample data</b></a>
+  &nbsp;·&nbsp; <a href="https://accretia.vercel.app">Open the app</a>
+  &nbsp;·&nbsp; <b>English</b> · <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-_Find out when work becomes optional — and keep track of whether you're getting there._ A single-page, **client-side** app with three sections: **Track** (the home screen: a one-minute monthly check-in — money in, money out, net worth — with **money out at three levels of detail — one total, ten categories, or line items inside each category** (housing → mortgage payment, property tax, HOA, upkeep; insurance → health, auto, home, life…), each line tagged as an **essential, lifestyle or splurge** with a three-way split shown as you type; income can be **split by source** (salary, bonus, side hustle, dividends, interest), and **401(k) / pre-tax savings** are logged so the savings rate counts them. **Fixed bills fill themselves in**: whatever was the same in your last two months (rent, insurance, salary, 401(k)) starts the new month, tagged, one tap to clear. **Log a month in 30 seconds**: one tap fills it in like last month, then you change only what's different; only the categories you use are listed, and on a phone the Save button stays in reach with what you kept. **Year in review**: one card with your year — saved and at what rate, how net worth moved, where the money went, your best month and longest streak, versus last year and the plan — with a *Hide amounts* switch for sharing a screenshot, and copy-as-text. **Savings goals**: an emergency fund, a down payment, a car — a target and a date; keep "saved so far" current and see what each needs a month and whether all of them fit in what you've been keeping. **What's left for everyday spending**: your plan's monthly spending, less the bills that repeat every month and the share of yearly bills, is what you can spend day to day and stay on plan — shown next to what you've actually been spending. **Once-a-year bills**: car insurance, property tax, tuition, the big trip — add each with the month it's due and see what to put aside every month and what's coming; in that month the check-in offers to fill it in, and the findings say how much of a big month was an annual bill. **A reminder on the app icon**: once installed, the icon shows a dot while last month is still unlogged — computed on your device, no notifications or permissions. **Against last year**: the year report compares the months you logged in both years — money in, out, kept, savings rate, net worth and the categories that moved most — and this month's findings say when you spent noticeably more or less than the same month last year. **Budgets per category**: a monthly limit for any category (one tap fills them from your usual), shown as left / over while you log, flagged in this month's findings and compared in the year report. **What this month shows** compares the latest month with your own last three — spending vs usual, the category that jumped, net worth since last time, the year's pace vs plan — and the year report draws a 12-month trend for every category, answered on the spot with "you kept $X; your plan expected $Y", an *Am I on track?* card holding your real net worth against the plan, and a printable year report), **Plan** (the wealth-projection simulator) and **Data** (backup, restore, optional encrypted sync). The projection is the yardstick; tracking is the habit.
+<p align="center">
+  <a href="https://github.com/tianyi-zhang-02/accretia/releases"><img src="https://img.shields.io/github/v/release/tianyi-zhang-02/accretia?filter=v*&label=release" alt="release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+</p>
 
-**Use it in Claude or Codex** (`mcp/`): a local, end-to-end-encrypted MCP server for Claude Desktop, Claude Code and Codex — say *“take-home 11,000, rent 3,200, groceries 600, 401k 1,958”* and it's filed into your ledger, synced with the web app as just another device; ask for a year report or whether you're on track, or say *“set my food budget to 800”*. See [`mcp/README.md`](mcp/README.md) for the security model.
+A local-first money app: three numbers a month (money in, money out, net worth), a plan that tells you when work becomes optional, and a clear answer to _am I keeping up?_ It runs in your browser, installs as an offline app, and keeps your data on your device. The sample link opens a made-up household with 20 months logged — nothing you change is saved.
 
-**Paycheck calculator** (in Plan): salary + bonus → every tax laid out like a budget sheet (federal 2026 brackets, Social Security, Medicare, state, California SDI, city) → take-home per year, month and paycheck, plus what the bonus really nets; one tap puts the honest effective tax rate into your plan. Federal, FICA, 401(k) limits, California, New York State (2026, including the high-income recapture) and New York City are computed from the published tables, plus NY SDI and Paid Family Leave; other states are an editable estimate.
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/media/en/track-light.webp">
+        <img src="docs/media/en/track.webp" width="260" alt="The monthly check-in on a phone">
+      </picture>
+      <br><b>Track</b><br>Log a month in 30 seconds and see what you kept.
+    </td>
+    <td align="center" width="33%">
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/media/en/plan-light.webp">
+        <img src="docs/media/en/plan.webp" width="260" alt="The plan: work becomes optional at 41, with the projection chart">
+      </picture>
+      <br><b>Plan</b><br>The year work becomes optional, in today's dollars.
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/en/assistants.webp" width="260" alt="Data → Use it in Claude or Codex">
+      <br><b>Data</b><br>Yours: backups, encrypted sync, and your AI assistant.
+    </td>
+  </tr>
+</table>
 
-In **Plan**, project net worth year by year from your own assumptions — careers, windfalls, major expenses, lifestyle creep, and low/mid/high return bands — and answer "what would it take to hit $X by age Y?".
+## A quick tour
 
-Everything runs in the browser, and **by default nothing is ever sent anywhere — no account needed.** A deployment can optionally enable **sign-in with end-to-end-encrypted sync**: your data is encrypted on your device with a passphrase only you know, so the server (and whoever runs it) stores ciphertext it cannot read. When you set the passphrase you get a one-time **recovery code** — the only other way in if you forget it (there is no email reset, on purpose: that would mean the server holds a key). See [`docs/cloud-setup.md`](docs/cloud-setup.md). Your plan — and your monthly ledger, if you keep one — stay on your own device (this browser's local storage) so they're still there tomorrow — untick **"Save on this device"** to keep it memory-only. For the long haul, **Back up everything** downloads one file with every plan and every ledger month; **Restore** brings it back on any device.
+<table>
+  <tr>
+    <td width="300"><img src="docs/media/en/track.webp" width="280" alt="Monthly check-in"></td>
+    <td>
+      <h3>Log a month in 30 seconds</h3>
+      <b>Same as last month</b> fills every blank from the month before — then you change only what's different. Bills that repeat are filled in and tagged. Money out can be one total, ten categories, or line items (rent, property tax, car insurance…); income can be split by source, and 401(k) / pre-tax savings count toward your savings rate.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/media/en/on-track-light.webp">
+        <img src="docs/media/en/on-track.webp" width="280" alt="Net worth card and Am I on track?">
+      </picture>
+    </td>
+    <td>
+      <h3>Am I on track?</h3>
+      Your real net worth against where the plan said you'd be, the year so far, and <b>what's left for everyday spending</b>: the plan's monthly spending, minus the bills that repeat and a twelfth of the yearly ones. Below it, what this month shows compared with your own last three.
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/en/goals.webp" width="280" alt="Savings goals"></td>
+    <td>
+      <h3>Budgets, yearly bills and savings goals</h3>
+      A monthly limit per category (left / over as you log), once-a-year bills with what to set aside each month, and goals — an emergency fund, a down payment — with what each needs a month and whether they fit in what you've been keeping.
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/en/review.webp" width="280" alt="Year in review"></td>
+    <td>
+      <h3>Year in review</h3>
+      One card for your year: saved and at what rate, net worth, where the money went, best month, longest streak, against last year and the plan. <b>Hide amounts</b> turns every dollar into dots before you share a screenshot. Next to it, a printable year report.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/media/en/plan-light.webp">
+        <img src="docs/media/en/plan.webp" width="280" alt="The plan answer and chart">
+      </picture>
+    </td>
+    <td>
+      <h3>The plan</h3>
+      A year-by-year projection from your own assumptions — career income, spending, a home, windfalls — that answers <i>when does work become optional?</i> (Full, Lean and Coast FIRE), shown in today's dollars. Advanced tools add goal-seek, Monte Carlo and stress tests.
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/en/paycheck.webp" width="280" alt="Paycheck calculator for a California salary"></td>
+    <td>
+      <h3>Paycheck calculator</h3>
+      Salary and bonus → every tax laid out like a budget sheet → take-home per year, month and paycheck. Federal 2026, Social Security, Medicare, California, New York State and New York City are computed from the published tables; other states are an editable estimate. One tap puts the effective rate into your plan.
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/en/assistants.webp" width="280" alt="Use it in Claude or Codex"></td>
+    <td>
+      <h3>Use it in Claude or Codex</h3>
+      A local MCP server for Claude Desktop, Claude Code and Codex: say <i>“take-home 11,000, rent 3,200, groceries 600”</i> and it's filed into your ledger. It runs on your own computer, keeps the data end-to-end encrypted, and with sync on it's just another device on your account. Ask for a year report or whether you're on track. Setup and security model: <a href="mcp/README.md"><code>mcp/README.md</code></a>.
+    </td>
+  </tr>
+</table>
 
-> Stack: Next.js 16 (App Router) · TypeScript · Tailwind v4 · Recharts · Zod. No environment variables. No server.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/media/en/desktop-light.webp">
+    <img src="docs/media/en/desktop.webp" width="860" alt="Track on a laptop: check-in on the left, net worth and Am I on track? on the right">
+  </picture>
+</p>
 
-**Live:** https://accretia.vercel.app
+Everything that changed, release by release: [`CHANGELOG.md`](CHANGELOG.md).
 
----
+## Private by design
 
-## Features
+- **Local-first.** Your plan and ledger live in this browser's storage on your device; untick _Save on this device_ to keep them in memory only. _Back up everything_ saves one file you own.
+- **Optional end-to-end-encrypted sync.** Encrypted on your device with a passphrase only you know; the server stores ciphertext. A one-time recovery code is the only other way in — there is deliberately no email reset. See [`docs/cloud-setup.md`](docs/cloud-setup.md).
+- **No tracking.** No analytics, telemetry or cookies, and a strict Content-Security-Policy (`connect-src 'self'`). A test in CI fails if code adds a network call or storage beyond the approved ones.
+- **Open source** under the MIT license — read every line.
 
-**Model your situation**
+## Install it as an app
 
-- **Year-by-year projection** from a pure, deterministic, unit-tested engine (documented inflation convention, low/mid/high return bands).
-- **Careers with equity** — multiple people and career stages, each with base salary, bonus, and **annual equity / RSU comp**. A browsable, searchable, bilingual **role library** — tech (L3–L7), medicine, law, finance — provides illustrative starting numbers.
-- **Derived savings, honest compounding** — no savings-rate knob: each year you keep whatever's left of after-tax income after spending. But bills come first — you choose the **share of that surplus you actually invest**; the rest stays as cash that counts in net worth yet earns nothing. Only invested money compounds.
-- **Tax presets** — a rough state + federal effective-rate estimate (all 50 states + DC), fully editable.
-- **Home & mortgage what-if** — adds the home as an asset and the mortgage as a liability: down payment → equity, interest / property tax / maintenance as costs, principal builds equity, the home appreciates. Shows the monthly P&I.
-- **Asset-mix return calculator** — blend a return from stocks, high-yield savings, bonds, and real estate (net of carrying costs like property tax), and apply it to the return band.
-- **Windfalls, major expenses, lifestyle creep.**
-
-**Answer questions**
-
-- **FIRE** — the year work becomes optional: **Full / Lean / Coast**, with a health-insurance reserve.
-- **Goal-seek** — set "$5M by 50" and it solves four levers (save more, higher return, spend less, more time) by bisection over the engine.
-- **Monte Carlo** — a **Deterministic ⇄ Probabilistic** switch: 1,000 seeded market paths → a p10 / p50 / p90 fan and your **success probability**.
-- **Stress test** — job-loss and market-crash what-ifs (the dent, the trough, whether you recover).
-- **Nominal vs. real** (inflation-adjusted), including a shaded "gap" view; **Compare** scenarios; year-by-year table.
-
-**Use it your way**
-
-- **Pixel journey** 🕹 — your projection as a tiny living pixel world: terrain follows your real net worth, milestones become landmarks (FIRE house, goal flag, treasure chests, a storm on crash years), and a little walker — trailed by a cat — crosses the horizon under a sun–moon cycle. Procedural canvas, zero images, zero libraries.
-- **100% client-side** — nothing stored or sent. **Export / Import** a scenario as JSON is the only persistence.
-- **Bilingual** (English / 简体中文, native — not machine-translated), **light/dark theme**, **font zoom**, and **simple by default** with an "advanced tools" toggle.
-- **Use it as an app, no store needed.** Data → *Use it as an app*: Chrome/Edge/Android get an Install button; iPhone Safari gets the two taps (Share → Add to Home Screen). Installed, it opens full-screen with its own icon and **works fully offline** — the service worker keeps the last-opened shell and its scripts; your data was on the device all along. **It tells you when there's a new version**: an open or installed app checks when you come back to it and shows *A new version is ready — Refresh*; a backup or cloud copy saved by a newer version says so and offers *Refresh to update* instead of a dead end.
-
-Navigation is three sections — **Track · Plan · Data** — a segmented control on desktop and a bottom tab bar on phones. **Plan** is a **live side-by-side editor**: assumptions on the left, the projection (final balance + chart + advanced tools) pinned on the right, so editing an assumption updates the chart in real time. On mobile it stacks (projection on top).
-
----
-
-## Privacy & security
-
-Because the app has no backend, the security model is trivial:
-
-- **Nothing leaves your device.** No API calls, no analytics, no telemetry, no cookies. Open DevTools → Network and you'll see the page load and nothing else.
-- **Stored on your device, never anywhere else.** **"Save on this device"** keeps your scenarios in this browser's `localStorage` — on your device only, never sent anywhere, validated on load like any untrusted input, and erased the moment you untick it. Untick it and the app runs memory-only, exactly as before.
-- **No secrets, no environment variables.** There's nothing to leak.
-- **Strict Content-Security-Policy** with a per-request nonce (`src/proxy.ts`): `script-src 'self' 'nonce-…' 'strict-dynamic'` (no `unsafe-inline`, no `unsafe-eval`), `connect-src 'self'`. Plus static hardening headers (HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy) in `next.config.ts`.
-- **Imported JSON is validated** against the engine's Zod schema before use, so a malformed file can't crash the projection.
-
----
+It's a PWA: Data → _Use it as an app_ (Install in Chrome / Edge / Android, Share → Add to Home Screen on iPhone). It opens full-screen, works offline, and tells you when a new version is ready.
 
 ## Run it yourself
-
-No accounts, no database, no keys — just clone and go.
 
 ```bash
 git clone https://github.com/tianyi-zhang-02/accretia.git
@@ -76,46 +137,40 @@ npm install
 npm run dev     # → http://localhost:3000
 ```
 
-Deploy anywhere that runs Next.js (Vercel: import the repo, deploy — no env vars to set).
+Node 22 (see `.nvmrc`). No environment variables needed — sync stays off unless a deployment switches it on ([`docs/cloud-setup.md`](docs/cloud-setup.md)). Deploys anywhere that runs Next.js.
 
-## Scripts
+## For developers
 
-| Command                              | What it does                           |
-| ------------------------------------ | -------------------------------------- |
-| `npm run dev`                        | Dev server on `localhost:3000`         |
-| `npm run build` / `npm run start`    | Production build / serve               |
-| `npm run lint` / `npm run typecheck` | ESLint / TypeScript check              |
-| `npm test`                           | Vitest — engine, FIRE, Monte Carlo, mortgage, stress, goal-seek |
-| `npm run format`                     | Prettier                               |
+| Command                              | What it does                                                                              |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `npm run dev`                        | Dev server on `localhost:3000`                                                            |
+| `npm run build` / `npm run start`    | Production build / serve                                                                  |
+| `npm run lint` / `npm run typecheck` | ESLint / TypeScript                                                                       |
+| `npm test`                           | Vitest — engine, ledger, tax tables, crypto, the MCP server, and the isolation rules      |
+| `npm run format`                     | Prettier                                                                                  |
+| `npm run screenshots`                | Rebuild the README pictures and the hero animation from sample data (needs Google Chrome) |
 
----
+**Stack:** Next.js 16 (App Router) · TypeScript · Tailwind v4 · Recharts · Zod. Runtime dependencies stop there, plus `@supabase/supabase-js`, loaded only when sync is switched on.
 
-## Architecture
-
-Tiny by design.
+**How it fits together**
 
 ```
 src/
-  app/
-    page.tsx              the app: renders the simulator client
-    simulator-client.tsx  all UI state (scenarios, live editor, export/import)
-    layout.tsx            fonts + globals + PWA registration
-    manifest.ts, icon*.tsx, apple-icon.tsx   PWA assets
-  proxy.ts                per-request CSP nonce (the only "server" code)
-  components/
-    simulator/            assumptions form, compare, goal-seek, FIRE, stress, year table
-    charts/               projection chart + Monte-Carlo fan
-    i18n/lang-switch.tsx  EN · 中文 toggle
-    pwa/sw-register.tsx
-  lib/
-    simulator/            engine + goal-seek + Monte-Carlo + FIRE + presets (+ tests)
-    i18n/                 EN/中文 message catalog + locale provider
-    validation/scenarios.ts   the Zod schema the engine reads
-    format/money.ts
+  app/simulator-client.tsx   the one page: Track · Plan · Data, all UI state
+  components/ledger/         check-in, on-track, budgets & goals, year report & review
+  components/simulator/      plan summary, assumptions, paycheck calculator
+  lib/simulator/             the engine — a pure function, simulate(assumptions) → year rows
+  lib/ledger/                months, CSV, reports, budgets, goals, allowance (pure, tested)
+  lib/tax/                   paycheck tax tables (hand-computed tests)
+  lib/cloud/                 E2EE crypto + the only network module
+  lib/i18n/                  English / 简体中文
+mcp/                         the Claude / Codex extension (its own package)
 ```
 
-The **engine** (`src/lib/simulator/engine.ts`) is a pure function: `simulate(assumptions) → year rows` — no I/O. Everything else layers on top of it additively: goal-seek by bisection, FIRE, the Monte-Carlo runner, and the stress overlay all reuse the same math, and a home/mortgage adds a home asset + liability to net worth when present. It's all covered by unit tests (`npm test`) — including regressions that pin "no mortgage / zero volatility = the plain projection, exactly."
+The engine has no I/O; goal-seek (bisection), FIRE, Monte Carlo and stress tests all reuse it. `src/lib/isolation.test.ts` pins the privacy rules — no new network calls, storage keys, env vars or cookies — and runs in CI on every pull request.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+> **Two names, on purpose.** The app is **Work Optional** — it's what it tells you. The repo and the site keep the original name **Accretia** (from _accretion_), because a US wealth-management firm already trades as Work Optional.
