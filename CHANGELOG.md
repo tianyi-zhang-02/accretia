@@ -6,6 +6,17 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Against last year
+
+- **The year report compares with last year, like for like** — only the
+  months you logged in both years, so three months this year never face a
+  full year: money in, money out, kept, savings rate, net worth at the same
+  month a year earlier, and the categories that moved most.
+- **This month's findings** add the same month last year when spending
+  differs by at least 10% and $100 (*"16% more than the same month last
+  year ($3,800 → $4,400)"*).
+- **Claude extension 0.5.0:** `year_report` includes the comparison.
+
 ### New York, exactly
 
 - **The paycheck calculator now computes New York exactly** instead of a flat

@@ -42,7 +42,7 @@ passphrase with.
 ## Claude Desktop
 
 1. Download `work-optional.mcpb` from the
-   [release](https://github.com/tianyi-zhang-02/accretia/releases/tag/mcp-v0.4.0)
+   [release](https://github.com/tianyi-zhang-02/accretia/releases/tag/mcp-v0.5.0)
    and open it. Claude Desktop installs it.
 2. In its settings: your **sync passphrase** (the same as in the web app) and
    the **sync key** (web app → Data → *Use it in Claude* → Copy). Leave the

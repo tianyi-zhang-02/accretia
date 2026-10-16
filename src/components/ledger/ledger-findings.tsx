@@ -43,6 +43,10 @@ export default function LedgerFindings({
         return i.pct > 0
           ? F.spendingUp(i.pct, c(i.amount), c(i.usual))
           : F.spendingDown(-i.pct, c(i.amount), c(i.usual));
+      case 'vsLastYear':
+        return i.pct > 0
+          ? F.lastYearUp(i.pct, c(i.amount), c(i.then))
+          : F.lastYearDown(-i.pct, c(i.amount), c(i.then));
       case 'categoryJump':
         return F.categoryJump(t.track.categories[i.category], c(i.amount), c(i.usual));
       case 'categoryDrop':
