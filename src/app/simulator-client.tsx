@@ -707,6 +707,7 @@ function SimulatorInner() {
             }}
             notify={notify}
             onBudgets={(monthlyBudgets) => patchCurrent({ ...assumptions, monthlyBudgets })}
+            onAnnual={(annualExpenses) => patchCurrent({ ...assumptions, annualExpenses })}
           />
         </div>
       ) : null}

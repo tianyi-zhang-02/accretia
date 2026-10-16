@@ -9,6 +9,7 @@ import type { YearRow } from '@/lib/simulator/engine';
 import { SectionLabel } from '../ui/icon';
 import MetalCard, { Chip } from '../ui/metal-card';
 import LedgerFindings from './ledger-findings';
+import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { Budgets } from '@/lib/ledger/budgets';
 
 /**
@@ -69,6 +70,7 @@ export default function TrackStatus({
   fire,
   onOpenPlan,
   budgets,
+  annual,
 }: {
   entries: MonthEntry[];
   report: YearReport;
@@ -79,6 +81,7 @@ export default function TrackStatus({
   fire: { age: number; year: number } | null;
   onOpenPlan: () => void;
   budgets: Budgets;
+  annual: AnnualExpense[];
 }) {
   const { t, fmt, locale } = useI18n();
   const S = t.track.status;
@@ -243,7 +246,7 @@ export default function TrackStatus({
           </button>
         </div>
       </div>
-      <LedgerFindings entries={entries} planRows={planRows} budgets={budgets} />
+      <LedgerFindings entries={entries} planRows={planRows} budgets={budgets} annual={annual} />
     </section>
   );
 }

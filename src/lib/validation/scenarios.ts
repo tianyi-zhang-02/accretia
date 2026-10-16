@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { CATEGORY_IDS, type CategoryId } from '@/lib/ledger/ledger';
+import { CATEGORY_IDS, SUB_IDS, type CategoryId, type SubId } from '@/lib/ledger/ledger';
 
 // ---------- Building blocks ----------
 
@@ -288,6 +288,20 @@ export const assumptionsSchema = z
         Object.fromEntries(CATEGORY_IDS.map((c) => [c, positiveMoney.optional()])),
       ) as unknown as z.ZodType<Partial<Record<CategoryId, number>>>
     ).optional(),
+    // Bills that come once a year (2026-10): a payment of a fixed line item
+    // in a given month. Like budgets, ignored by the engine (backup v3).
+    annualExpenses: z
+      .array(
+        z
+          .object({
+            item: z.enum(SUB_IDS as [SubId, ...SubId[]]),
+            amount: positiveMoney,
+            month: z.number().int().min(1).max(12),
+          })
+          .strict(),
+      )
+      .max(24)
+      .optional(),
   })
   .refine((v) => v.horizonEndYear >= v.horizonStartYear, {
     message: 'horizonEndYear must be ≥ horizonStartYear',

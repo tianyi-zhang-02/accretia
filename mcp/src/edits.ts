@@ -10,6 +10,7 @@ import {
   type MonthEntry,
 } from '@/lib/ledger/ledger';
 
+import type { AnnualExpense } from '@/lib/ledger/annual';
 import { budgetLines, type Budgets } from '@/lib/ledger/budgets';
 import { assumptionsSchema } from '@/lib/validation/scenarios';
 
@@ -109,6 +110,25 @@ export function setBudgetsChange(budgets: Budgets, replace = false) {
       else delete merged[id];
     }
     const assumptions = assumptionsSchema.parse({ ...plan.assumptions, monthlyBudgets: merged });
+    const scenarios = [...d.scenarios];
+    scenarios[i] = { ...plan, assumptions };
+    return { ...d, scenarios };
+  };
+}
+
+/**
+ * A pure change for Vault.update: the selected plan's once-a-year bills,
+ * replaced as a whole (the list is short and the assistant shows it back).
+ * Re-validated, so nothing the web app wouldn't accept can be written.
+ */
+export function setAnnualChange(annual: AnnualExpense[]) {
+  return (d: VaultData): VaultData => {
+    const i = Math.max(
+      0,
+      d.scenarios.findIndex((s) => s.id === d.selectedId),
+    );
+    const plan = d.scenarios[i]!;
+    const assumptions = assumptionsSchema.parse({ ...plan.assumptions, annualExpenses: annual });
     const scenarios = [...d.scenarios];
     scenarios[i] = { ...plan, assumptions };
     return { ...d, scenarios };

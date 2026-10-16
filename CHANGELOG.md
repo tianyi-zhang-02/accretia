@@ -6,6 +6,24 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Once-a-year bills
+
+- **A new card on Track for bills that come once a year** — car insurance,
+  property tax, tuition, the big trip. Pick the line item, the month it's
+  due and the amount (one-tap suggestions for the usual ones; property tax
+  paid twice a year is two entries). It shows the yearly total, **what to put
+  aside each month**, and the next three payments.
+- **In the month a bill is due**, the check-in says so — *"Due this month,
+  once a year: Auto insurance $1,200"* — and **Fill them in** puts the
+  amounts into their line items.
+- **What this month shows** explains a big month: *"$1,200 of it went to a
+  once-a-year bill — a big month for a reason."*
+- They live on the plan, like budgets, and never change the projection (its
+  yearly spending already includes them). Backup format **version 3**, so an
+  older copy of the app refuses the file instead of dropping them.
+- **Claude extension 0.6.0:** `set_annual_expenses`, and `recurring_bills`
+  includes the bills due that month.
+
 ### A reminder on the app icon
 
 - **Installed app, last month not logged yet → a dot on its icon.** It clears

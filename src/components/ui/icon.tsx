@@ -21,6 +21,12 @@ const ICONS = {
   cloud: ['M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.6 4.2 4.2 0 0 1 17.4 18H7Z'],
   /** Goals and being on track. */
   flag: ['M5 21V4', 'M5 4h12l-2.5 4L17 12H5'],
+  calendar: [
+    'M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z',
+    'M4 10h16',
+    'M8 3v4',
+    'M16 3v4',
+  ],
   /** Retirement. */
   chair: [
     'M7 11V8a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v3',

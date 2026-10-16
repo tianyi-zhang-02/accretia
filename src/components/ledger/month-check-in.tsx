@@ -30,6 +30,7 @@ import {
 } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
 
+import { dueItems, type AnnualExpense } from '@/lib/ledger/annual';
 import type { Budgets } from '@/lib/ledger/budgets';
 
 import { SectionLabel } from '../ui/icon';
@@ -175,6 +176,7 @@ function Form({
   onClear,
   onDirty,
   budgets,
+  annual,
 }: {
   ym: YearMonth;
   entry: MonthEntry | undefined;
@@ -192,6 +194,8 @@ function Form({
   onDirty: () => void;
   /** Monthly budget per category, from the plan. */
   budgets: Budgets;
+  /** Once-a-year bills, from the plan. */
+  annual: AnnualExpense[];
 }) {
   const { t, fmt, locale } = useI18n();
   const C = t.track.checkIn;
@@ -401,6 +405,24 @@ function Form({
     onDirty();
   }
 
+  // Once-a-year bills due this month that haven't been entered yet.
+  const annualPending = (
+    Object.entries(dueItems(annual, ym.month)) as Array<[SubId, number]>
+  ).filter(([id]) => blank(subs[id]));
+  function fillAnnual() {
+    if (!detailed) switchMode(true);
+    setSubs((c) => {
+      const out = { ...c };
+      for (const [id, v] of annualPending) out[id] = String(v);
+      return out;
+    });
+    setOpen((o) => [
+      ...new Set([...o, ...annualPending.map(([id]) => id.split('.')[0] as CategoryId)]),
+    ]);
+    setTouched(true);
+    onDirty();
+  }
+
   /** Last month's bills are this month's first guess — only blanks are filled. */
   function fillFromLast() {
     if (!prev?.categories) return;
@@ -463,6 +485,21 @@ function Form({
           <span className="text-xs">{C.carried(carried.count)}</span>
           <button type="button" className="btn btn-ghost btn-sm shrink-0" onClick={clearCarried}>
             {C.clearCarried}
+          </button>
+        </div>
+      ) : null}
+
+      {annualPending.length ? (
+        <div className="bg-surface-2 flex items-center justify-between gap-3 rounded-[10px] px-3 py-2">
+          <span className="text-xs">
+            {C.annualDue(
+              annualPending
+                .map(([id, v]) => `${t.track.subcategories[id]} ${fmt.currency0(v)}`)
+                .join(locale === 'zh' ? '、' : ', '),
+            )}
+          </span>
+          <button type="button" className="btn btn-ghost btn-sm shrink-0" onClick={fillAnnual}>
+            {C.fillAnnual}
           </button>
         </div>
       ) : null}
@@ -813,6 +850,7 @@ export default function MonthCheckIn({
   onSave,
   onClear,
   budgets,
+  annual,
 }: {
   entries: MonthEntry[];
   sel: YearMonth;
@@ -823,6 +861,7 @@ export default function MonthCheckIn({
   onSave: (e: MonthEntry) => void;
   onClear: (ym: YearMonth) => void;
   budgets: Budgets;
+  annual: AnnualExpense[];
 }) {
   const { t, locale } = useI18n();
   const C = t.track.checkIn;
@@ -896,6 +935,7 @@ export default function MonthCheckIn({
         startingNetWorth={startingNetWorth}
         monthLabel={monthLabel}
         budgets={budgets}
+        annual={annual}
         justSaved={savedKey === selKey}
         nextUp={nextUp}
         onSelect={onSelect}
