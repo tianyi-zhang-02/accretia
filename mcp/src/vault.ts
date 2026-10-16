@@ -164,7 +164,32 @@ export class Vault {
     }
   }
 
-  async read(): Promise<ReadResult> {
+  /**
+   * One operation at a time. Assistants (Claude, Codex) may call tools in
+   * parallel; two updates interleaving read → change → write would each
+   * start from the same version and the later write would silently drop
+   * the earlier one (and two first writes would create two vaults). The
+   * cloud's optimistic check catches that remotely, but not the local file —
+   * so every read and update in this process goes through this queue.
+   */
+  private queue: Promise<unknown> = Promise.resolve();
+  private serial<T>(fn: () => Promise<T>): Promise<T> {
+    const run = this.queue.then(fn, fn);
+    this.queue = run.catch(() => undefined);
+    return run;
+  }
+
+  read(): Promise<ReadResult> {
+    return this.serial(() => this.readNow());
+  }
+
+  update(
+    change: (d: VaultData) => VaultData,
+  ): Promise<{ before: VaultData; after: VaultData; recoveryCodeFile?: string }> {
+    return this.serial(() => this.updateNow(change));
+  }
+
+  private async readNow(): Promise<ReadResult> {
     if (this.remote) {
       try {
         const r = await this.fetchRemote();
@@ -195,7 +220,7 @@ export class Vault {
    * Apply ONE change. `change` must be a pure function of the data it's
    * given — on a conflict it is re-run on the newer version.
    */
-  async update(
+  private async updateNow(
     change: (d: VaultData) => VaultData,
   ): Promise<{ before: VaultData; after: VaultData; recoveryCodeFile?: string }> {
     if (this.remote) {
