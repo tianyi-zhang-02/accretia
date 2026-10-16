@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Savings goals
+
+- **A new card on Track: savings goals** — emergency fund, down payment,
+  car, wedding, education, travel. Set a target and a month to reach it by,
+  and keep *saved so far* up to date right in the list.
+- Each goal shows its progress, what's left, the months left and **what it
+  needs a month**; together, the card says whether all goals fit in what
+  you've actually been keeping lately — or how much you're short.
+- An emergency fund starts from **six months of your recent spending**.
+- Goals live on the plan, like budgets, and don't change the projection.
+  Backup format **version 4** (older copies of the app refuse the file
+  instead of dropping goals).
+- **Claude extension 0.8.0:** `set_savings_goals` ("I have 45,000 for the
+  down payment now"), and `on_track` reports goal progress.
+
 ### What's left for everyday spending
 
 - **Am I on track?** now answers *"how much can I spend day to day and stay

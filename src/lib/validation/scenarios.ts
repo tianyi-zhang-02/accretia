@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { GOAL_KINDS } from '@/lib/ledger/goals';
 import { CATEGORY_IDS, SUB_IDS, type CategoryId, type SubId } from '@/lib/ledger/ledger';
 
 // ---------- Building blocks ----------
@@ -301,6 +302,22 @@ export const assumptionsSchema = z
           .strict(),
       )
       .max(24)
+      .optional(),
+    // Savings goals (2026-10): a fixed kind, a target, what's saved so far
+    // and the month to reach it by. Ignored by the engine (backup v4).
+    savingsGoals: z
+      .array(
+        z
+          .object({
+            kind: z.enum(GOAL_KINDS),
+            target: positiveMoney,
+            saved: positiveMoney,
+            year: z.number().int().min(2000).max(2200),
+            month: z.number().int().min(1).max(12),
+          })
+          .strict(),
+      )
+      .max(12)
       .optional(),
   })
   .refine((v) => v.horizonEndYear >= v.horizonStartYear, {

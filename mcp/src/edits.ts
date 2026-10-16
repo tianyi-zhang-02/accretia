@@ -11,6 +11,7 @@ import {
 } from '@/lib/ledger/ledger';
 
 import type { AnnualExpense } from '@/lib/ledger/annual';
+import type { SavingsGoal } from '@/lib/ledger/goals';
 import { budgetLines, type Budgets } from '@/lib/ledger/budgets';
 import { assumptionsSchema } from '@/lib/validation/scenarios';
 
@@ -129,6 +130,21 @@ export function setAnnualChange(annual: AnnualExpense[]) {
     );
     const plan = d.scenarios[i]!;
     const assumptions = assumptionsSchema.parse({ ...plan.assumptions, annualExpenses: annual });
+    const scenarios = [...d.scenarios];
+    scenarios[i] = { ...plan, assumptions };
+    return { ...d, scenarios };
+  };
+}
+
+/** A pure change for Vault.update: the selected plan's savings goals, replaced as a whole. */
+export function setGoalsChange(goals: SavingsGoal[]) {
+  return (d: VaultData): VaultData => {
+    const i = Math.max(
+      0,
+      d.scenarios.findIndex((s) => s.id === d.selectedId),
+    );
+    const plan = d.scenarios[i]!;
+    const assumptions = assumptionsSchema.parse({ ...plan.assumptions, savingsGoals: goals });
     const scenarios = [...d.scenarios];
     scenarios[i] = { ...plan, assumptions };
     return { ...d, scenarios };

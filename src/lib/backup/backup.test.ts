@@ -54,13 +54,13 @@ describe('restore treats the file as untrusted', () => {
     });
   });
 
-  it('still reads older files (v1 before budgets, v2 before annual expenses)', () => {
-    expect(parseBackup(JSON.stringify({ ...good(), version: 1 })).ok).toBe(true);
-    expect(parseBackup(JSON.stringify({ ...good(), version: 2 })).ok).toBe(true);
+  it('still reads older files (v1 before budgets, v2 before annual bills, v3 before goals)', () => {
+    for (const version of [1, 2, 3])
+      expect(parseBackup(JSON.stringify({ ...good(), version })).ok).toBe(true);
   });
 
   it('refuses a newer format instead of silently dropping its fields', () => {
-    expect(parseBackup(JSON.stringify({ ...good(), version: 4 }))).toEqual({
+    expect(parseBackup(JSON.stringify({ ...good(), version: 5 }))).toEqual({
       ok: false,
       reason: 'newerVersion',
     });
