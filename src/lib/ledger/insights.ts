@@ -11,6 +11,7 @@
 
 import type { YearRow } from '@/lib/simulator/engine';
 
+import { annualIn, dueIn, type AnnualExpense } from './annual';
 import { budgetLines, type Budgets } from './budgets';
 import { CATEGORY_IDS, tierTotals, type CategoryId, type MonthEntry } from './ledger';
 
@@ -24,6 +25,7 @@ export type LedgerInsight =
   | { id: 'splurgeShare'; tone: 'warn'; pct: number; amount: number }
   | { id: 'overBudget'; tone: 'warn'; count: number; category: CategoryId; over: number }
   | { id: 'withinBudget'; tone: 'good'; count: number }
+  | { id: 'annualDue'; tone: 'info'; amount: number; count: number }
   | { id: 'vsLastYear'; tone: 'good' | 'warn'; pct: number; amount: number; then: number }
   | { id: 'firstMonth'; tone: 'info' };
 
@@ -49,6 +51,7 @@ export function ledgerInsights(
   planRows: YearRow[] = [],
   limit = 4,
   budgets: Budgets = {},
+  annual: AnnualExpense[] = [],
 ): LedgerInsights {
   const sorted = [...entries].sort((a, b) => key(a) - key(b));
   const focus = sorted.at(-1);
@@ -172,6 +175,13 @@ export function ledgerInsights(
     }
   }
 
+  // ---- once-a-year bills that landed this month ----
+  const annualAmount = annualIn(focus, annual);
+  if (annualAmount > 0) {
+    const count = dueIn(annual, focus.month).filter((x) => focus.breakdown?.[x.item]).length;
+    out.push({ id: 'annualDue', tone: 'info', amount: annualAmount, count });
+  }
+
   // ---- the same month last year ----
   const lastYear = sorted.find((e) => e.year === focus.year - 1 && e.month === focus.month);
   if (lastYear && lastYear.spending > 0) {
@@ -213,6 +223,7 @@ export function ledgerInsights(
     'overBudget',
     'firstMonth',
     'spendingVsUsual',
+    'annualDue',
     'categoryJump',
     'vsLastYear',
     'netWorthChange',

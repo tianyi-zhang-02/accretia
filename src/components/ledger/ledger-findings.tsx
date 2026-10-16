@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 
 import { useI18n } from '@/lib/i18n/locale';
 import { ledgerInsights, type LedgerInsight } from '@/lib/ledger/insights';
+import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { Budgets } from '@/lib/ledger/budgets';
 import type { MonthEntry } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
@@ -18,16 +19,18 @@ export default function LedgerFindings({
   entries,
   planRows,
   budgets,
+  annual,
 }: {
   entries: MonthEntry[];
   planRows: YearRow[];
   budgets: Budgets;
+  annual: AnnualExpense[];
 }) {
   const { t, fmt, locale } = useI18n();
   const F = t.track.findings;
   const { focus, insights } = useMemo(
-    () => ledgerInsights(entries, planRows, 4, budgets),
-    [entries, planRows, budgets],
+    () => ledgerInsights(entries, planRows, 4, budgets, annual),
+    [entries, planRows, budgets, annual],
   );
   if (!focus) return null;
 
@@ -43,6 +46,8 @@ export default function LedgerFindings({
         return i.pct > 0
           ? F.spendingUp(i.pct, c(i.amount), c(i.usual))
           : F.spendingDown(-i.pct, c(i.amount), c(i.usual));
+      case 'annualDue':
+        return F.annualDue(c(i.amount), i.count);
       case 'vsLastYear':
         return i.pct > 0
           ? F.lastYearUp(i.pct, c(i.amount), c(i.then))

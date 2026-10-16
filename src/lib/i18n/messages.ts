@@ -766,6 +766,8 @@ const en = {
       bySource: 'Split by source',
       carried: (n: number) =>
         `${n} ${n === 1 ? 'amount that repeats' : 'amounts that repeat'} every month ${n === 1 ? 'was' : 'were'} filled in — change any that differ.`,
+      annualDue: (list: string) => `Due this month, once a year: ${list}.`,
+      fillAnnual: 'Fill them in',
       clearCarried: 'Clear them',
       fixedTag: 'repeats',
       budgetLeft: (budget: string, left: string) => `budget ${budget} · ${left} left`,
@@ -830,6 +832,24 @@ const en = {
       debt: 'Other loan payments',
       other: 'Everything else',
     },
+    annual: {
+      heading: 'Once-a-year bills',
+      none: 'none yet',
+      summary: (total: string, monthly: string) => `${total} a year · ${monthly}/mo to set aside`,
+      hint: 'Insurance paid yearly, property tax, tuition, the big trip. Add each with the month it lands: you’ll see what to put aside every month and what’s coming, and the check-in reminds you in the month it’s due. Your plan already counts them in yearly spending — this doesn’t change it.',
+      upcomingLabel: 'Coming up',
+      thisMonth: 'this month',
+      nextMonth: 'next month',
+      inMonths: (n: number) => `in ${n} months`,
+      item: 'What',
+      month: 'Month due',
+      amount: 'Amount',
+      remove: (what: string) => `Remove ${what}`,
+      addOther: '+ Something else',
+      max: 'That’s as many as this list holds.',
+      total: (total: string) => `${total} a year`,
+      reserve: (monthly: string) => `put aside ${monthly} a month`,
+    },
     budgets: {
       heading: 'Monthly budgets',
       none: 'none set',
@@ -850,6 +870,8 @@ const en = {
         `You spent ${amount} — ${pct}% less than usual (${usual}).`,
       lastYearUp: (pct: number, amount: string, then: string) =>
         `${pct}% more than the same month last year (${then} → ${amount}).`,
+      annualDue: (amount: string, n: number) =>
+        `${amount} of it went to ${n === 1 ? 'a once-a-year bill' : `${n} once-a-year bills`} — a big month for a reason.`,
       lastYearDown: (pct: number, amount: string, then: string) =>
         `${pct}% less than the same month last year (${then} → ${amount}).`,
       categoryJump: (cat: string, amount: string, usual: string) =>
@@ -1759,6 +1781,8 @@ const zh: Messages = {
       breakdownHint: '点一下分类还能再拆细：月供、房产税、物业费……',
       bySource: '按来源拆分',
       carried: (n: number) => `已带入 ${n} 项每月固定的金额（和前两个月一样），不一样的直接改。`,
+      annualDue: (list: string) => `这个月有一年一次的开支：${list}。`,
+      fillAnnual: '填进去',
       clearCarried: '全部清空',
       fixedTag: '固定',
       budgetLeft: (budget: string, left: string) => `预算 ${budget} · 还剩 ${left}`,
@@ -1823,6 +1847,24 @@ const zh: Messages = {
       debt: '其他贷款',
       other: '其他',
     },
+    annual: {
+      heading: '一年一次的大额开支',
+      none: '还没加',
+      summary: (total: string, monthly: string) => `每年 ${total} · 每月预留 ${monthly}`,
+      hint: '按年交的保险、房产税、学费、每年一次的大旅行……填上金额和到期月份，就能看到每个月该预留多少、接下来要交哪几笔；到期那个月记账时也会提醒你。规划里的年开支本来就含这些，这里不会改动规划。',
+      upcomingLabel: '接下来',
+      thisMonth: '这个月',
+      nextMonth: '下个月',
+      inMonths: (n: number) => `${n} 个月后`,
+      item: '哪一项',
+      month: '到期月份',
+      amount: '金额',
+      remove: (what: string) => `删除「${what}」`,
+      addOther: '+ 其他',
+      max: '最多只能加这么多了。',
+      total: (total: string) => `每年合计 ${total}`,
+      reserve: (monthly: string) => `每月预留 ${monthly}`,
+    },
     budgets: {
       heading: '每月预算',
       none: '还没设',
@@ -1843,6 +1885,8 @@ const zh: Messages = {
         `这个月花了 ${amount}，比平时（${usual}）少 ${pct}%。`,
       lastYearUp: (pct: number, amount: string, then: string) =>
         `比去年同月多花了 ${pct}%（${then} → ${amount}）。`,
+      annualDue: (amount: string, n: number) =>
+        `其中 ${amount} 是一年一次的开支（${n} 笔），这个月花得多是有原因的。`,
       lastYearDown: (pct: number, amount: string, then: string) =>
         `比去年同月少花了 ${pct}%（${then} → ${amount}）。`,
       categoryJump: (cat: string, amount: string, usual: string) =>

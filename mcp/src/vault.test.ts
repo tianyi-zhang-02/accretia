@@ -13,6 +13,7 @@ import {
   clearMonthChange,
   logMonthChange,
   monthSummary,
+  setAnnualChange,
   setBudgetsChange,
 } from './edits';
 import { Store } from './store';
@@ -297,5 +298,19 @@ describe('budgets', () => {
       { category: 'fun', budget: 300, spent: 100, left: 200, over: false },
     ]);
     expect(monthSummary(m).budgets).toBeUndefined();
+  });
+});
+
+describe('once-a-year bills', () => {
+  it('replace the selected plan’s list, validated like the web app', () => {
+    const d = {
+      scenarios: [{ id: 'a', name: 'A', assumptions: defaultAssumptions() }],
+      selectedId: 'a',
+      ledger: [],
+    } as VaultData;
+    const bills = [{ item: 'insurance.auto' as const, amount: 1_200, month: 11 }];
+    expect(setAnnualChange(bills)(d).scenarios[0]!.assumptions.annualExpenses).toEqual(bills);
+    expect(setAnnualChange([])(d).scenarios[0]!.assumptions.annualExpenses).toEqual([]);
+    expect(() => setAnnualChange([{ item: 'insurance.auto', amount: 1, month: 13 }])(d)).toThrow();
   });
 });

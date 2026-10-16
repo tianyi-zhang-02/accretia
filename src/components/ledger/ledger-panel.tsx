@@ -29,7 +29,9 @@ import { categoryByMonth } from '@/lib/ledger/insights';
 
 import { yearBudget, type Budgets } from '@/lib/ledger/budgets';
 import { yearOverYear } from '@/lib/ledger/compare';
+import type { AnnualExpense } from '@/lib/ledger/annual';
 
+import AnnualCard from './annual-card';
 import BudgetCard from './budget-card';
 import MonthCheckIn, { TierBar } from './month-check-in';
 import TrackStatus from './track-status';
@@ -111,6 +113,7 @@ export default function LedgerPanel({
   onCalibrate,
   notify,
   onBudgets,
+  onAnnual,
 }: {
   entries: MonthEntry[];
   onChange: (next: MonthEntry[]) => void;
@@ -123,6 +126,8 @@ export default function LedgerPanel({
   notify: (text: string, undo?: () => void) => void;
   /** Save the plan's monthly budgets. */
   onBudgets: (next: Budgets) => void;
+  /** Save the plan's once-a-year bills. */
+  onAnnual: (next: AnnualExpense[]) => void;
 }) {
   const { t, fmt, locale } = useI18n();
   const L = t.ledger;
@@ -159,6 +164,10 @@ export default function LedgerPanel({
   const budgets: Budgets = useMemo(
     () => assumptions.monthlyBudgets ?? {},
     [assumptions.monthlyBudgets],
+  );
+  const annual: AnnualExpense[] = useMemo(
+    () => assumptions.annualExpenses ?? [],
+    [assumptions.annualExpenses],
   );
   const yearBudgets = useMemo(() => {
     const y = yearBudget(entries, year, budgets);
@@ -221,6 +230,7 @@ export default function LedgerPanel({
         <div className="flex flex-col gap-4">
           <MonthCheckIn
             budgets={budgets}
+            annual={annual}
             entries={entries}
             sel={sel}
             today={today}
@@ -250,9 +260,11 @@ export default function LedgerPanel({
             }
             onChange={onBudgets}
           />
+          <AnnualCard annual={annual} today={today} onChange={onAnnual} />
         </div>
         <TrackStatus
           budgets={budgets}
+          annual={annual}
           entries={entries}
           report={report}
           planRows={planRows}

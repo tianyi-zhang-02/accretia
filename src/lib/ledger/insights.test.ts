@@ -177,6 +177,30 @@ describe('budgets in the findings', () => {
   });
 });
 
+describe('once-a-year bills', () => {
+  it('says how much of a big month was an annual bill, right after the spending line', () => {
+    const r = ledgerInsights(
+      [
+        m(10, 10_000, 4_000),
+        m(11, 10_000, 0, { breakdown: { 'insurance.auto': 1_200, 'housing.rent': 4_000 } }),
+      ],
+      [],
+      4,
+      {},
+      [{ item: 'insurance.auto', amount: 1_200, month: 11 }],
+    );
+    expect(ids(r).slice(0, 2)).toEqual(['spendingVsUsual', 'annualDue']);
+    expect(r.insights[1]).toEqual({ id: 'annualDue', tone: 'info', amount: 1_200, count: 1 });
+  });
+
+  it('nothing when the bill was not logged as its line item', () => {
+    const r = ledgerInsights([m(11, 10_000, 5_200)], [], 4, {}, [
+      { item: 'insurance.auto', amount: 1_200, month: 11 },
+    ]);
+    expect(ids(r)).not.toContain('annualDue');
+  });
+});
+
 describe('the same month last year', () => {
   it('spending against the same month a year ago', () => {
     const r = ledgerInsights([
