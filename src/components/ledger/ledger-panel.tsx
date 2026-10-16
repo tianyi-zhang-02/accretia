@@ -33,10 +33,8 @@ import { yearInReview } from '@/lib/ledger/review';
 import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { SavingsGoal } from '@/lib/ledger/goals';
 
-import AnnualCard from './annual-card';
-import BudgetCard from './budget-card';
+import PlansCard, { type PlansTab } from './plans-card';
 import YearReview from './year-review';
-import GoalsCard from './goals-card';
 import MonthCheckIn, { TierBar } from './month-check-in';
 import TrackStatus from './track-status';
 
@@ -185,6 +183,17 @@ export default function LedgerPanel({
     [entries, year, planRows, budgets, goals, today],
   );
   const [reviewOpen, setReviewOpen] = useState(false);
+  // Budgets & goals: collapsed by default — Track is about logging the month.
+  const [plansOpen, setPlansOpen] = useState(false);
+  const [plansTab, setPlansTab] = useState<PlansTab>(() =>
+    Object.values(assumptions.monthlyBudgets ?? {}).some((v) => (v ?? 0) > 0)
+      ? 'budgets'
+      : (assumptions.savingsGoals ?? []).length
+        ? 'goals'
+        : (assumptions.annualExpenses ?? []).length
+          ? 'annual'
+          : 'budgets',
+  );
   const yearBudgets = useMemo(() => {
     const y = yearBudget(entries, year, budgets);
     return new Map((y?.lines ?? []).map((l) => [l.id, l]));
@@ -267,21 +276,40 @@ export default function LedgerPanel({
               notify(t.toast.monthCleared(label), () => onChange(before));
             }}
           />
-          <BudgetCard
+          <PlansCard
+            open={plansOpen}
+            onOpenChange={setPlansOpen}
+            tab={plansTab}
+            onTab={setPlansTab}
             budgets={budgets}
+            annual={annual}
+            goals={goals}
             entries={entries}
             today={today}
             planMonthlySpending={
               planAt(planRows, assumptions.startingNetWorth, today)?.monthlySpending ?? null
             }
-            onChange={onBudgets}
+            onBudgets={onBudgets}
+            onAnnual={onAnnual}
+            onGoals={onGoals}
+            notify={notify}
           />
-          <AnnualCard annual={annual} today={today} onChange={onAnnual} />
         </div>
         <div className="flex flex-col gap-4">
           <TrackStatus
             budgets={budgets}
             annual={annual}
+            goals={goals}
+            today={today}
+            onOpenGoals={() => {
+              setPlansTab('goals');
+              setPlansOpen(true);
+              window.requestAnimationFrame(() =>
+                document
+                  .getElementById('plans-card')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+              );
+            }}
             entries={entries}
             report={report}
             planRows={planRows}
@@ -290,7 +318,6 @@ export default function LedgerPanel({
             fire={fire}
             onOpenPlan={onOpenPlan}
           />
-          <GoalsCard goals={goals} entries={entries} today={today} onChange={onGoals} />
         </div>
       </div>
 

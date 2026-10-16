@@ -688,6 +688,8 @@ const en = {
     undo: 'Undo',
     monthCleared: (month: string) => `${month} cleared.`,
     planRemoved: (name: string) => `“${name}” removed.`,
+    removed: (what: string) => `${what} removed.`,
+    budgetsCleared: 'Budgets cleared.',
     restored: 'Data replaced from the backup.',
     downloaded: 'Data replaced from the cloud copy.',
     calibrated: 'Plan updated from your actual numbers.',
@@ -809,6 +811,11 @@ const en = {
     },
     status: {
       allowanceHeading: 'Left for everyday spending, to stay on plan',
+      goalsRow: 'Savings goals',
+      goalsNeed: (need: string) => `${need}/mo needed`,
+      goalsFit: 'fits',
+      goalsShort: (gap: string) => `${gap} short`,
+      goalsDone: 'all reached',
       allowanceMath: (plan: string, fixed: string, annual: string | null) =>
         `plan ${plan} a month − repeating bills ${fixed}${annual ? ` − ${annual} set aside for yearly bills` : ''}`,
       allowanceUsual: (amount: string) => `lately about ${amount} a month`,
@@ -853,6 +860,14 @@ const en = {
       fun: 'Fun, travel, shopping',
       debt: 'Other loan payments',
       other: 'Everything else',
+    },
+    plans: {
+      heading: 'Budgets & goals',
+      none: 'nothing set yet',
+      budgetsSet: (n: number) => `${n} budget${n === 1 ? '' : 's'}`,
+      annualSet: (total: string) => `${total}/yr bills`,
+      goalsSet: (n: number) => `${n} goal${n === 1 ? '' : 's'}`,
+      tabs: { budgets: 'Monthly budgets', annual: 'Once a year', goals: 'Savings goals' },
     },
     review: {
       open: 'Year in review',
@@ -1801,6 +1816,8 @@ const zh: Messages = {
     undo: '撤销',
     monthCleared: (month: string) => `已清空${month}。`,
     planRemoved: (name: string) => `已删除「${name}」。`,
+    removed: (what: string) => `已删除「${what}」。`,
+    budgetsCleared: '预算已全部清空。',
     restored: '已用备份文件替换数据。',
     downloaded: '已用云端副本替换数据。',
     calibrated: '已用真实数字更新规划。',
@@ -1915,6 +1932,11 @@ const zh: Messages = {
     },
     status: {
       allowanceHeading: '要跟上规划，每月日常还能花',
+      goalsRow: '存钱目标',
+      goalsNeed: (need: string) => `每月共需 ${need}`,
+      goalsFit: '够用',
+      goalsShort: (gap: string) => `还差 ${gap}`,
+      goalsDone: '都达成了',
       allowanceMath: (plan: string, fixed: string, annual: string | null) =>
         `规划月开支 ${plan} − 固定账单 ${fixed}${annual ? ` − 年度开支预留 ${annual}` : ''}`,
       allowanceUsual: (amount: string) => `最近平均每月日常约 ${amount}`,
@@ -1958,6 +1980,14 @@ const zh: Messages = {
       fun: '娱乐、旅行、购物',
       debt: '其他贷款',
       other: '其他',
+    },
+    plans: {
+      heading: '预算与目标',
+      none: '还没设',
+      budgetsSet: (n: number) => `${n} 类预算`,
+      annualSet: (total: string) => `年度开支 ${total}`,
+      goalsSet: (n: number) => `${n} 个目标`,
+      tabs: { budgets: '每月预算', annual: '年度开支', goals: '存钱目标' },
     },
     review: {
       open: '年度回顾',

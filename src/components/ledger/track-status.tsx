@@ -10,6 +10,7 @@ import { SectionLabel } from '../ui/icon';
 import MetalCard, { Chip } from '../ui/metal-card';
 import LedgerFindings from './ledger-findings';
 import { monthAllowance } from '@/lib/ledger/allowance';
+import { goalsSummary, type SavingsGoal } from '@/lib/ledger/goals';
 import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { Budgets } from '@/lib/ledger/budgets';
 
@@ -72,6 +73,9 @@ export default function TrackStatus({
   onOpenPlan,
   budgets,
   annual,
+  goals,
+  today,
+  onOpenGoals,
 }: {
   entries: MonthEntry[];
   report: YearReport;
@@ -83,6 +87,10 @@ export default function TrackStatus({
   onOpenPlan: () => void;
   budgets: Budgets;
   annual: AnnualExpense[];
+  goals: SavingsGoal[];
+  today: YearMonth;
+  /** Open the Budgets & goals card on the goals tab. */
+  onOpenGoals: () => void;
 }) {
   const { t, fmt, locale } = useI18n();
   const S = t.track.status;
@@ -93,6 +101,11 @@ export default function TrackStatus({
   );
   const latest = withNw.at(-1);
   const loanLeft = planAt(planRows, startingNetWorth, at)?.mortgageBalance ?? 0;
+  const goalsLine = useMemo(() => {
+    if (goals.length === 0) return null;
+    const g = goalsSummary(goals, entries, today);
+    return { need: g.needPerMonth, room: g.room };
+  }, [goals, entries, today]);
   const allowance = useMemo(
     () => monthAllowance(entries, at, planRows, startingNetWorth, annual),
     [entries, at, planRows, startingNetWorth, annual],
@@ -260,6 +273,37 @@ export default function TrackStatus({
               </p>
             ) : null}
           </div>
+        ) : null}
+
+        {goalsLine ? (
+          <button
+            type="button"
+            onClick={onOpenGoals}
+            className="hover:bg-surface-2 -mx-2 mt-3 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded-[10px] px-2 py-2 text-left text-[13px] transition-colors"
+          >
+            <span>{S.goalsRow}</span>
+            <span className="nums text-right text-xs">
+              {goalsLine.need > 0 ? (
+                <>
+                  <span className="font-medium">{S.goalsNeed(fmt.currency0(goalsLine.need))}</span>
+                  {goalsLine.room !== null ? (
+                    <span className={goalsLine.room >= 0 ? 'text-positive' : 'text-negative'}>
+                      {' '}
+                      ·{' '}
+                      {goalsLine.room >= 0
+                        ? S.goalsFit
+                        : S.goalsShort(fmt.currency0(-goalsLine.room))}
+                    </span>
+                  ) : null}
+                </>
+              ) : (
+                <span className="text-positive">{S.goalsDone}</span>
+              )}{' '}
+              <span aria-hidden className="text-muted">
+                ›
+              </span>
+            </span>
+          </button>
         ) : null}
 
         {loanLeft > 0 ? (

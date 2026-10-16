@@ -24,6 +24,8 @@ export default function BudgetCard({
   today,
   planMonthlySpending,
   onChange,
+  embedded = false,
+  notify,
 }: {
   budgets: Budgets;
   entries: MonthEntry[];
@@ -31,6 +33,10 @@ export default function BudgetCard({
   /** What the plan expects to be spent a month (incl. home costs), if known. */
   planMonthlySpending: number | null;
   onChange: (next: Budgets) => void;
+  /** Inside the Budgets & goals card: just the content, no card or header. */
+  embedded?: boolean;
+  /** Undoable removals: a toast with Undo, as for clearing a month. */
+  notify?: (text: string, undo?: () => void) => void;
 }) {
   const { t, fmt } = useI18n();
   const B = t.track.budgets;
@@ -50,6 +56,86 @@ export default function BudgetCard({
     onChange(next);
   }
 
+  const body = (
+    <div className="flex flex-col gap-3">
+      <p className="text-muted text-xs">{B.hint}</p>
+      <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+        {CATEGORY_IDS.map((id) => (
+          <li key={id}>
+            <label className="grid grid-cols-[1fr_7.5rem] items-center gap-3">
+              <span className="min-w-0">
+                <span className="block truncate text-[13px]">{t.track.categories[id]}</span>
+                {usual[id] ? (
+                  <span className="text-muted block truncate text-[11px]">
+                    {B.usually(fmt.currency0(usual[id]!))}
+                  </span>
+                ) : null}
+              </span>
+              <span className="relative">
+                <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs">
+                  $
+                </span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder="—"
+                  value={drafts[id] ?? (budgets[id] ? String(budgets[id]) : '')}
+                  onChange={(e) => edit(id, e.target.value)}
+                  onBlur={() => setDrafts((d) => ({ ...d, [id]: undefined }))}
+                  className="field field-money nums h-9 min-h-0 w-full text-right text-sm"
+                />
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+
+      <p className="flex items-baseline justify-between gap-3 text-[13px]">
+        <span className="text-muted">{B.total}</span>
+        <span className="nums">
+          <span className="font-medium">{fmt.currency0(total)}</span>
+          {planMonthlySpending ? (
+            <span className="text-muted text-[11px]">
+              {' '}
+              · {B.planSays(fmt.currency0(planMonthlySpending))}
+            </span>
+          ) : null}
+        </span>
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        {CATEGORY_IDS.some((id) => usual[id] && !budgets[id]) ? (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              setDrafts({});
+              onChange({ ...usual, ...budgets });
+            }}
+          >
+            {B.fillUsual}
+          </button>
+        ) : null}
+        {set > 0 ? (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => {
+              const before = budgets;
+              setDrafts({});
+              onChange({});
+              notify?.(t.toast.budgetsCleared, () => onChange(before));
+            }}
+          >
+            {B.clearAll}
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+  if (embedded) return body;
+
   return (
     <section className="card">
       <button
@@ -65,82 +151,7 @@ export default function BudgetCard({
         </span>
       </button>
 
-      {open ? (
-        <div className="mt-4 flex flex-col gap-3">
-          <p className="text-muted text-xs">{B.hint}</p>
-          <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-            {CATEGORY_IDS.map((id) => (
-              <li key={id}>
-                <label className="grid grid-cols-[1fr_7.5rem] items-center gap-3">
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13px]">{t.track.categories[id]}</span>
-                    {usual[id] ? (
-                      <span className="text-muted block truncate text-[11px]">
-                        {B.usually(fmt.currency0(usual[id]!))}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="relative">
-                    <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs">
-                      $
-                    </span>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      autoComplete="off"
-                      placeholder="—"
-                      value={drafts[id] ?? (budgets[id] ? String(budgets[id]) : '')}
-                      onChange={(e) => edit(id, e.target.value)}
-                      onBlur={() => setDrafts((d) => ({ ...d, [id]: undefined }))}
-                      className="field field-money nums h-9 min-h-0 w-full text-right text-sm"
-                    />
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
-
-          <p className="flex items-baseline justify-between gap-3 text-[13px]">
-            <span className="text-muted">{B.total}</span>
-            <span className="nums">
-              <span className="font-medium">{fmt.currency0(total)}</span>
-              {planMonthlySpending ? (
-                <span className="text-muted text-[11px]">
-                  {' '}
-                  · {B.planSays(fmt.currency0(planMonthlySpending))}
-                </span>
-              ) : null}
-            </span>
-          </p>
-
-          <div className="flex flex-wrap gap-2">
-            {CATEGORY_IDS.some((id) => usual[id] && !budgets[id]) ? (
-              <button
-                type="button"
-                className="btn"
-                onClick={() => {
-                  setDrafts({});
-                  onChange({ ...usual, ...budgets });
-                }}
-              >
-                {B.fillUsual}
-              </button>
-            ) : null}
-            {set > 0 ? (
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => {
-                  setDrafts({});
-                  onChange({});
-                }}
-              >
-                {B.clearAll}
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+      {open ? <div className="mt-4">{body}</div> : null}
     </section>
   );
 }

@@ -67,11 +67,17 @@ export default function GoalsCard({
   entries,
   today,
   onChange,
+  embedded = false,
+  notify,
 }: {
   goals: SavingsGoal[];
   entries: MonthEntry[];
   today: YearMonth;
   onChange: (next: SavingsGoal[]) => void;
+  /** Inside the Budgets & goals card: no card chrome or heading. */
+  embedded?: boolean;
+  /** Undoable removals: a toast with Undo, as for clearing a month. */
+  notify?: (text: string, undo?: () => void) => void;
 }) {
   const { t, fmt, locale } = useI18n();
   const G = t.track.goals;
@@ -102,10 +108,11 @@ export default function GoalsCard({
     setEditing(true);
   }
 
+  const Wrapper = embedded ? 'div' : 'section';
   return (
-    <section className="card">
-      <div className="flex items-center justify-between gap-3">
-        <SectionLabel icon="gem">{G.heading}</SectionLabel>
+    <Wrapper className={embedded ? '' : 'card'}>
+      <div className={`flex items-center gap-3 ${embedded ? 'justify-end' : 'justify-between'}`}>
+        {embedded ? null : <SectionLabel icon="gem">{G.heading}</SectionLabel>}
         {goals.length ? (
           <button
             type="button"
@@ -215,7 +222,11 @@ export default function GoalsCard({
                       type="button"
                       className="btn btn-ghost col-span-2 h-9 sm:col-span-1 sm:px-0"
                       aria-label={G.remove(G.kinds[g.kind])}
-                      onClick={() => onChange(goals.filter((_, j) => j !== i))}
+                      onClick={() => {
+                        const before = goals;
+                        onChange(goals.filter((_, j) => j !== i));
+                        notify?.(t.toast.removed(G.kinds[g.kind]), () => onChange(before));
+                      }}
                     >
                       <span className="sm:hidden">{G.removeShort}</span>
                       <span aria-hidden className="hidden sm:inline">
@@ -279,6 +290,6 @@ export default function GoalsCard({
           </button>
         )
       ) : null}
-    </section>
+    </Wrapper>
   );
 }
