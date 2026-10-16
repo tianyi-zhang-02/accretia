@@ -16,6 +16,10 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ### Works in Codex too
 
+- **Checked in Codex itself** (0.163): it lists the tools and logs a month,
+  clears net worth and sets a budget correctly. The guide recommends
+  `default_tools_approval_mode = "writes"`, so Codex asks before anything
+  that changes your data and runs reports without asking.
 - **The extension now runs in Codex as well as Claude Desktop and Claude
   Code** — or any client that starts a local MCP server. Each release adds a
   single-file server (`work-optional-mcp.mjs`), the macOS Keychain launcher
