@@ -6,6 +6,20 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Works in Codex too
+
+- **The extension now runs in Codex as well as Claude Desktop and Claude
+  Code** — or any client that starts a local MCP server. Each release adds a
+  single-file server (`work-optional-mcp.mjs`), the macOS Keychain launcher
+  and `SHA256SUMS`; Data → *Use it in Claude or Codex* shows copy-ready
+  Terminal commands for Claude Code and Codex with your sync key filled in.
+- **Tool inputs every client understands**: net worth is cleared with
+  `clear_net_worth: true` instead of `null`, and `clear_month`'s `confirm`
+  is a plain true/false. Unions like these are guessed wrong by some clients.
+- The launcher finds Node and your user name even when a client starts it
+  with an empty environment.
+- **Extension 0.9.0.**
+
 ### Claude extension 0.8.1
 
 - When your data was saved by a newer version of the app, the extension now

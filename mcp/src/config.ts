@@ -5,10 +5,11 @@ import { readCloudConfig, type CloudConfig } from '@/lib/cloud/config';
 import { MIN_PASSPHRASE_LENGTH } from '@/lib/cloud/crypto';
 
 /**
- * Everything the server is told comes from its environment, set by Claude
+ * Everything the server is told comes from its environment — set by Claude
  * Desktop from the extension's settings (the passphrase is a "sensitive"
- * setting, which Claude Desktop keeps in the OS keychain) or by a launcher
- * script. Nothing here is ever written to disk or sent anywhere.
+ * setting, kept in the OS keychain), by the Keychain launcher used with
+ * Claude Code and Codex, or by any MCP client's env config. Nothing here is
+ * ever written to disk or sent anywhere.
  */
 
 /** The live app's sync service — public by design, like the web app's. */

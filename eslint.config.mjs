@@ -17,6 +17,7 @@ const eslintConfig = defineConfig([
     // The MCP server's build output and its own installed packages.
     'mcp/dist/**',
     'mcp/.build-mcpb/**',
+    'mcp/release/**',
     'mcp/node_modules/**',
     'mcp/*.mjs',
   ]),

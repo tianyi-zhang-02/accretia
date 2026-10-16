@@ -50,7 +50,8 @@ import { Store } from './store';
 import { Vault, VaultError, type VaultData } from './vault';
 
 /**
- * Work Optional for Claude — a local MCP server.
+ * Work Optional for AI assistants — a local MCP server (Claude Desktop,
+ * Claude Code, Codex, any client that runs stdio servers).
  *
  * Runs on the user's own machine over stdio (no port is opened). The data
  * is the same end-to-end-encrypted vault the web app uses: decrypted only
@@ -59,7 +60,7 @@ import { Vault, VaultError, type VaultData } from './vault';
  * may ever print to it.
  */
 
-const VERSION = '0.8.1';
+const VERSION = '0.9.0';
 const cfg = readConfig();
 const store = new Store(cfg.home);
 const cloud: Cloud | null =
@@ -80,9 +81,9 @@ const json = (label: string, v: unknown) => text(`${label}\n${JSON.stringify(v, 
 
 const ERRORS: Record<VaultError['code'], string> = {
   noPassphrase:
-    'No passphrase is configured. The user sets it in the extension settings (Claude Desktop → Settings → Extensions → Work Optional). Never ask them to type it into the chat.',
+    'No passphrase is configured. In Claude Desktop the user sets it in Settings → Extensions → Work Optional; with Claude Code or Codex, the launcher reads it from the macOS Keychain item "work-optional" (or WORK_OPTIONAL_PASSPHRASE from their own secret store) — see the README. Never ask them to type it into the chat.',
   wrongPassphrase:
-    'The configured passphrase does not open this vault. It must be the same sync passphrase the user set in the Work Optional web app. They can fix it in the extension settings — never ask for it in the chat.',
+    'The configured passphrase does not open this vault. It must be the same sync passphrase the user set in the Work Optional web app. They can fix it where they configured this server (Claude Desktop’s extension settings, or the Keychain item the launcher reads) — never ask for it in the chat.',
   signedOut:
     'Not signed in to sync. Ask the user for the email they use in the web app, then call sign_in.',
   noCloudVault:
@@ -165,9 +166,12 @@ const logMonthInput = {
     .number()
     .min(-1_000_000_000_000)
     .max(1_000_000_000_000)
-    .nullable()
     .optional()
-    .describe('Month-end net worth; null removes it.'),
+    .describe('Month-end net worth (may be negative).'),
+  clear_net_worth: z
+    .boolean()
+    .optional()
+    .describe('true removes the month-end net worth that was logged.'),
   pretax_savings: amount
     .optional()
     .describe('401(k) / HSA / ESPP taken from pay BEFORE take-home this month. 0 removes it.'),
@@ -191,7 +195,7 @@ const server = new McpServer(
       '- Amounts are US dollars and take-home (after tax) unless the field says otherwise; pretax_savings is the 401(k)/HSA part that never reaches take-home.',
       '- Map plain words to ids with list_categories (e.g. groceries → food.groceries, rent → housing.rent, Uber → transport.rideshare).',
       '- After logging, tell the user what was saved and what they kept.',
-      '- Never ask for, repeat or store the sync passphrase or recovery code; they are set in the extension settings, not in chat.',
+      '- Never ask for, repeat or store the sync passphrase or recovery code; they are configured where this server is set up (extension settings or the OS keychain), never in chat.',
     ].join('\n'),
   },
 );
@@ -294,7 +298,11 @@ server.registerTool(
         ...(a.spending !== undefined ? { spending: a.spending } : {}),
         ...(a.categories ? { categories: a.categories } : {}),
         ...(a.line_items ? { lineItems: a.line_items } : {}),
-        ...(a.net_worth !== undefined ? { netWorth: a.net_worth } : {}),
+        ...(a.clear_net_worth
+          ? { netWorth: null }
+          : a.net_worth !== undefined
+            ? { netWorth: a.net_worth }
+            : {}),
         ...(a.pretax_savings !== undefined ? { pretaxSavings: a.pretax_savings } : {}),
         ...(a.replace ? { replace: true } : {}),
       };
@@ -716,12 +724,17 @@ server.registerTool(
     inputSchema: {
       year: z.number().int().min(1900).max(2200),
       month: z.number().int().min(1).max(12),
-      confirm: z.literal(true).describe('Must be true: the user confirmed clearing this month.'),
+      confirm: z
+        .boolean()
+        .describe('Must be true: the user confirmed clearing this month. false clears nothing.'),
     },
     annotations: { readOnlyHint: false, destructiveHint: true },
   },
-  async ({ year, month }) =>
+  async ({ year, month, confirm }) =>
     guarded(async () => {
+      if (confirm !== true) {
+        return fail('Nothing cleared: confirm the month with the user, then pass confirm: true.');
+      }
       const { before } = await needVault().update(clearMonthChange(year, month));
       const was = findMonth(before, year, month);
       return was

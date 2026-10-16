@@ -81,3 +81,15 @@ describe('MCP server isolation', () => {
     expect(cloud).not.toMatch(/shouldCreateUser: true|signUp\(/);
   });
 });
+
+describe('works in any MCP client (Claude, Codex, …)', () => {
+  // Tool inputs stay in the JSON Schema subset every client handles: one
+  // `type` per field, no unions. Codex reduces schemas to a small subset (a
+  // union without a top-level type is guessed as a string), so a nullable or
+  // literal field silently breaks there. Use a boolean flag instead.
+  it('tool input schemas use no unions, nullables or literals', () => {
+    expect(
+      using(/\.nullable\(|\.nullish\(|z\.union\(|z\.literal\(|\.or\(|z\.discriminatedUnion\(/),
+    ).toEqual([]);
+  });
+});

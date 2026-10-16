@@ -1,6 +1,6 @@
 {
   "name": "work-optional-mcp",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "private": true,
   "description": "Work Optional for Claude: log your month in plain words and check whether you're on track. Encrypted on your machine; syncs end-to-end with the Work Optional app.",
   "type": "module",
@@ -11,7 +11,8 @@
   "scripts": {
     "build": "node build.mjs",
     "typecheck": "tsc --noEmit -p .",
-    "pack:mcpb": "npm run build && node pack.mjs"
+    "pack:mcpb": "npm run build && node pack.mjs",
+    "release:assets": "node release-assets.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
