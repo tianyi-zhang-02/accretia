@@ -153,6 +153,52 @@ describe('local-only vault', () => {
   );
 });
 
+describe('parallel tool calls', () => {
+  it(
+    'concurrent writes all land — none silently overwrites another',
+    async () => {
+      const v = new Vault(new Store(dir), PASS, null);
+      // The very first writes race too: still exactly one vault.
+      await Promise.all(
+        [7, 8, 9].map((month) => v.update(logMonthChange({ year: 2026, month, income: month }))),
+      );
+      const { data } = await v.read();
+      expect(data.ledger.map((e) => e.month)).toEqual([7, 8, 9]);
+      expect(fs.readdirSync(dir).sort()).toEqual(['RECOVERY-CODE.txt', 'vault.json']);
+    },
+    T,
+  );
+
+  it(
+    'a read issued with writes sees them in order',
+    async () => {
+      const v = new Vault(new Store(dir), PASS, null);
+      const [, , r] = await Promise.all([
+        v.update(logMonthChange({ year: 2026, month: 8, income: 1 })),
+        v.update(logMonthChange({ year: 2026, month: 9, income: 2 })),
+        v.read(),
+      ]);
+      expect(r.data.ledger).toHaveLength(2);
+    },
+    T,
+  );
+
+  it(
+    'a failing call does not jam the queue',
+    async () => {
+      const v = new Vault(new Store(dir), PASS, null);
+      await expect(
+        v.update(() => {
+          throw new Error('bad change');
+        }),
+      ).rejects.toThrow('bad change');
+      await v.update(logMonthChange({ year: 2026, month: 9, income: 1 }));
+      expect((await v.read()).data.ledger).toHaveLength(1);
+    },
+    T,
+  );
+});
+
 describe('sync with the web app', () => {
   it(
     'reads what the web app uploaded, writes what the web app can read',

@@ -15,7 +15,7 @@ import { SectionLabel } from '../ui/icon';
  * to any assistant; the server runs on the person's own computer.
  */
 
-const RELEASE = 'https://github.com/tianyi-zhang-02/accretia/releases/download/mcp-v0.9.0';
+const RELEASE = 'https://github.com/tianyi-zhang-02/accretia/releases/download/mcp-v0.9.1';
 const MCPB_URL = `${RELEASE}/work-optional.mcpb`;
 const GUIDE_URL = 'https://github.com/tianyi-zhang-02/accretia/tree/main/mcp#readme';
 

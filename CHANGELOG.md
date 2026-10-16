@@ -6,6 +6,14 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: parallel tool calls could drop a month (extension 0.9.1)
+
+- Claude and Codex can call several tools at once. With data kept only on
+  this computer, two months logged in the same breath could both report
+  "Saved" while the second write silently replaced the first. The extension
+  now does one read or write at a time. (With sync on, the cloud's version
+  check already caught this.)
+
 ### Works in Codex too
 
 - **The extension now runs in Codex as well as Claude Desktop and Claude

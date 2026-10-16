@@ -60,7 +60,7 @@ import { Vault, VaultError, type VaultData } from './vault';
  * may ever print to it.
  */
 
-const VERSION = '0.9.0';
+const VERSION = '0.9.1';
 const cfg = readConfig();
 const store = new Store(cfg.home);
 const cloud: Cloud | null =
