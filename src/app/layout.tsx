@@ -58,8 +58,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        {children}
-        <ServiceWorkerRegister />
+        {/* Registers the service worker and provides the "new version" state. */}
+        <ServiceWorkerRegister>{children}</ServiceWorkerRegister>
       </body>
     </html>
   );

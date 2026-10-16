@@ -55,6 +55,13 @@ const ICONS = {
   check: ['M5 12.5l4.5 4.5L19 7.5'],
   close: ['M6 6l12 12', 'M18 6 6 18'],
   download: ['M12 4v11', 'M7 10.5l5 5 5-5', 'M5 20h14'],
+  /** A new version — two arrows chasing round. */
+  refresh: [
+    'M4.5 11a7.5 7.5 0 0 1 13.3-3.9L20 9.5',
+    'M20 4.5v5h-5',
+    'M19.5 13a7.5 7.5 0 0 1-13.3 3.9L4 14.5',
+    'M4 19.5v-5h5',
+  ],
 } as const;
 
 export type IconName = keyof typeof ICONS;

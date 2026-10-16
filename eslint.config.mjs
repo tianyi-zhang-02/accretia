@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // Generated at build time from src/lib/pwa/service-worker.js (linted there).
+    'public/sw.js',
     // The MCP server's build output and its own installed packages.
     'mcp/dist/**',
     'mcp/.build-mcpb/**',

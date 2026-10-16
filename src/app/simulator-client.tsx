@@ -28,6 +28,7 @@ import { simulate } from '@/lib/simulator/engine';
 import { fireHeadline } from '@/lib/simulator/insights';
 import { useAppBadge } from '@/components/pwa/app-badge';
 import InstallCard, { useInstallState } from '@/components/pwa/install-card';
+import UpdateBanner from '@/components/pwa/update-banner';
 import SettingsMenu, { type ThemePref } from '@/components/ui/settings-menu';
 import Toast, { type ToastMessage } from '@/components/ui/toast';
 import { BACKUP_STALE_DAYS, daysSince } from '@/lib/backup/backup';
@@ -656,6 +657,9 @@ function SimulatorInner() {
           onCancel={() => setGuiding(false)}
         />
       ) : null}
+
+      {/* A newer version is installed behind this page: on every section. */}
+      <UpdateBanner />
 
       {tab === 'track' && showNudge ? (
         <div className="card card-tight fade-in flex flex-col gap-3 sm:flex-row sm:items-center">

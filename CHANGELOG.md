@@ -6,6 +6,29 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Tells you when there's a new version
+
+- **"A new version is ready — Refresh"**: an open tab or the installed app
+  checks for a deploy when it starts and whenever you come back to it, and
+  shows a small banner on every section once one is waiting. **Refresh**
+  switches to it and reloads once; **Later** hides it. Never in dev, never on
+  a first install, and never right after you've loaded the new version.
+- **Data from a newer version is no longer a dead end.** Restoring a backup
+  file, or downloading / unlocking a cloud copy, written by a newer version of
+  the app (another device, or Claude) now says so and offers **Refresh to
+  update** — nothing is changed. While the cloud copy is newer than this
+  version, **Upload is paused**, so an old version can't overwrite data it
+  can't read.
+- Under the hood: `public/sw.js` is now generated at build time
+  (`scripts/build-sw.mjs`, run by `prebuild`) from
+  `src/lib/pwa/service-worker.js` with a hash of the app's sources on its
+  first line, so every deploy changes the worker's bytes — that's what lets
+  the browser's own update check notice it. The only request involved is that
+  same-origin check of `/sw.js`. A new worker now **waits** instead of taking
+  over at once, installs the new shell together with its scripts (cache
+  `workoptional-v4`), and takes over when the page asks (`SKIP_WAITING`). The
+  update logic is `src/lib/pwa/update.ts`, with tests.
+
 ### Log a month in 30 seconds
 
 - **Same as last month**: a new month opens with one button that fills every
