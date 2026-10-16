@@ -64,23 +64,20 @@ const en = {
   projection: {
     assumptionsLabel: 'Assumptions',
     finalBalance: (year: number) => `Final balance · ${year} · today’s dollars`,
-    inTodaysDollars: (real: string, pct: string) =>
-      `${real} in today's dollars · ${pct} over horizon`,
-    nominalNote: (nominal: string, pct: string) =>
-      `${nominal} before inflation · ${pct} over horizon`,
-    impliedSavings: (pct: string) => `Implied savings rate (year 1): ${pct} of after-tax income`,
-    bandHeading: 'Projection · low–high band',
-    bothHeading: 'Nominal vs real',
-    nominal: 'Nominal',
-    real: 'Real',
+    nominalNote: (nominal: string) => `About ${nominal} before inflation`,
+    impliedSavings: (pct: string) => `In year one this means saving ${pct} of after-tax income`,
+    bandHeading: 'Projection · bad years to good years',
+    bothHeading: 'Before inflation vs today’s dollars',
+    nominal: 'Before inflation',
+    real: 'Today’s dollars',
     both: 'Both',
     computeError: 'Could not compute projection — check inputs.',
     bandCaption:
-      'Band = pessimistic to optimistic return. Green dots are windfall years; red dots are major-expense years.',
+      'The shaded band runs from weak markets to strong ones. Green dots: money coming in; red dots: big expenses.',
     gapCaption:
       'Shaded gap = purchasing power lost to inflation (nominal − real). Green dots are windfall years; red dots are major-expense years.',
-    detMode: 'Deterministic',
-    probMode: 'Probabilistic',
+    detMode: 'Steady',
+    probMode: 'With ups and downs',
     mcHeading: 'Probabilistic · p10–p90',
     volatility: 'Volatility',
     successProb: (pct: string) => `${pct} chance of hitting your goal`,
@@ -316,7 +313,7 @@ const en = {
   chart: {
     adjustHorizon: 'Adjust the horizon to see the projection.',
     todaysDollars: 'today’s dollars',
-    nominal: 'nominal',
+    nominal: 'before inflation',
     inflationGap: 'Lost to inflation',
   },
   pixel: {
@@ -708,6 +705,11 @@ const en = {
     refresh: 'Refresh',
     later: 'Later',
     refreshToUpdate: 'Refresh to update',
+  },
+  nextStep: {
+    title: 'Next: log last month',
+    body: 'The plan is the yardstick; the monthly check-in shows whether you’re keeping up. One minute.',
+    cta: 'Log a month',
   },
   claude: {
     heading: 'Use it in Claude or Codex',
@@ -1223,20 +1225,19 @@ const zh: Messages = {
   projection: {
     assumptionsLabel: '假设条件',
     finalBalance: (year: number) => `期末净资产 · ${year} · 按今天的钱算`,
-    inTodaysDollars: (real: string, pct: string) => `${real}（按今日购买力）· 期间累计 ${pct}`,
-    nominalNote: (nominal: string, pct: string) => `未扣通胀是 ${nominal} · 期间累计 ${pct}`,
-    impliedSavings: (pct: string) => `隐含储蓄率（第 1 年）：税后收入的 ${pct}`,
-    bandHeading: '推算 · 悲观–乐观区间',
-    bothHeading: '名义 vs 实际',
-    nominal: '名义',
-    real: '实际',
+    nominalNote: (nominal: string) => `不扣通胀的话约 ${nominal}`,
+    impliedSavings: (pct: string) => `也就是第一年要存下税后收入的 ${pct}`,
+    bandHeading: '推算 · 行情差到行情好',
+    bothHeading: '不扣通胀 vs 今天的钱',
+    nominal: '不扣通胀',
+    real: '今天的钱',
     both: '对比',
     computeError: '算不出结果，检查一下输入。',
-    bandCaption: '区间表示从悲观到乐观的收益率。绿点为额外收入年份，红点为大额支出年份。',
+    bandCaption: '阴影是从行情差到行情好的范围。绿点是有额外进账的年份，红点是有大额支出的年份。',
     gapCaption:
       '阴影 = 被通胀侵蚀的购买力（名义 − 实际）。绿点为额外收入年份，红点为大额支出年份。',
-    detMode: '确定性',
-    probMode: '概率',
+    detMode: '平稳',
+    probMode: '有涨有跌',
     mcHeading: '概率 · p10–p90',
     volatility: '波动率',
     successProb: (pct: string) => `达标概率 ${pct}`,
@@ -1469,8 +1470,8 @@ const zh: Messages = {
   },
   chart: {
     adjustHorizon: '调整推算区间以查看结果。',
-    todaysDollars: '今日购买力',
-    nominal: '名义',
+    todaysDollars: '今天的钱',
+    nominal: '不扣通胀',
     inflationGap: '被通胀侵蚀',
   },
   pixel: {
@@ -1843,6 +1844,11 @@ const zh: Messages = {
     refresh: '刷新',
     later: '稍后',
     refreshToUpdate: '刷新并更新',
+  },
+  nextStep: {
+    title: '下一步：记上个月的账',
+    body: '规划是尺子，每月记一笔才看得出你有没有跟上。一分钟就够。',
+    cta: '去记一笔',
   },
   claude: {
     heading: '在 Claude 或 Codex 里用',

@@ -6,6 +6,16 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Plan, in plain words
+
+- **The chart opens in today's dollars**, like the headline figure above it —
+  no more "$110M" line next to a "$3M" answer. The axis starts at zero.
+- **Plain labels**: *Before inflation / Today's dollars*, *Steady / With ups
+  and downs*, "bad years to good years", and *"In year one this means saving
+  44% of after-tax income"* instead of "implied savings rate".
+- **After the four setup questions, the next step is spelled out**: *Next:
+  log last month* takes you to the check-in.
+
 ### Fixed: parallel tool calls could drop a month (extension 0.9.1)
 
 - Claude and Codex can call several tools at once. With data kept only on
