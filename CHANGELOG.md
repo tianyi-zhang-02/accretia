@@ -6,6 +6,12 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Every removal can be undone
+
+- Clearing your budgets, removing a once-a-year bill and removing a savings
+  goal now work like clearing a month: it happens at once, and a toast
+  offers **Undo**.
+
 ### A calmer Track page
 
 - **Budgets, once-a-year bills and savings goals now share one card** —

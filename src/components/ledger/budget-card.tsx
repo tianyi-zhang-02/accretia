@@ -25,6 +25,7 @@ export default function BudgetCard({
   planMonthlySpending,
   onChange,
   embedded = false,
+  notify,
 }: {
   budgets: Budgets;
   entries: MonthEntry[];
@@ -34,6 +35,8 @@ export default function BudgetCard({
   onChange: (next: Budgets) => void;
   /** Inside the Budgets & goals card: just the content, no card or header. */
   embedded?: boolean;
+  /** Undoable removals: a toast with Undo, as for clearing a month. */
+  notify?: (text: string, undo?: () => void) => void;
 }) {
   const { t, fmt } = useI18n();
   const B = t.track.budgets;
@@ -119,8 +122,10 @@ export default function BudgetCard({
             type="button"
             className="btn btn-ghost"
             onClick={() => {
+              const before = budgets;
               setDrafts({});
               onChange({});
+              notify?.(t.toast.budgetsCleared, () => onChange(before));
             }}
           >
             {B.clearAll}

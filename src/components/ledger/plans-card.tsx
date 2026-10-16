@@ -34,6 +34,7 @@ export default function PlansCard({
   onBudgets,
   onAnnual,
   onGoals,
+  notify,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -48,6 +49,7 @@ export default function PlansCard({
   onBudgets: (next: Budgets) => void;
   onAnnual: (next: AnnualExpense[]) => void;
   onGoals: (next: SavingsGoal[]) => void;
+  notify: (text: string, undo?: () => void) => void;
 }) {
   const { t, fmt } = useI18n();
   const P = t.track.plans;
@@ -107,9 +109,16 @@ export default function PlansCard({
                 today={today}
                 planMonthlySpending={planMonthlySpending}
                 onChange={onBudgets}
+                notify={notify}
               />
             ) : tab === 'annual' ? (
-              <AnnualCard embedded annual={annual} today={today} onChange={onAnnual} />
+              <AnnualCard
+                embedded
+                annual={annual}
+                today={today}
+                onChange={onAnnual}
+                notify={notify}
+              />
             ) : (
               <GoalsCard
                 embedded
@@ -117,6 +126,7 @@ export default function PlansCard({
                 entries={entries}
                 today={today}
                 onChange={onGoals}
+                notify={notify}
               />
             )}
           </div>
