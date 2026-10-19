@@ -59,11 +59,17 @@ function makeFormatters(locale: Locale): Formatters {
     maximumFractionDigits: 0,
   });
   const compact = new Intl.NumberFormat(tag, { notation: 'compact', maximumFractionDigits: 1 });
-  const currency0 = (n: number) => (Number.isFinite(n) ? currency.format(n) : '—');
+  // Whole dollars: a value that rounds to zero is "$0" (never "-$0"), and a
+  // negative uses the true minus sign, like currencyDelta does.
+  const currency0 = (n: number) => {
+    if (!Number.isFinite(n)) return '—';
+    const r = Math.round(n);
+    return r < 0 ? `−${currency.format(-r)}` : currency.format(r === 0 ? 0 : r);
+  };
   return {
     currency0,
     currencyDelta: (n) =>
-      Number.isFinite(n) ? `${n >= 0 ? '+' : '−'}${currency0(Math.abs(n))}` : '—',
+      Number.isFinite(n) ? `${Math.round(n) >= 0 ? '+' : '−'}${currency0(Math.abs(n))}` : '—',
     compact: (n) => (Number.isFinite(n) ? compact.format(n) : '—'),
     // Keep the explicit +/− sign the projection UI relies on.
     signedPct1: (n) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(1)}%`,

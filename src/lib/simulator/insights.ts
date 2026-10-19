@@ -55,7 +55,7 @@ type LeverInsight<Id extends string> = {
 export type Insight =
   /** Headline: the year work becomes optional. */
   | { id: 'fireAge'; tone: 'good'; rank: number; age: number; year: number }
-  | { id: 'fireNever'; tone: 'warn'; rank: number }
+  | { id: 'fireNever'; tone: 'warn'; rank: number; overspending: boolean }
   /** Levers — each carries a one-click patch and what it's worth in years. */
   | LeverInsight<'spendLess'>
   | LeverInsight<'dropCreep'>
@@ -129,7 +129,14 @@ export function buildInsights(a: Assumptions): Insight[] {
       year: primary.birthYear + base,
     });
   } else {
-    out.push({ id: 'fireNever', tone: 'warn', rank: 1000 });
+    // Say why: most often the plan spends more than it brings home.
+    const first = simulate(a).rows[0];
+    out.push({
+      id: 'fireNever',
+      tone: 'warn',
+      rank: 1000,
+      overspending: first !== undefined && first.saved < 0,
+    });
   }
 
   /**

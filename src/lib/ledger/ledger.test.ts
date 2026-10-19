@@ -641,3 +641,19 @@ describe('recurringFor — what repeats month to month', () => {
     expect(recurringFor(entries, { year: 2026, month: 9 }).categories).toEqual({});
   });
 });
+
+describe("planAt in the plan's first year", () => {
+  const rows = [
+    { year: 2026, netWorth: 112_000, expenses: 60_000, saved: 30_000, housingCosts: 0 } as YearRow,
+  ];
+  it('without an anchor the start is January 1st', () => {
+    expect(planAt(rows, 100_000, { year: 2026, month: 9 })!.netWorth).toBe(109_000);
+  });
+  it('anchored to the first month logged, a plan made in the autumn starts there', () => {
+    const anchor = { year: 2026, month: 9 };
+    expect(planAt(rows, 100_000, { year: 2026, month: 9 }, anchor)!.netWorth).toBe(100_000);
+    // Oct–Dec close the gap to the year-end figure.
+    expect(planAt(rows, 100_000, { year: 2026, month: 12 }, anchor)!.netWorth).toBe(112_000);
+    expect(planAt(rows, 100_000, { year: 2026, month: 10 }, anchor)!.netWorth).toBe(104_000);
+  });
+});

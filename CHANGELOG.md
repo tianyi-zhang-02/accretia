@@ -6,6 +6,29 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: what an edge-case pass found
+
+- **The guided setup accepted only round amounts** — an income of 123,456 or
+  savings of 5,000 silently blocked "Next". Any amount now works.
+- **A brand-new plan read "behind" straight away**: a plan made in October
+  measured you from January 1st. In a plan's first year it now starts from
+  the first month you log a net worth — exactly where you said you are reads
+  as **right on plan**.
+- **No more "−$0"**, and minus signs are the same true minus everywhere.
+- When the plan has you spending more than you bring home, Plan says so
+  instead of a general "spending grows as fast as the portfolio".
+- **Hide amounts** in the year review: the page behind the dialog is now
+  dimmed enough that a screenshot can't show figures from it.
+- Widgets: no "% of plan" when it would mislead (a month in the red says
+  "more went out than came in"; huge ratios show as 999%+); an old month
+  is labelled with its year; amounts shrink with the tile at large text
+  sizes instead of being cut off. The widgets stay hidden during setup.
+- Smaller: "Same as last month" only offers a recent month (≤3 months
+  back); an over-funded goal shows what you actually saved; the Save bar
+  sits flush on the tab bar; the year report header wraps cleanly on
+  phones; "1 month recorded" (singular); a one-month year review doesn't
+  name a "best month"; shorter budget-tab labels.
+
 ### Fixed: leaving the sample data is now airtight
 
 - **Sample figures could stay in the check-in after *Use my own data*** — a

@@ -119,7 +119,9 @@ function Headline({ insight }: { insight: Insight }) {
     return (
       <div className="flex items-start gap-3">
         <Icon name="cloud" size={28} className="text-negative mt-0.5" />
-        <p className="text-sm leading-relaxed">{t.insights.fireNever}</p>
+        <p className="text-sm leading-relaxed">
+          {insight.overspending ? t.insights.fireNeverOverspend : t.insights.fireNever}
+        </p>
       </div>
     );
   }

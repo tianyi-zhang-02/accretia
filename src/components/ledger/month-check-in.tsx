@@ -504,7 +504,12 @@ function Form({
    * and line items). Net worth never: it's a fact about this month. Then
    * only what changed needs typing.
    */
-  const source = entry ? undefined : lastLogged;
+  // Only a recent month is a fair first guess (the same 3-month window the
+  // repeating bills use); a year-old month would mislead more than help.
+  const source =
+    entry || !lastLogged || ym.year * 12 + ym.month - (lastLogged.year * 12 + lastLogged.month) > 3
+      ? undefined
+      : lastLogged;
   function copyLast() {
     if (!source) return;
     const got: Copied = {

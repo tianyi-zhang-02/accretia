@@ -845,6 +845,7 @@ function SimulatorInner() {
           <LedgerPanel
             // Sample ↔ own data: start every form fresh, never carry state across.
             key={demo ? 'sample' : 'own'}
+            showWidgets={!guiding}
             entries={ledger}
             onChange={setLedger}
             assumptions={assumptions}

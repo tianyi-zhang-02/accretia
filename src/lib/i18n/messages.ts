@@ -613,7 +613,7 @@ const en = {
     lockedSpending: 'Logged by category — edit it in the check-in.',
     planVsActual: 'Actual / plan',
     partialNote: (months: number) =>
-      `Plan figures are scaled to the ${months} months recorded, so a partial year compares fairly.`,
+      `Plan figures are scaled to the ${months} ${months === 1 ? 'month' : 'months'} recorded, so a partial year compares fairly.`,
     calibrate: 'Use these numbers in my plan',
     calibrateHint:
       'Sets your plan’s spending to this year’s annualized actual, and your starting net worth to the latest one recorded.',
@@ -852,6 +852,7 @@ const en = {
       ],
       netWorthAsOf: (month: string) => `Net worth, ${month}`,
       planSaid: (amount: string) => `(plan: ${amount})`,
+      onPlan: 'right on plan',
       ahead: (amount: string) => `${amount} ahead of plan`,
       behind: (amount: string) => `${amount} behind plan`,
       over: (amount: string) => `${amount} over plan`,
@@ -891,6 +892,7 @@ const en = {
       firstLog: 'Log your first month',
       ofPlan: (pct: string) => `${pct} of what the plan expects`,
       logCta: (month: string) => `＋ Log ${month}`,
+      overspent: 'more went out than came in',
       streak: 'Streak',
       months: (n: number) => `${n === 1 ? 'month' : 'months'} in a row`,
       streakStart: 'starts with one month',
@@ -913,7 +915,7 @@ const en = {
       budgetsSet: (n: number) => `${n} budget${n === 1 ? '' : 's'}`,
       annualSet: (total: string) => `${total}/yr bills`,
       goalsSet: (n: number) => `${n} goal${n === 1 ? '' : 's'}`,
-      tabs: { budgets: 'Monthly budgets', annual: 'Once a year', goals: 'Savings goals' },
+      tabs: { budgets: 'Budgets', annual: 'Yearly bills', goals: 'Goals' },
     },
     review: {
       open: 'Year in review',
@@ -1181,6 +1183,8 @@ const en = {
     fireAgeSub: (year: number) => `In ${year}, your investments could cover your spending.`,
     fireNever:
       'On these assumptions your investments never cover your spending — spending grows as fast as the portfolio does.',
+    fireNeverOverspend:
+      'On these assumptions you spend more than you bring home, so nothing is left to invest. Lower the spending or raise the income in your plan.',
     spendLess: (years: number, age: number) =>
       `Spending 10% less is worth ${yrs(years)} — FIRE at ${age}. It’s the only lever that cuts both ways: more saved, and a smaller number to reach.`,
     spendLessReach: (age: number) => `Spending 10% less would make FIRE reachable — at ${age}.`,
@@ -2021,6 +2025,7 @@ const zh: Messages = {
       ],
       netWorthAsOf: (month: string) => `净资产（${month}）`,
       planSaid: (amount: string) => `（规划：${amount}）`,
+      onPlan: '和规划持平',
       ahead: (amount: string) => `比规划多 ${amount}`,
       behind: (amount: string) => `比规划少 ${amount}`,
       over: (amount: string) => `比规划多花 ${amount}`,
@@ -2060,6 +2065,7 @@ const zh: Messages = {
       firstLog: '记下第一个月',
       ofPlan: (pct: string) => `达到规划的 ${pct}`,
       logCta: (month: string) => `＋ 记${month}`,
+      overspent: '花的比进的多',
       streak: '连续记账',
       months: () => '个月不间断',
       streakStart: '从记一个月开始',
@@ -2342,6 +2348,8 @@ const zh: Messages = {
     fireAge: (age: number) => `${age} 岁起，工作变成可选项。`,
     fireAgeSub: (year: number) => `到 ${year} 年，你的投资收益就能覆盖开支。`,
     fireNever: '按现在的假设，你的投资永远追不上开支：开支涨得和资产一样快。',
+    fireNeverOverspend:
+      '按现在的假设，你花的比到手的还多，没有钱可以拿去投资。把规划里的开支调低，或者把收入调高。',
     spendLess: (years: number, age: number) =>
       `每年少花 10%，能提前 ${years} 年，${age} 岁就够了。这是唯一两头都占的办法：存得更多，目标线还更低。`,
     spendLessReach: (age: number) => `每年少花 10%，本来到不了的 FIRE，${age} 岁就能到。`,

@@ -116,10 +116,16 @@ export default function TrackStatus({
     () => monthAllowance(entries, at, planRows, startingNetWorth, annual),
     [entries, at, planRows, startingNetWorth, annual],
   );
-  const planNow = latest ? planAt(planRows, startingNetWorth, latest) : null;
+  // The plan's starting net worth is "now" when it was made: in its first
+  // year, measure from the first month logged with a net worth.
+  const anchor = useMemo(
+    () => entries.find((e) => e.netWorth !== undefined && e.year === planRows[0]?.year),
+    [entries, planRows],
+  );
+  const planNow = latest ? planAt(planRows, startingNetWorth, latest, anchor) : null;
   const planLine = useMemo(
-    () => withNw.map((e) => planAt(planRows, startingNetWorth, e)?.netWorth ?? null),
-    [withNw, planRows, startingNetWorth],
+    () => withNw.map((e) => planAt(planRows, startingNetWorth, e, anchor)?.netWorth ?? null),
+    [withNw, planRows, startingNetWorth, anchor],
   );
   const monthShort = (e: MonthEntry) =>
     new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
@@ -130,6 +136,8 @@ export default function TrackStatus({
   /** Saving / net worth: more than plan is good. Spending: less is. */
   const vsPlan = (actual: number, plan: number, kind: 'more' | 'spend' = 'more') => {
     const d = actual - plan;
+    // Within $50 either way is simply "on plan" — "$0 ahead" reads oddly.
+    if (Math.abs(d) < 50) return <span className="text-positive">{S.onPlan}</span>;
     const good = kind === 'more' ? d >= 0 : d <= 0;
     const text =
       kind === 'more'

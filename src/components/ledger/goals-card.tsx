@@ -163,7 +163,7 @@ export default function GoalsCard({
                   {g.target <= 0
                     ? G.noTarget
                     : s.done
-                      ? G.done(fmt.currency0(g.target))
+                      ? G.done(fmt.currency0(Math.max(g.saved, g.target)))
                       : s.overdue
                         ? G.overdue(fmt.currency0(s.left))
                         : G.status(
