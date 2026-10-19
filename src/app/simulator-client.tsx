@@ -225,6 +225,32 @@ function SimulatorInner() {
     guiding: boolean;
   }>(null);
   const [wantDemo, setWantDemo] = useState(false);
+  // On a touch screen, mark the page while a text field has focus so CSS can
+  // move the tab bar out of the keyboard's way (see `[data-typing]`).
+  useEffect(() => {
+    const isField = (el: EventTarget | null) =>
+      el instanceof HTMLElement &&
+      el.matches('input:not([type=checkbox]):not([type=radio]), textarea');
+    const root = document.documentElement;
+    const onIn = (e: FocusEvent) => {
+      if (isField(e.target) && window.matchMedia('(pointer: coarse)').matches) {
+        root.dataset.typing = '';
+      }
+    };
+    const onOut = () => {
+      // Focus moving to the next field fires focusout first: check after it lands.
+      window.setTimeout(() => {
+        if (!isField(document.activeElement)) delete root.dataset.typing;
+      }, 0);
+    };
+    document.addEventListener('focusin', onIn);
+    document.addEventListener('focusout', onOut);
+    return () => {
+      document.removeEventListener('focusin', onIn);
+      document.removeEventListener('focusout', onOut);
+      delete root.dataset.typing;
+    };
+  }, []);
   // Leaving the sample puts back exactly what storage already holds — so the
   // write that follows is skipped (a first visitor must not get a blank plan
   // saved, or the guided setup wouldn't open next time).
@@ -877,7 +903,7 @@ function SimulatorInner() {
             <div className="flex items-center gap-2">
               <select
                 aria-label={t.scenarioBar.scenarioAria}
-                className="border-border bg-background min-w-0 flex-1 rounded border px-3 py-2 text-sm"
+                className="field min-w-0 flex-1"
                 value={selectedId}
                 onChange={(e) => setSelectedId(e.target.value)}
               >
@@ -1038,6 +1064,7 @@ function SimulatorInner() {
                       <button
                         key={v}
                         type="button"
+                        aria-pressed={view === v}
                         onClick={() => setView(v)}
                         className={`min-h-9 px-3.5 font-medium transition-colors ${
                           view === v
@@ -1106,6 +1133,7 @@ function SimulatorInner() {
                             <button
                               key={e}
                               type="button"
+                              aria-pressed={chartEngine === e}
                               onClick={() => setChartEngine(e)}
                               className={`px-2.5 py-1 ${
                                 chartEngine === e
@@ -1127,6 +1155,7 @@ function SimulatorInner() {
                               <button
                                 key={m}
                                 type="button"
+                                aria-pressed={displayMode === m}
                                 onClick={() => setDisplayMode(m)}
                                 className={`px-2.5 py-1 ${
                                   displayMode === m

@@ -77,6 +77,7 @@ function MoneyField({
         <input
           type="text"
           inputMode="decimal"
+          enterKeyHint="next"
           autoComplete="off"
           value={value}
           placeholder={placeholder}
@@ -144,7 +145,7 @@ export function TierBar({
 function FixedTag({ last = false }: { last?: boolean }) {
   const { t } = useI18n();
   return (
-    <span className={`shrink-0 text-[10px] font-medium ${last ? 'text-muted' : 'text-accent'}`}>
+    <span className={`shrink-0 text-[11px] font-medium ${last ? 'text-muted' : 'text-accent'}`}>
       {last ? t.track.checkIn.lastTag : t.track.checkIn.fixedTag}
     </span>
   );
@@ -776,6 +777,7 @@ function Form({
                     <input
                       type="text"
                       inputMode="decimal"
+                      enterKeyHint="next"
                       autoComplete="off"
                       value={srcs[id] ?? ''}
                       placeholder={
@@ -812,6 +814,7 @@ function Form({
           <input
             type="text"
             inputMode="decimal"
+            enterKeyHint="next"
             autoComplete="off"
             value={pretax}
             placeholder={prev?.pretaxSavings !== undefined ? plain(prev.pretaxSavings) : C.optional}
@@ -850,7 +853,7 @@ function Form({
                         type="button"
                         aria-expanded={isOpen}
                         onClick={() => toggleOpen(id)}
-                        className="hover:text-foreground flex min-w-0 items-center gap-2 text-left"
+                        className="hover:text-foreground flex min-h-10 min-w-0 items-center gap-2 text-left"
                       >
                         <span
                           aria-hidden
@@ -890,6 +893,7 @@ function Form({
                         <input
                           type="text"
                           inputMode="decimal"
+                          enterKeyHint="next"
                           autoComplete="off"
                           aria-label={t.track.categories[id]}
                           value={itemized ? String(value ?? '') : (cats[id] ?? '')}
@@ -932,6 +936,7 @@ function Form({
                                 <input
                                   type="text"
                                   inputMode="decimal"
+                                  enterKeyHint="next"
                                   autoComplete="off"
                                   value={subs[item.id] ?? ''}
                                   placeholder={

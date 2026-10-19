@@ -202,7 +202,7 @@ export default function PlanSummary({
                     setEditing(l.key);
                     setDraft(String(l.value));
                   }}
-                  className={`nums text-[15px] font-medium ${
+                  className={`nums -my-2.5 -mr-2 inline-flex min-h-10 min-w-12 items-center justify-end rounded-[8px] px-2 text-[15px] font-medium ${
                     l.editable ? 'hover:text-accent' : 'text-muted cursor-default'
                   }`}
                 >

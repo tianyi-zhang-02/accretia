@@ -279,7 +279,7 @@ function LifestyleEditor({
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value as 'off' | 'flat' | 'incomeScaled')}
-          className="border-border bg-background rounded border px-3 py-2 text-sm"
+          className="field"
         >
           <option value="off">{t.form.lifestyle.off}</option>
           <option value="flat">{t.form.lifestyle.flat}</option>

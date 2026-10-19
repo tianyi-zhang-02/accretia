@@ -6,6 +6,20 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Made for thumbs
+
+- **Every control is comfortable to tap on a phone**: on touch screens,
+  buttons, chips, segmented switches and tabs are at least 40–44 px tall,
+  checkboxes are bigger, and the grey tap flash is gone (mouse users keep the
+  compact sizes). On Track and Data nothing is under 36 px any more; the
+  plan's tap-to-edit values got a real target without changing row height.
+- **The keyboard gets the bottom of the screen**: while you type on a phone
+  the tab bar steps aside and the check-in's Save row sits right on top of
+  the keyboard (Android used to push both up above the keys). The number pad
+  shows **Next** to move to the following amount.
+- The plan picker and the lifestyle-creep select use the app's own input
+  style. Chart switches announce which option is on to screen readers.
+
 ## [2.0.0] — 2026-10-16
 
 **Live:** https://accretia.vercel.app · **Try it with sample data:** https://accretia.vercel.app/?demo
