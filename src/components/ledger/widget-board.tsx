@@ -27,6 +27,9 @@ import Icon from '../ui/icon';
  * under "reduce motion".
  */
 
+/** Module-level so CountUp's effect doesn't restart on every render. */
+const percent = (n: number) => `${Math.round(n)}%`;
+
 const reduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -253,7 +256,7 @@ export default function WidgetBoard({
             {jarTarget > 0 ? (
               <>
                 <span className="widget-figure">
-                  <CountUp value={jarPct * 100} format={(n) => `${Math.round(n)}%`} />
+                  <CountUp value={jarPct * 100} format={percent} />
                 </span>
                 <span className="text-muted text-[12px]">{W.ofGoals}</span>
               </>

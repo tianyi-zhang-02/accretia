@@ -49,7 +49,8 @@ const round = (n: number) => Math.round(n);
 
 export function goalStatus(g: SavingsGoal, today: YearMonth): GoalStatus {
   const left = Math.max(0, g.target - g.saved);
-  const done = left === 0;
+  // No target yet (0) is "not set", not "reached".
+  const done = g.target > 0 && left === 0;
   const monthsLeft = Math.max(0, key(g) - key(today) + 1);
   const overdue = !done && monthsLeft === 0;
   return {

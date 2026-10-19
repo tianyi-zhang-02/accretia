@@ -6,6 +6,27 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: leaving the sample data is now airtight
+
+- **Sample figures could stay in the check-in after *Use my own data*** — a
+  half-filled form built from the sample (e.g. "9 amounts carried over") was
+  kept, and saving it wrote sample numbers into your own ledger. Track now
+  starts fresh whenever you switch between the sample and your data.
+- **An Undo offered inside the sample could overwrite your ledger** if pressed
+  right after leaving it. Toasts are now cleared on the way in and out.
+- Leaving the sample re-reads what's saved instead of an older copy, so a
+  month logged in another tab meanwhile isn't lost; with *Save on this
+  device* off, the next save is no longer skipped.
+- **Goals:** a goal with no target is "set a target", not "reached"; when
+  every open goal is past its date, *Am I on track?* says so instead of "all
+  reached"; a past year's review no longer counts goals reached today.
+- *Same as last month* and *Fill them in* leave a total you typed by hand
+  alone, and **Undo** also puts the "one total / by category" choice back.
+- Undoing a removed budget, bill or goal restores just that — not other edits
+  made in between. The savings jar no longer restarts its count-up on every
+  tap. The year review's "savings rate vs last year" uses the same basis as
+  its headline rate.
+
 ### A shorter check-in
 
 - Inside a category, only the line items you use are listed (this month's,

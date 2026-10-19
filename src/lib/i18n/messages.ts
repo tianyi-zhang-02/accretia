@@ -837,6 +837,8 @@ const en = {
       goalsFit: 'fits',
       goalsShort: (gap: string) => `${gap} short`,
       goalsDone: 'all reached',
+      goalsOverdue: 'a date has passed',
+      goalsSetTarget: 'set a target',
       allowanceMath: (plan: string, fixed: string, annual: string | null) =>
         `plan ${plan} a month − repeating bills ${fixed}${annual ? ` − ${annual} set aside for yearly bills` : ''}`,
       allowanceUsual: (amount: string) => `lately about ${amount} a month`,
@@ -982,6 +984,7 @@ const en = {
       removeShort: 'Remove',
       emergencyHint: (amount: string) => `Six months of your recent spending is about ${amount}.`,
       use: 'Use it',
+      noTarget: 'Set a target to see what it needs a month.',
     },
     annual: {
       heading: 'Once-a-year bills',
@@ -2004,6 +2007,8 @@ const zh: Messages = {
       goalsFit: '够用',
       goalsShort: (gap: string) => `还差 ${gap}`,
       goalsDone: '都达成了',
+      goalsOverdue: '有目标已过期限',
+      goalsSetTarget: '还没设目标金额',
       allowanceMath: (plan: string, fixed: string, annual: string | null) =>
         `规划月开支 ${plan} − 固定账单 ${fixed}${annual ? ` − 年度开支预留 ${annual}` : ''}`,
       allowanceUsual: (amount: string) => `最近平均每月日常约 ${amount}`,
@@ -2145,6 +2150,7 @@ const zh: Messages = {
       removeShort: '删除',
       emergencyHint: (amount: string) => `按你最近的开支，6 个月约 ${amount}。`,
       use: '用这个',
+      noTarget: '设个目标金额，就能算出每月要存多少。',
     },
     annual: {
       heading: '一年一次的大额开支',

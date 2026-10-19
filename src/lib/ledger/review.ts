@@ -91,10 +91,24 @@ export function yearInReview(
     longestRun,
     vsLastYear: y
       ? {
-          ratePts:
-            y.now.savingsRatePct !== null && y.then.savingsRatePct !== null
-              ? y.now.savingsRatePct - y.then.savingsRatePct
-              : null,
+          // Same basis as the headline rate (pre-tax savings included), over
+          // the months logged in both years.
+          ratePts: (() => {
+            const rate = (yr: number) => {
+              const es = y.months
+                .map((m) => entries.find((e) => e.year === yr && e.month === m))
+                .filter((e): e is MonthEntry => e !== undefined);
+              const cameIn = es.reduce((t, e) => t + e.income + (e.pretaxSavings ?? 0), 0);
+              const kept = es.reduce(
+                (t, e) => t + e.income - e.spending + (e.pretaxSavings ?? 0),
+                0,
+              );
+              return cameIn > 0 ? (kept / cameIn) * 100 : null;
+            };
+            const now = rate(year);
+            const then = rate(year - 1);
+            return now !== null && then !== null ? now - then : null;
+          })(),
           spendingPct:
             y.then.spending > 0
               ? ((y.now.spending - y.then.spending) / y.then.spending) * 100
@@ -110,8 +124,10 @@ export function yearInReview(
         }
       : null,
     vsPlan: r.plan ? Math.round(r.saved - r.plan.saved) : null,
-    goalsReached: opts.today
-      ? (opts.goals ?? []).filter((g) => goalStatus(g, opts.today!).done).length
-      : 0,
+    // Goals are reached "now": only the current year's review counts them.
+    goalsReached:
+      opts.today && year === opts.today.year
+        ? (opts.goals ?? []).filter((g) => goalStatus(g, opts.today!).done).length
+        : 0,
   };
 }

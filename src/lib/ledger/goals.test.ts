@@ -75,3 +75,9 @@ it('an emergency fund suggestion: six months of recent spending', () => {
   expect(suggestEmergency([month(9, 1, 4_130), month(10, 1, 4_270)], oct)).toBe(25_200);
   expect(suggestEmergency([], oct)).toBeNull();
 });
+
+it('a goal without a target is not "reached"', () => {
+  const s = goalStatus(goal({ target: 0, saved: 0 }), oct);
+  expect(s.done).toBe(false);
+  expect(s.perMonth).toBe(0);
+});
