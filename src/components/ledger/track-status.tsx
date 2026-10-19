@@ -9,7 +9,6 @@ import type { YearRow } from '@/lib/simulator/engine';
 import { SectionLabel } from '../ui/icon';
 import MetalCard, { Chip } from '../ui/metal-card';
 import { monthAllowance } from '@/lib/ledger/allowance';
-import { goalStatus, goalsSummary, type SavingsGoal } from '@/lib/ledger/goals';
 import type { AnnualExpense } from '@/lib/ledger/annual';
 
 /**
@@ -67,13 +66,7 @@ export default function TrackStatus({
   planRows,
   startingNetWorth,
   at,
-  fire,
-  onOpenPlan,
   annual,
-  goals,
-  today,
-  onOpenGoals,
-  compact = false,
 }: {
   entries: MonthEntry[];
   report: YearReport;
@@ -81,16 +74,7 @@ export default function TrackStatus({
   startingNetWorth: number;
   /** The month on screen — where the plan's mortgage balance is read. */
   at: YearMonth;
-  fire: { age: number; year: number } | null;
-  onOpenPlan: () => void;
   annual: AnnualExpense[];
-  goals: SavingsGoal[];
-  today: YearMonth;
-  /** Open the Budgets & goals card on the goals tab. */
-  onOpenGoals: () => void;
-  /** The widget board is showing above: leave out what its tiles already say
-      (allowance figure, goals, the work-optional age). */
-  compact?: boolean;
 }) {
   const { t, fmt, locale } = useI18n();
   const S = t.track.status;
@@ -101,17 +85,6 @@ export default function TrackStatus({
   );
   const latest = withNw.at(-1);
   const loanLeft = planAt(planRows, startingNetWorth, at)?.mortgageBalance ?? 0;
-  const goalsLine = useMemo(() => {
-    if (goals.length === 0) return null;
-    const g = goalsSummary(goals, entries, today);
-    const statuses = goals.map((x) => goalStatus(x, today));
-    return {
-      need: g.needPerMonth,
-      room: g.room,
-      allDone: statuses.every((s) => s.done),
-      overdue: statuses.some((s) => s.overdue),
-    };
-  }, [goals, entries, today]);
   const allowance = useMemo(
     () => monthAllowance(entries, at, planRows, startingNetWorth, annual),
     [entries, at, planRows, startingNetWorth, annual],
@@ -151,7 +124,8 @@ export default function TrackStatus({
   };
 
   // The hero, on the metal card: net worth if it's logged, else what was
-  // kept this year, else the plan's one sentence.
+  // kept this year, else where the plan says you are today (the widgets
+  // above already say the work-optional age).
   const hero = latest
     ? {
         label: S.netWorthAsOf(monthShort(latest)),
@@ -169,25 +143,11 @@ export default function TrackStatus({
           figure: fmt.currency0(report.saved),
           sub: <span className="text-muted">{S.addNetWorth}</span>,
         }
-      : compact
-        ? // The widgets already say the work-optional age: start from where
-          // the plan says you are today.
-          {
-            label: S.heroStartLabel,
-            figure: fmt.currency0(startingNetWorth),
-            sub: <span className="text-muted">{S.heroStartSub}</span>,
-          }
-        : fire
-          ? {
-              label: S.heroFireLabel,
-              figure: S.heroFireAge(fire.age),
-              sub: <span className="text-muted">{S.heroFireSub(fire.year)}</span>,
-            }
-          : {
-              label: S.heading,
-              figure: '—',
-              sub: <span className="text-muted">{S.fireNever}</span>,
-            };
+      : {
+          label: S.heroStartLabel,
+          figure: fmt.currency0(startingNetWorth),
+          sub: <span className="text-muted">{S.heroStartSub}</span>,
+        };
 
   return (
     <section className="flex flex-col gap-4">
@@ -270,7 +230,7 @@ export default function TrackStatus({
                   </span>
                 </li>
               ) : null}
-              {compact && allowance ? (
+              {allowance ? (
                 <li className="row">
                   <span className="min-w-0">
                     <span className="block text-[13px]">{t.track.widgets.allowance}</span>
@@ -293,88 +253,12 @@ export default function TrackStatus({
           </>
         )}
 
-        {allowance && entries.length > 0 && !compact ? (
-          <div className="bg-surface-2 mt-4 rounded-[12px] p-3.5">
-            <p className="text-muted text-xs">{S.allowanceHeading}</p>
-            <p
-              className={`figure mt-1 text-[26px] ${allowance.flexible < 0 ? 'text-negative' : ''}`}
-            >
-              {fmt.currency0(allowance.flexible)}
-            </p>
-            <p className="text-muted mt-1 text-[11px] leading-snug">
-              {S.allowanceMath(
-                fmt.currency0(allowance.plan),
-                fmt.currency0(allowance.fixed),
-                allowance.annualReserve > 0 ? fmt.currency0(allowance.annualReserve) : null,
-              )}
-            </p>
-            {allowance.flexible < 0 ? (
-              <p className="text-negative mt-1.5 text-[11px] leading-snug">{S.allowanceShort}</p>
-            ) : allowance.usualFlexible !== null ? (
-              <p
-                className={`mt-1.5 text-[11px] ${allowance.usualFlexible <= allowance.flexible ? 'text-positive' : 'text-negative'}`}
-              >
-                {S.allowanceUsual(fmt.currency0(allowance.usualFlexible))}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-
-        {goalsLine && !compact ? (
-          <button
-            type="button"
-            onClick={onOpenGoals}
-            className="hover:bg-surface-2 -mx-2 mt-3 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded-[10px] px-2 py-2 text-left text-[13px] transition-colors"
-          >
-            <span>{S.goalsRow}</span>
-            <span className="nums text-right text-xs">
-              {goalsLine.need > 0 ? (
-                <>
-                  <span className="font-medium">{S.goalsNeed(fmt.currency0(goalsLine.need))}</span>
-                  {goalsLine.room !== null ? (
-                    <span className={goalsLine.room >= 0 ? 'text-positive' : 'text-negative'}>
-                      {' '}
-                      ·{' '}
-                      {goalsLine.room >= 0
-                        ? S.goalsFit
-                        : S.goalsShort(fmt.currency0(-goalsLine.room))}
-                    </span>
-                  ) : null}
-                </>
-              ) : goalsLine.allDone ? (
-                <span className="text-positive">{S.goalsDone}</span>
-              ) : goalsLine.overdue ? (
-                <span className="text-negative">{S.goalsOverdue}</span>
-              ) : (
-                <span className="text-muted">{S.goalsSetTarget}</span>
-              )}{' '}
-              <span aria-hidden className="text-muted">
-                ›
-              </span>
-            </span>
-          </button>
-        ) : null}
-
         {loanLeft > 0 ? (
           <p className="mt-3 flex items-center justify-between text-[13px]">
             <span>{S.mortgage}</span>
             <span className="nums font-medium">{fmt.currency0(loanLeft)}</span>
           </p>
         ) : null}
-
-        {/* The projection, reduced to its one sentence — the rest lives in Plan.
-        (With the widgets showing, their work-optional tile says it.) */}
-        {compact ? null : (
-          <>
-            <hr className="rule my-4" />
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[13px]">{fire ? S.fire(fire.age, fire.year) : S.fireNever}</p>
-              <button type="button" className="btn btn-ghost shrink-0" onClick={onOpenPlan}>
-                {S.openPlan} ›
-              </button>
-            </div>
-          </>
-        )}
       </div>
     </section>
   );
