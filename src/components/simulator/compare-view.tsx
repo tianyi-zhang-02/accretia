@@ -111,7 +111,7 @@ export default function CompareView({
       </div>
 
       {scenarios.length === 0 ? (
-        <div className="border-border text-muted rounded border border-dashed p-6 text-center text-sm">
+        <div className="bg-surface-2 text-muted rounded-[14px] p-6 text-center text-sm">
           {t.compare.saveAtLeastOne}
         </div>
       ) : (
@@ -127,7 +127,7 @@ export default function CompareView({
               return (
                 <li key={s.id}>
                   <label
-                    className={`border-border flex items-center gap-3 rounded border p-3 text-sm ${
+                    className={`bg-surface-2 flex items-center gap-3 rounded-[12px] p-3 text-sm ${
                       disabled ? 'opacity-50' : 'cursor-pointer'
                     }`}
                   >
@@ -208,7 +208,7 @@ export default function CompareView({
           <div className="bg-surface overflow-x-auto rounded-[14px]">
             <table className="nums w-full min-w-[480px] text-xs">
               <thead className="text-muted text-[11px] tracking-wide uppercase">
-                <tr className="border-border border-b">
+                <tr className="border-hairline border-b">
                   <th className="px-2 py-2 text-left">{t.compare.scenario}</th>
                   <th className="px-2 py-2 text-right">{t.compare.endBalance}</th>
                   <th className="px-2 py-2 text-right">{t.compare.vsFirst}</th>
@@ -222,7 +222,7 @@ export default function CompareView({
                   const delta = last.netWorth - baseline;
                   const cross = firstCrossing(sim.rows, 1_000_000);
                   return (
-                    <tr key={sim.id} className="border-border border-b last:border-b-0">
+                    <tr key={sim.id} className="border-hairline border-b last:border-b-0">
                       <td className="px-2 py-1.5 text-left">
                         <div className="flex items-center gap-2">
                           <span

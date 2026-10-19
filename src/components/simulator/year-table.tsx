@@ -21,7 +21,7 @@ export default function YearTable({
     <div className="bg-surface overflow-x-auto rounded-[14px]">
       <table className="nums w-full min-w-[640px] text-xs">
         <thead className="text-muted text-[11px] tracking-wide uppercase">
-          <tr className="border-border border-b">
+          <tr className="border-hairline border-b">
             <th className="px-2 py-2 text-left">{t.table.year}</th>
             {people.length > 0 ? <th className="px-2 py-2 text-left">{t.table.ages}</th> : null}
             <th className="px-2 py-2 text-right">{t.table.gross}</th>
@@ -40,7 +40,7 @@ export default function YearTable({
             return (
               <tr
                 key={r.year}
-                className={`border-border border-b last:border-b-0 ${hot ? 'bg-foreground/[0.03]' : ''}`}
+                className={`border-hairline border-b last:border-b-0 ${hot ? 'bg-foreground/[0.03]' : ''}`}
               >
                 <td className="px-2 py-1.5 text-left">{r.year}</td>
                 {people.length > 0 ? (

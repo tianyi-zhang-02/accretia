@@ -169,13 +169,25 @@ export default function TrackStatus({
           figure: fmt.currency0(report.saved),
           sub: <span className="text-muted">{S.addNetWorth}</span>,
         }
-      : fire
-        ? {
-            label: S.heroFireLabel,
-            figure: S.heroFireAge(fire.age),
-            sub: <span className="text-muted">{S.heroFireSub(fire.year)}</span>,
+      : compact
+        ? // The widgets already say the work-optional age: start from where
+          // the plan says you are today.
+          {
+            label: S.heroStartLabel,
+            figure: fmt.currency0(startingNetWorth),
+            sub: <span className="text-muted">{S.heroStartSub}</span>,
           }
-        : { label: S.heading, figure: '—', sub: <span className="text-muted">{S.fireNever}</span> };
+        : fire
+          ? {
+              label: S.heroFireLabel,
+              figure: S.heroFireAge(fire.age),
+              sub: <span className="text-muted">{S.heroFireSub(fire.year)}</span>,
+            }
+          : {
+              label: S.heading,
+              figure: '—',
+              sub: <span className="text-muted">{S.fireNever}</span>,
+            };
 
   return (
     <section className="flex flex-col gap-4">

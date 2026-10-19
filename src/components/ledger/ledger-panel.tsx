@@ -140,7 +140,7 @@ export default function LedgerPanel({
   onAnnual: (next: AnnualExpense[]) => void;
   /** Save the plan's savings goals. */
   onGoals: (next: SavingsGoal[]) => void;
-  /** False while the guided setup is open (no real plan yet). */
+  /** False while the guided setup is open (no real plan yet): Home shows nothing. */
   showWidgets?: boolean;
   /** Which tab this is: Home (glance), Log (the check-in) or Report. */
   view: LedgerView;
@@ -273,33 +273,33 @@ export default function LedgerPanel({
 
   return (
     <section className="flex flex-col gap-4">
-      {view === 'home' ? (
+      {/* Home is hidden while the guided setup is open: everything on it is
+      measured against a plan, and there's no real plan yet — the default
+      scenario's "work optional at 37" would read as the person's own. */}
+      {view === 'home' && showWidgets ? (
         <>
-          {/* At a glance — the widget board. Each tile is one tap from its action.
-    Hidden while the guided setup is open: there's no real plan to show yet. */}
-          {showWidgets ? (
-            <WidgetBoard
-              entries={entries}
-              today={today}
-              planRows={planRows}
-              startingNetWorth={assumptions.startingNetWorth}
-              startYear={assumptions.horizonStartYear}
-              annual={annual}
-              goals={goals}
-              fire={fire}
-              monthLabel={(ym) =>
-                new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
-                  month: 'short',
-                }).format(new Date(ym.year, ym.month - 1, 1))
-              }
-              onLog={() => {
-                select(checkInTarget(entries, today));
-                onNavigate('log');
-              }}
-              onGoals={openGoals}
-              onPlan={onOpenPlan}
-            />
-          ) : null}
+          {/* At a glance — the widget board. Each tile is one tap from its action. */}
+          <WidgetBoard
+            entries={entries}
+            today={today}
+            planRows={planRows}
+            startingNetWorth={assumptions.startingNetWorth}
+            startYear={assumptions.horizonStartYear}
+            annual={annual}
+            goals={goals}
+            fire={fire}
+            monthLabel={(ym) =>
+              new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
+                month: 'short',
+              }).format(new Date(ym.year, ym.month - 1, 1))
+            }
+            onLog={() => {
+              select(checkInTarget(entries, today));
+              onNavigate('log');
+            }}
+            onGoals={openGoals}
+            onPlan={onOpenPlan}
+          />
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
             <div className="flex flex-col gap-4">
               <TrackStatus
@@ -307,7 +307,7 @@ export default function LedgerPanel({
                 goals={goals}
                 today={today}
                 onOpenGoals={openGoals}
-                compact={showWidgets}
+                compact
                 entries={entries}
                 report={report}
                 planRows={planRows}

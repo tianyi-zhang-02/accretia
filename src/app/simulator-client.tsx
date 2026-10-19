@@ -966,11 +966,7 @@ function SimulatorInner() {
                   </option>
                 ))}
               </select>
-              <button
-                type="button"
-                onClick={addScenario}
-                className="border-border hover:bg-foreground/5 shrink-0 rounded border px-3 py-2 text-[13px]"
-              >
+              <button type="button" onClick={addScenario} className="btn shrink-0">
                 {t.scenarioBar.newScenario}
               </button>
             </div>
