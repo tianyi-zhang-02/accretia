@@ -152,6 +152,8 @@ export default function LedgerPanel({
   const [note, setNote] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  /** A share of a total: "<1%" rather than a misleading "0%" for a sliver. */
+  const share = (pct: number) => (pct > 0 && pct < 0.5 ? '<1%' : fmt.pct0(pct));
   const monthName = useMemo(() => {
     const f = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', { month: 'short' });
     return (m: number) => f.format(new Date(2000, m - 1, 1));
@@ -529,7 +531,7 @@ export default function LedgerPanel({
                       <span className="text-[13px]">{t.track.incomeSources[r.id]}</span>
                       <span className="nums text-[13px]">
                         <span className="font-medium">{fmt.currency0(r.total)}</span>
-                        <span className="text-muted text-[11px]"> · {fmt.pct0(r.sharePct)}</span>
+                        <span className="text-muted text-[11px]"> · {share(r.sharePct)}</span>
                       </span>
                     </li>
                   ))}
@@ -570,7 +572,7 @@ export default function LedgerPanel({
                           <span className="font-medium">{fmt.currency0(r.total)}</span>
                           <span className="text-muted text-[11px]">
                             {' '}
-                            · {fmt.pct0(r.sharePct)} · {L.perMonth(fmt.currency0(r.monthlyAvg))}
+                            · {share(r.sharePct)} · {L.perMonth(fmt.currency0(r.monthlyAvg))}
                             {yearBudgets.get(r.id) ? (
                               <span
                                 className={
@@ -608,7 +610,7 @@ export default function LedgerPanel({
                             >
                               <span>{t.track.subcategories[item.id]}</span>
                               <span className="nums">
-                                {fmt.currency0(item.total)} · {fmt.pct0(item.sharePct)}
+                                {fmt.currency0(item.total)} · {share(item.sharePct)}
                               </span>
                             </li>
                           ))}

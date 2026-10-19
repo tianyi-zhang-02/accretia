@@ -6,6 +6,13 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### A shorter check-in
+
+- Inside a category, only the line items you use are listed (this month's,
+  last month's, or a yearly bill due now); **+ N more** shows the rest. With
+  the sample household the check-in loses about twenty empty rows on a phone.
+- The year report shows **<1%** instead of a misleading 0% for a sliver.
+
 ### Widgets at the top of Track
 
 - **Five widgets you can read at a glance** — and tap to act on:

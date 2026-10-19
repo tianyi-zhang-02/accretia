@@ -278,6 +278,17 @@ function Form({
       ),
   );
   const [showAll, setShowAll] = useState(() => inUse.size === 0);
+  // Inside an open category, likewise: the line items in use (this month,
+  // last month, or a yearly bill due now); "+ N more" shows the rest.
+  const [itemsInUse] = useState(
+    () =>
+      new Set<SubId>([
+        ...(Object.keys(entry?.breakdown ?? {}) as SubId[]),
+        ...(Object.keys(lastLogged?.breakdown ?? {}) as SubId[]),
+        ...(Object.keys(dueItems(annual, ym.month)) as SubId[]),
+      ]),
+  );
+  const [allItems, setAllItems] = useState<CategoryId[]>([]);
 
   /** Take back what was carried over (anything the person changed stays). */
   function clearCarried() {
@@ -914,7 +925,12 @@ function Form({
 
                     {isOpen ? (
                       <ul className="bg-surface-2/50 mt-2 grid grid-cols-1 gap-x-4 gap-y-2 rounded-[12px] p-3 sm:grid-cols-2">
-                        {items.map((item) => (
+                        {(() => {
+                          const shown = items.filter(
+                            (item) => itemsInUse.has(item.id) || item.value !== undefined,
+                          );
+                          return allItems.includes(id) || shown.length === 0 ? items : shown;
+                        })().map((item) => (
                           <li key={item.id}>
                             <label className="grid grid-cols-[1fr_7.5rem] items-center gap-3">
                               <span className="text-muted flex min-w-0 items-center gap-2 text-[13px]">
@@ -955,6 +971,23 @@ function Form({
                             </label>
                           </li>
                         ))}
+                        {(() => {
+                          const hidden = items.filter(
+                            (item) => !itemsInUse.has(item.id) && item.value === undefined,
+                          ).length;
+                          const anyShown = items.length - hidden > 0;
+                          return hidden > 0 && anyShown && !allItems.includes(id) ? (
+                            <li className="sm:col-span-2">
+                              <button
+                                type="button"
+                                className="btn btn-ghost btn-sm px-0"
+                                onClick={() => setAllItems((a) => [...a, id])}
+                              >
+                                {C.moreItems(hidden)}
+                              </button>
+                            </li>
+                          ) : null;
+                        })()}
                       </ul>
                     ) : null}
                   </li>
