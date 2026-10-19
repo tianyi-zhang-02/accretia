@@ -8,11 +8,9 @@ import type { YearRow } from '@/lib/simulator/engine';
 
 import { SectionLabel } from '../ui/icon';
 import MetalCard, { Chip } from '../ui/metal-card';
-import LedgerFindings from './ledger-findings';
 import { monthAllowance } from '@/lib/ledger/allowance';
 import { goalStatus, goalsSummary, type SavingsGoal } from '@/lib/ledger/goals';
 import type { AnnualExpense } from '@/lib/ledger/annual';
-import type { Budgets } from '@/lib/ledger/budgets';
 
 /**
  * "Am I on track?" — what was logged, set against what the plan expected
@@ -71,11 +69,11 @@ export default function TrackStatus({
   at,
   fire,
   onOpenPlan,
-  budgets,
   annual,
   goals,
   today,
   onOpenGoals,
+  compact = false,
 }: {
   entries: MonthEntry[];
   report: YearReport;
@@ -85,12 +83,14 @@ export default function TrackStatus({
   at: YearMonth;
   fire: { age: number; year: number } | null;
   onOpenPlan: () => void;
-  budgets: Budgets;
   annual: AnnualExpense[];
   goals: SavingsGoal[];
   today: YearMonth;
   /** Open the Budgets & goals card on the goals tab. */
   onOpenGoals: () => void;
+  /** The widget board is showing above: leave out what its tiles already say
+      (allowance figure, goals, the work-optional age). */
+  compact?: boolean;
 }) {
   const { t, fmt, locale } = useI18n();
   const S = t.track.status;
@@ -258,11 +258,30 @@ export default function TrackStatus({
                   </span>
                 </li>
               ) : null}
+              {compact && allowance ? (
+                <li className="row">
+                  <span className="min-w-0">
+                    <span className="block text-[13px]">{t.track.widgets.allowance}</span>
+                    <span className="text-muted block text-[11px] leading-snug">
+                      {S.allowanceMath(
+                        fmt.currency0(allowance.plan),
+                        fmt.currency0(allowance.fixed),
+                        allowance.annualReserve > 0 ? fmt.currency0(allowance.annualReserve) : null,
+                      )}
+                    </span>
+                  </span>
+                  <span
+                    className={`nums shrink-0 text-[13px] font-medium ${allowance.flexible < 0 ? 'text-negative' : ''}`}
+                  >
+                    {fmt.currency0(allowance.flexible)}
+                  </span>
+                </li>
+              ) : null}
             </ul>
           </>
         )}
 
-        {allowance && entries.length > 0 ? (
+        {allowance && entries.length > 0 && !compact ? (
           <div className="bg-surface-2 mt-4 rounded-[12px] p-3.5">
             <p className="text-muted text-xs">{S.allowanceHeading}</p>
             <p
@@ -289,7 +308,7 @@ export default function TrackStatus({
           </div>
         ) : null}
 
-        {goalsLine ? (
+        {goalsLine && !compact ? (
           <button
             type="button"
             onClick={onOpenGoals}
@@ -331,16 +350,20 @@ export default function TrackStatus({
           </p>
         ) : null}
 
-        {/* The projection, reduced to its one sentence — the rest lives in Plan. */}
-        <hr className="rule my-4" />
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[13px]">{fire ? S.fire(fire.age, fire.year) : S.fireNever}</p>
-          <button type="button" className="btn btn-ghost shrink-0" onClick={onOpenPlan}>
-            {S.openPlan} ›
-          </button>
-        </div>
+        {/* The projection, reduced to its one sentence — the rest lives in Plan.
+        (With the widgets showing, their work-optional tile says it.) */}
+        {compact ? null : (
+          <>
+            <hr className="rule my-4" />
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[13px]">{fire ? S.fire(fire.age, fire.year) : S.fireNever}</p>
+              <button type="button" className="btn btn-ghost shrink-0" onClick={onOpenPlan}>
+                {S.openPlan} ›
+              </button>
+            </div>
+          </>
+        )}
       </div>
-      <LedgerFindings entries={entries} planRows={planRows} budgets={budgets} annual={annual} />
     </section>
   );
 }

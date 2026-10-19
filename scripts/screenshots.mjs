@@ -53,6 +53,7 @@ const UI = {
     sameAsLast: 'then change what',
     plans: 'Budgets & goals',
     goalsTab: 'Savings goals',
+    jar: 'Savings jar',
     onTrack: 'Am I on track?',
     review: 'Year in review',
     log: 'Log',
@@ -68,6 +69,7 @@ const UI = {
     sameAsLast: '只改变了的',
     plans: '预算与目标',
     goalsTab: '存钱目标',
+    jar: '存钱罐',
     onTrack: '我跟上规划了吗',
     review: '年度回顾',
     log: '记账',
@@ -299,7 +301,8 @@ const SHOTS = {
     return { file, frames: { onTrack: frame }, meta: { metal } };
   },
   async goals(p, s) {
-    await p.click(s.goalsTab);
+    // The savings-jar widget opens Budgets & goals on the goals tab.
+    await p.click(s.jar);
     const card = `__card(${JSON.stringify(s.plans)})`;
     await p.evaluate(`__scrollTo(${card}, 14)`);
     await p.settle();

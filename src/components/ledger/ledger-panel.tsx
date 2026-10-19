@@ -37,6 +37,7 @@ import PlansCard, { type PlansTab } from './plans-card';
 import WidgetBoard from './widget-board';
 import YearReview from './year-review';
 import MonthCheckIn, { TierBar } from './month-check-in';
+import LedgerFindings from './ledger-findings';
 import TrackStatus from './track-status';
 
 /**
@@ -302,11 +303,11 @@ export default function LedgerPanel({
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
             <div className="flex flex-col gap-4">
               <TrackStatus
-                budgets={budgets}
                 annual={annual}
                 goals={goals}
                 today={today}
                 onOpenGoals={openGoals}
+                compact={showWidgets}
                 entries={entries}
                 report={report}
                 planRows={planRows}
@@ -316,24 +317,32 @@ export default function LedgerPanel({
                 onOpenPlan={onOpenPlan}
               />
             </div>
-            <PlansCard
-              open={plansOpen}
-              onOpenChange={setPlansOpen}
-              tab={plansTab}
-              onTab={setPlansTab}
-              budgets={budgets}
-              annual={annual}
-              goals={goals}
-              entries={entries}
-              today={today}
-              planMonthlySpending={
-                planAt(planRows, assumptions.startingNetWorth, today)?.monthlySpending ?? null
-              }
-              onBudgets={onBudgets}
-              onAnnual={onAnnual}
-              onGoals={onGoals}
-              notify={notify}
-            />
+            <div className="flex flex-col gap-4">
+              <LedgerFindings
+                entries={entries}
+                planRows={planRows}
+                budgets={budgets}
+                annual={annual}
+              />
+              <PlansCard
+                open={plansOpen}
+                onOpenChange={setPlansOpen}
+                tab={plansTab}
+                onTab={setPlansTab}
+                budgets={budgets}
+                annual={annual}
+                goals={goals}
+                entries={entries}
+                today={today}
+                planMonthlySpending={
+                  planAt(planRows, assumptions.startingNetWorth, today)?.monthlySpending ?? null
+                }
+                onBudgets={onBudgets}
+                onAnnual={onAnnual}
+                onGoals={onGoals}
+                notify={notify}
+              />
+            </div>
           </div>
         </>
       ) : null}
@@ -370,42 +379,23 @@ export default function LedgerPanel({
         <>
           {/* Year-end report — also the print area. */}
           <div className="card print-area">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <div className="mb-3 flex items-center justify-between gap-3">
               <span className="whitespace-nowrap">
                 <SectionLabel icon="chart">{L.reportHeading(year)}</SectionLabel>
               </span>
-              <div className="print-hide flex flex-wrap items-center gap-1">
-                <button
-                  type="button"
-                  className="btn btn-ghost px-2"
-                  onClick={() => setYear(year - 1)}
-                  aria-label={L.prevYear}
-                >
+              {/* Year stepper: one pill, two arrows. */}
+              <div className="stepper print-hide">
+                <button type="button" onClick={() => setYear(year - 1)} aria-label={L.prevYear}>
                   ‹
                 </button>
                 <button
                   type="button"
-                  className="btn btn-ghost px-2"
                   onClick={() => setYear(year + 1)}
                   disabled={year >= today.year}
                   aria-label={L.nextYear}
                 >
                   ›
                 </button>
-                {review ? (
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={() => setReviewOpen(true)}
-                  >
-                    {t.track.review.open}
-                  </button>
-                ) : null}
-                {report.monthsRecorded > 0 ? (
-                  <button type="button" className="btn btn-ghost" onClick={() => window.print()}>
-                    {L.print}
-                  </button>
-                ) : null}
               </div>
             </div>
 
@@ -420,6 +410,22 @@ export default function LedgerPanel({
                     report.savingsRatePct === null ? '—' : fmt.pct0(report.savingsRatePct),
                   )}
                 </p>
+                <div className="print-hide mt-4 flex flex-wrap gap-2">
+                  {review ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-accent"
+                      onClick={() => setReviewOpen(true)}
+                    >
+                      <Icon name="spark" size={14} />
+                      {t.track.review.open}
+                    </button>
+                  ) : null}
+                  <button type="button" className="btn btn-sm" onClick={() => window.print()}>
+                    <Icon name="download" size={14} />
+                    {L.print}
+                  </button>
+                </div>
 
                 <ul className="rows mt-3">
                   <li className="row items-center">
@@ -456,7 +462,7 @@ export default function LedgerPanel({
                 </ul>
 
                 {/* Saved per month — plain bars, no chart library needed. */}
-                <p className="eyebrow mt-5 mb-2">{L.monthlySaved}</p>
+                <p className="section-head mb-2">{L.monthlySaved}</p>
                 <ul className="flex flex-col gap-1">
                   {report.monthly.map((x, i) => (
                     <li key={i} className="grid grid-cols-[3rem_1fr_5.5rem] items-center gap-2">
@@ -479,7 +485,7 @@ export default function LedgerPanel({
                 {/* Against last year — like for like, months logged in both. */}
                 {yoy ? (
                   <>
-                    <p className="eyebrow mt-5 mb-1">{L.yoyHeading}</p>
+                    <p className="section-head mb-1">{L.yoyHeading}</p>
                     <p className="text-muted mb-2 text-xs">
                       {L.yoySub(yoy.months.length, monthsLabel(yoy.months))}
                     </p>
@@ -551,7 +557,7 @@ export default function LedgerPanel({
                 {/* Where it came from — only when some month was split by source. */}
                 {sources ? (
                   <>
-                    <p className="eyebrow mt-5 mb-2">{L.bySource}</p>
+                    <p className="section-head mb-2">{L.bySource}</p>
                     <ul className="rows">
                       {sources.rows.map((r) => (
                         <li key={r.id} className="row items-center">
@@ -575,7 +581,7 @@ export default function LedgerPanel({
                 {/* What kind of spending — essentials / lifestyle / splurges. */}
                 {kinds ? (
                   <>
-                    <p className="eyebrow mt-5 mb-2">{L.byKind}</p>
+                    <p className="section-head mb-2">{L.byKind}</p>
                     <TierBar tiers={kinds} total={kinds.needs + kinds.lifestyle + kinds.splurge} />
                     {kinds.unsorted > 0 ? (
                       <p className="text-muted mt-1.5 flex justify-between text-xs">
@@ -589,7 +595,7 @@ export default function LedgerPanel({
                 {/* Where it went — only for people who log by category. */}
                 {breakdown ? (
                   <>
-                    <p className="eyebrow mt-5 mb-2">{L.byCategory}</p>
+                    <p className="section-head mb-2">{L.byCategory}</p>
                     <ul className="flex flex-col gap-2">
                       {breakdown.rows.map((r) => (
                         <li key={r.id}>
@@ -666,7 +672,7 @@ export default function LedgerPanel({
                 {/* What was really saved: take-home left over + pre-tax savings. */}
                 {saved.pretax > 0 ? (
                   <>
-                    <p className="eyebrow mt-5 mb-1">{L.savingsHeading}</p>
+                    <p className="section-head mb-1">{L.savingsHeading}</p>
                     <ul className="rows">
                       <li className="row items-center">
                         <span className="text-[13px]">{L.keptAfterTax}</span>
@@ -696,7 +702,7 @@ export default function LedgerPanel({
 
                 {report.plan ? (
                   <>
-                    <p className="eyebrow mt-5 mb-1">{L.planVsActual}</p>
+                    <p className="section-head mb-1">{L.planVsActual}</p>
                     <ul className="rows">
                       <li className="row items-center">
                         <span className="text-[13px]">{L.totalSpending}</span>

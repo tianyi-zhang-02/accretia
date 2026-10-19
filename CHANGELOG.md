@@ -6,6 +6,22 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Changed: a calmer, more finished look
+
+- **Home says each thing once.** With the widgets on top, *Am I on track?*
+  no longer repeats the everyday allowance, the goals line or the
+  work-optional age — the allowance becomes one row with its arithmetic.
+  On wide screens the month's findings sit in the right column.
+- **Log without boxes in boxes.** Line items and income sources hang off a
+  thin guide line under their parent instead of a grey panel; income
+  sources sit right under *Money in*; a total that adds itself up reads as
+  a figure, not a field; last month's hints are fainter than typed numbers.
+- **Report has a rhythm**: a year stepper pill, *Year in review* and
+  *Print* as buttons under the headline figure, and each part (monthly,
+  vs last year, where it came from, where it went…) under a real heading.
+- Cards catch a little light at the top; the active tab on phones sits in
+  a filled pill.
+
 ### Changed: five tabs instead of one long first page
 
 - The first page was doing too much. Track is now three tabs:
