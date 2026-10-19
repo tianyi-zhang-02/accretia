@@ -20,8 +20,8 @@ const COPY = {
     scenes: [
       {
         eyebrow: '01  Track',
-        title: ['Log a month', 'in 30 seconds'],
-        sub: ['One tap fills it in like last month —', 'then change only what’s different.'],
+        title: ['Your money,', 'at a glance'],
+        sub: ['This month, your streak, what’s left,', 'your goals — one tap to log the next.'],
       },
       {
         eyebrow: '02  Track',
@@ -53,8 +53,8 @@ const COPY = {
     scenes: [
       {
         eyebrow: '01  记账',
-        title: ['30 秒', '记完一个月'],
-        sub: ['一键照上个月填好，', '只改变了的那几项。'],
+        title: ['一眼看全，', '点一下就记'],
+        sub: ['这个月、连续记账、还能花多少、', '存钱目标——一屏看清。'],
       },
       {
         eyebrow: '02  记账',
@@ -350,8 +350,8 @@ export function buildHero({ lang, frames, meta, phone }) {
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(
     lang === 'zh'
-      ? 'Work Optional 演示：30 秒记完一个月、是否跟上规划、预算和存钱目标、年度回顾、工作变成可选的那一年'
-      : 'Work Optional demo: log a month in 30 seconds, see if you are on track, budgets and savings goals, your year in review, and the year work becomes optional',
+      ? 'Work Optional 演示：一眼看全的首页、是否跟上规划、预算和存钱目标、年度回顾、工作变成可选的那一年'
+      : 'Work Optional demo: your money at a glance, whether you are on track, budgets and savings goals, your year in review, and the year work becomes optional',
   )}" font-family="${font}">
 <style>
 ${base}

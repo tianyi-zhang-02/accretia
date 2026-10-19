@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/media/hero-zh.svg" width="960" alt="Work Optional：30 秒记完一个月，看清有没有跟上规划，算出哪一年工作变成可选">
+  <img src="docs/media/hero-zh.svg" width="960" alt="Work Optional：一眼看全，看清有没有跟上规划，算出哪一年工作变成可选">
 </p>
 
 <h1 align="center">Work Optional</h1>
@@ -19,7 +19,7 @@
 
 <table>
   <tr>
-    <td align="center" width="33%"><img src="docs/media/zh/track.webp" width="250" alt="每月记一笔"><br><b>30 秒记完一个月</b><br><sub>一键照上月填，只改变了的。</sub></td>
+    <td align="center" width="33%"><img src="docs/media/zh/track.webp" width="250" alt="记账页顶部的 widget"><br><b>一眼看全</b><br><sub>这个月、连续记账、存钱目标，点一下就记。</sub></td>
     <td align="center" width="33%"><img src="docs/media/zh/on-track.webp" width="250" alt="我跟上规划了吗"><br><b>我跟上规划了吗？</b><br><sub>净资产和规划比，日常还能花多少。</sub></td>
     <td align="center" width="33%"><img src="docs/media/zh/goals.webp" width="250" alt="预算与目标"><br><b>预算与目标</b><br><sub>每类预算、年度开支、存钱目标。</sub></td>
   </tr>
@@ -30,7 +30,7 @@
   </tr>
 </table>
 
-另外还有：工资到手计算器（联邦、加州、纽约精确计算）、能装成离线可用的 app、中英双语。
+另外还有：30 秒记完一个月（一键照上月填）、工资到手计算器（联邦、加州、纽约精确计算）、能装成离线可用的 app、中英双语。
 
 ## 隐私是设计出来的
 

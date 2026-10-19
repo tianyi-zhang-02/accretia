@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/media/hero.svg" width="960" alt="Work Optional: log a month in 30 seconds, see whether you're on track, and find the year work becomes optional">
+  <img src="docs/media/hero.svg" width="960" alt="Work Optional: your money at a glance, whether you're on track, and the year work becomes optional">
 </p>
 
 <h1 align="center">Work Optional</h1>
@@ -19,7 +19,7 @@
 
 <table>
   <tr>
-    <td align="center" width="33%"><img src="docs/media/en/track.webp" width="250" alt="Monthly check-in"><br><b>Log a month in 30 seconds</b><br><sub>“Same as last month”, then change what's different.</sub></td>
+    <td align="center" width="33%"><img src="docs/media/en/track.webp" width="250" alt="Widgets at the top of Track"><br><b>At a glance</b><br><sub>Widgets for this month, your streak and goals — one tap to log.</sub></td>
     <td align="center" width="33%"><img src="docs/media/en/on-track.webp" width="250" alt="Am I on track?"><br><b>Am I on track?</b><br><sub>Net worth against the plan, and what's left to spend.</sub></td>
     <td align="center" width="33%"><img src="docs/media/en/goals.webp" width="250" alt="Budgets and goals"><br><b>Budgets & goals</b><br><sub>Category budgets, yearly bills, savings goals.</sub></td>
   </tr>
@@ -30,7 +30,7 @@
   </tr>
 </table>
 
-Also: a paycheck calculator (federal, California and New York exact), an installable offline app, English and 简体中文.
+Also: log a month in 30 seconds (“same as last month”), a paycheck calculator (federal, California and New York exact), an installable offline app, English and 简体中文.
 
 ## Private by design
 
