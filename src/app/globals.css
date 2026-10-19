@@ -508,7 +508,7 @@ body {
 @media (max-width: 639px) {
   .savebar {
     position: sticky;
-    bottom: calc(66px + env(safe-area-inset-bottom));
+    bottom: calc(54px + env(safe-area-inset-bottom));
     z-index: 5;
     margin: 0 -20px -20px;
     padding: 10px 20px 14px;
@@ -535,7 +535,8 @@ body {
   animation: fade-in 180ms ease-out;
 }
 .review::backdrop {
-  background: rgb(0 0 0 / 0.55);
+  /* Near-opaque: with "Hide amounts" on, the report behind must not show. */
+  background: rgb(0 0 0 / 0.88);
 }
 @media (prefers-reduced-motion: reduce) {
   .review[open] {
@@ -615,8 +616,12 @@ button.widget:active {
   font-weight: 500;
   color: var(--muted);
 }
+.widget {
+  container-type: inline-size;
+}
 .widget-figure {
-  font-size: 26px;
+  font-size: min(26px, 15cqi);
+  white-space: nowrap;
   font-weight: 650;
   line-height: 1.05;
   letter-spacing: -0.02em;

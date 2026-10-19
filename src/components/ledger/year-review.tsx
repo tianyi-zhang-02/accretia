@@ -64,7 +64,7 @@ export default function YearReview({
         value: t.track.subcategories[r.topItem.id],
         sub: money(r.topItem.total),
       });
-    if (r.best)
+    if (r.best && r.monthsLogged >= 2)
       out.push({
         label: R.best,
         value: monthName(r.best.month),

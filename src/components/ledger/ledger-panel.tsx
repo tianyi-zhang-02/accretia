@@ -118,6 +118,7 @@ export default function LedgerPanel({
   onBudgets,
   onAnnual,
   onGoals,
+  showWidgets = true,
 }: {
   entries: MonthEntry[];
   onChange: (next: MonthEntry[]) => void;
@@ -134,6 +135,8 @@ export default function LedgerPanel({
   onAnnual: (next: AnnualExpense[]) => void;
   /** Save the plan's savings goals. */
   onGoals: (next: SavingsGoal[]) => void;
+  /** False while the guided setup is open (no real plan yet). */
+  showWidgets?: boolean;
 }) {
   const { t, fmt, locale } = useI18n();
   const L = t.ledger;
@@ -261,32 +264,35 @@ export default function LedgerPanel({
 
   return (
     <section className="flex flex-col gap-4">
-      {/* At a glance — the widget board. Each tile is one tap from its action. */}
-      <WidgetBoard
-        entries={entries}
-        today={today}
-        planRows={planRows}
-        startingNetWorth={assumptions.startingNetWorth}
-        startYear={assumptions.horizonStartYear}
-        annual={annual}
-        goals={goals}
-        fire={fire}
-        monthLabel={(ym) =>
-          new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', { month: 'short' }).format(
-            new Date(ym.year, ym.month - 1, 1),
-          )
-        }
-        onLog={() => {
-          select(checkInTarget(entries, today));
-          window.requestAnimationFrame(() =>
-            document
-              .getElementById('checkin')
-              ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-          );
-        }}
-        onGoals={openGoals}
-        onPlan={onOpenPlan}
-      />
+      {/* At a glance — the widget board. Each tile is one tap from its action.
+      Hidden while the guided setup is open: there's no real plan to show yet. */}
+      {showWidgets ? (
+        <WidgetBoard
+          entries={entries}
+          today={today}
+          planRows={planRows}
+          startingNetWorth={assumptions.startingNetWorth}
+          startYear={assumptions.horizonStartYear}
+          annual={annual}
+          goals={goals}
+          fire={fire}
+          monthLabel={(ym) =>
+            new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', { month: 'short' }).format(
+              new Date(ym.year, ym.month - 1, 1),
+            )
+          }
+          onLog={() => {
+            select(checkInTarget(entries, today));
+            window.requestAnimationFrame(() =>
+              document
+                .getElementById('checkin')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+            );
+          }}
+          onGoals={openGoals}
+          onPlan={onOpenPlan}
+        />
+      ) : null}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[3fr_2fr]">
         <div className="flex scroll-mt-4 flex-col gap-4" id="checkin">
           <MonthCheckIn
@@ -351,9 +357,11 @@ export default function LedgerPanel({
 
       {/* Year-end report — also the print area. */}
       <div className="card print-area">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <SectionLabel icon="chart">{L.reportHeading(year)}</SectionLabel>
-          <div className="print-hide flex items-center gap-1">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <span className="whitespace-nowrap">
+            <SectionLabel icon="chart">{L.reportHeading(year)}</SectionLabel>
+          </span>
+          <div className="print-hide flex flex-wrap items-center gap-1">
             <button
               type="button"
               className="btn btn-ghost px-2"

@@ -213,7 +213,7 @@ export default function GuidedSetup({
               value={ans.income}
               onChange={(v) => set({ income: v })}
               min={0}
-              step={5000}
+              step="any"
               prefix="$"
             />
           </>
@@ -224,7 +224,7 @@ export default function GuidedSetup({
             value={ans.spending}
             onChange={(v) => set({ spending: v })}
             min={0}
-            step={5000}
+            step="any"
             prefix="$"
           />
         ) : null}
@@ -234,7 +234,7 @@ export default function GuidedSetup({
             value={ans.netWorth}
             onChange={(v) => set({ netWorth: v })}
             min={0}
-            step={10_000}
+            step="any"
             prefix="$"
           />
         ) : null}
@@ -290,7 +290,8 @@ function BigNumber({
   onChange: (v: number) => void;
   min?: number;
   max?: number;
-  step?: number;
+  /** "any" for money: a step makes the browser refuse amounts between steps. */
+  step?: number | 'any';
   prefix?: string;
   fallback?: number;
 }) {

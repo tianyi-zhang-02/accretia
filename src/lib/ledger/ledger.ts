@@ -738,11 +738,18 @@ export function recentAverage(
  * What the plan expects around a given month. Engine rows are year-END
  * values, so net worth is interpolated along the year from the previous
  * year-end (or the plan's starting net worth in the first year).
+ *
+ * `anchor`: in the plan's FIRST year, the month the starting net worth is
+ * really from — the first month logged with a net worth. A plan made in
+ * October starts from October's figure, not January 1st's, so someone who
+ * is exactly where they said they are doesn't read as "behind" by nine
+ * months of growth they were never going to have.
  */
 export function planAt(
   planRows: YearRow[],
   startingNetWorth: number,
   ym: YearMonth,
+  anchor?: YearMonth,
 ): {
   monthlySpending: number;
   monthlySaved: number;
@@ -766,7 +773,12 @@ export function planAt(
     monthlySpending: (row.expenses + housing) / 12,
     monthlySaved: (row.saved - housing) / 12,
     monthlyHousing: housing / 12,
-    netWorth: from + (row.netWorth - from) * (ym.month / 12),
+    netWorth:
+      i === 0 && anchor && anchor.year === ym.year && anchor.month < 12
+        ? ym.month <= anchor.month
+          ? from
+          : from + (row.netWorth - from) * ((ym.month - anchor.month) / (12 - anchor.month))
+        : from + (row.netWorth - from) * (ym.month / 12),
     mortgageBalance: loanFrom + (loanEnd - loanFrom) * (ym.month / 12),
   };
 }

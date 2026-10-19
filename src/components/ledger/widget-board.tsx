@@ -151,7 +151,15 @@ export default function WidgetBoard({
       {/* This month — the ring, or the nudge to log. */}
       <Tile
         className="widget-wide"
-        label={latest ? W.thisMonth(monthLabel(latest)) : W.start}
+        label={
+          latest
+            ? W.thisMonth(
+                latest.year === today.year
+                  ? monthLabel(latest)
+                  : `${monthLabel(latest)} ${latest.year}`,
+              )
+            : W.start
+        }
         icon="coins"
         onClick={onLog}
         ariaLabel={!targetLogged ? W.logCta(monthLabel(target)) : undefined}
@@ -178,10 +186,14 @@ export default function WidgetBoard({
               <span className={`widget-figure ${kept < 0 ? 'text-negative' : ''}`}>
                 <CountUp value={kept} format={fmt.currency0} />
               </span>
-              {planned ? (
+              {planned && planned > 0 && kept >= 0 ? (
                 <span className="text-muted text-[12px]">
-                  {W.ofPlan(fmt.pct0(Math.round((kept / planned) * 100)))}
+                  {W.ofPlan(
+                    kept / planned > 9.99 ? '999%+' : fmt.pct0(Math.round((kept / planned) * 100)),
+                  )}
                 </span>
+              ) : kept < 0 ? (
+                <span className="text-negative text-[12px]">{W.overspent}</span>
               ) : null}
               {!targetLogged ? (
                 <span className="widget-cta mt-1.5">{W.logCta(monthLabel(target))}</span>
