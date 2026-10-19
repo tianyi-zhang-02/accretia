@@ -395,6 +395,21 @@ function SimulatorInner() {
         hydrated.current = true;
         // A link to ?demo opens the sample straight away.
         if (new URLSearchParams(window.location.search).has('demo')) setWantDemo(true);
+        // App-icon shortcuts (manifest `shortcuts`): ?go=log | plan | data.
+        const go = new URLSearchParams(window.location.search).get('go');
+        if (go === 'plan') setTab('plan');
+        if (go === 'data') openData();
+        if (go === 'log') {
+          window.setTimeout(
+            () => document.getElementById('checkin')?.scrollIntoView({ block: 'start' }),
+            50,
+          );
+        }
+        if (go) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('go');
+          window.history.replaceState(null, '', url.pathname + url.search);
+        }
       }
     }, 0);
     return () => window.clearTimeout(id);

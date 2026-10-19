@@ -27,5 +27,27 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/icon2', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
       { src: '/apple-icon', sizes: '180x180', type: 'image/png' },
     ],
+    // Long-press the icon (Android, desktop): jump straight to an action.
+    // iOS doesn't offer web-app shortcuts. Handled by `?go=` in the shell.
+    shortcuts: [
+      {
+        name: 'Log a month · 记一笔',
+        short_name: 'Log',
+        url: '/?go=log',
+        icons: [{ src: '/icon1', sizes: '192x192', type: 'image/png' }],
+      },
+      {
+        name: 'Plan · 规划',
+        short_name: 'Plan',
+        url: '/?go=plan',
+        icons: [{ src: '/icon1', sizes: '192x192', type: 'image/png' }],
+      },
+      {
+        name: 'Backup & sync · 数据',
+        short_name: 'Data',
+        url: '/?go=data',
+        icons: [{ src: '/icon1', sizes: '192x192', type: 'image/png' }],
+      },
+    ],
   };
 }

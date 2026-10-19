@@ -34,6 +34,7 @@ import { dueItems, type AnnualExpense } from '@/lib/ledger/annual';
 import type { Budgets } from '@/lib/ledger/budgets';
 
 import { SectionLabel } from '../ui/icon';
+import { Confetti } from './widget-board';
 
 /**
  * The monthly check-in — the app's home screen. One month at a time, three
@@ -1014,7 +1015,8 @@ function Form({
       ) : null}
       {anyInvalid ? <p className="text-negative text-xs">{C.invalid}</p> : null}
 
-      <div className="savebar flex flex-wrap items-center gap-2">
+      <div className="savebar relative flex flex-wrap items-center gap-2">
+        {justSaved ? <Confetti /> : null}
         {kept !== null ? (
           <span className="nums text-muted w-full text-[12px] sm:hidden">
             {kept >= 0 ? C.kept(fmt.currency0(kept)) : C.overspent(fmt.currency0(-kept))}

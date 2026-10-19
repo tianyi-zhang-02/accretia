@@ -543,6 +543,293 @@ body {
   }
 }
 
+/* ---------------------------------------------------------------------
+   Widgets — the glanceable top of Track (components/ledger/widget-board).
+   Phone: a 2-column board of near-square tiles, like home-screen widgets.
+   Desktop: one row. Shapes fill and numbers count up once on arrival.
+   --------------------------------------------------------------------- */
+.widget-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (min-width: 1024px) {
+  .widget-board {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+.widget {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 156px;
+  padding: 14px;
+  border-radius: 22px;
+  text-align: left;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      120% 90% at 0% 0%,
+      color-mix(in srgb, var(--foreground) 6%, transparent),
+      transparent 60%
+    ),
+    var(--surface);
+  box-shadow: var(--card-shadow);
+  transition:
+    transform 160ms ease,
+    filter 160ms ease;
+  animation: widget-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.widget-board > :nth-child(2) {
+  animation-delay: 60ms;
+}
+.widget-board > :nth-child(3) {
+  animation-delay: 120ms;
+}
+.widget-board > :nth-child(4) {
+  animation-delay: 180ms;
+}
+.widget-board > :nth-child(5) {
+  animation-delay: 240ms;
+}
+button.widget:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) {
+  button.widget:hover {
+    filter: brightness(1.12);
+  }
+  :root[data-theme='light'] button.widget:hover {
+    filter: brightness(0.98);
+  }
+}
+.widget-wide {
+  grid-column: span 2;
+}
+.widget-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.widget-figure {
+  font-size: 26px;
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.widget-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #06210f;
+  animation: widget-pulse 2.4s ease-in-out infinite;
+}
+@keyframes widget-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@keyframes widget-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+/* This month: the ring. */
+.widget-ring {
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+}
+.widget-ring-track {
+  fill: none;
+  stroke: var(--surface-2);
+  stroke-width: 9;
+}
+.widget-ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 9;
+  stroke-linecap: round;
+  animation: ring-fill 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) 150ms both;
+}
+@keyframes ring-fill {
+  from {
+    stroke-dashoffset: var(--ring-from);
+  }
+}
+/* Streak: a flame that breathes. */
+.widget-flame {
+  width: 34px;
+  height: 46px;
+  transform-origin: 50% 100%;
+  animation: flame 1.8s ease-in-out infinite;
+}
+.widget-flame path:first-child {
+  fill: #f59e42;
+}
+.widget-flame-core {
+  fill: #ffd76a;
+}
+@keyframes flame {
+  0%,
+  100% {
+    transform: scale(1, 1) skewX(0deg);
+  }
+  33% {
+    transform: scale(0.96, 1.04) skewX(-2deg);
+  }
+  66% {
+    transform: scale(1.03, 0.97) skewX(2deg);
+  }
+}
+/* Everyday allowance: a bar of what you usually spend against it. */
+.widget-bar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.widget-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transform-origin: left;
+  animation: bar-grow 900ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms both;
+}
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+/* The savings jar: liquid rises to the level, then gently ripples. */
+.widget-jar {
+  width: 44px;
+  height: 58px;
+  flex-shrink: 0;
+}
+.widget-jar-glass {
+  fill: none;
+  stroke: color-mix(in srgb, var(--foreground) 55%, transparent);
+  stroke-width: 1.6;
+}
+.widget-jar-lid {
+  fill: color-mix(in srgb, var(--foreground) 40%, transparent);
+}
+.widget-jar-level {
+  transform: translateY(var(--level));
+  animation: jar-rise 1300ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms both;
+}
+@keyframes jar-rise {
+  from {
+    transform: translateY(52px);
+  }
+}
+.widget-jar-wave {
+  fill: var(--accent);
+  opacity: 0.85;
+  animation: jar-wave 2.6s linear infinite;
+}
+@keyframes jar-wave {
+  to {
+    transform: translateX(40px);
+  }
+}
+/* Work optional: a sun along its arc. */
+.widget-sun {
+  width: 64px;
+  height: 38px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+.widget-sun-arc {
+  fill: none;
+  stroke: color-mix(in srgb, var(--foreground) 25%, transparent);
+  stroke-width: 1.4;
+  stroke-dasharray: 2 3;
+}
+.widget-sun-horizon {
+  stroke: color-mix(in srgb, var(--foreground) 30%, transparent);
+  stroke-width: 1.2;
+}
+.widget-sun-orbit {
+  transform-origin: 24px 26px;
+  transform: rotate(var(--sun-turn));
+  animation: sun-rise 1400ms cubic-bezier(0.2, 0.8, 0.2, 1) 250ms both;
+}
+.widget-sun-dot {
+  fill: #ffc24a;
+  filter: drop-shadow(0 0 4px rgb(255 194 74 / 0.7));
+}
+@keyframes sun-rise {
+  from {
+    transform: rotate(0deg);
+  }
+}
+/* A small burst when a month is saved. */
+.confetti {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+.confetti > span {
+  position: absolute;
+  width: 7px;
+  height: 10px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti 900ms cubic-bezier(0.15, 0.7, 0.3, 1) both;
+}
+@keyframes confetti {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(0.6);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), calc(var(--dy) + 40px)) rotate(var(--rot)) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .widget,
+  .widget-cta,
+  .widget-ring-fill,
+  .widget-flame,
+  .widget-bar > span,
+  .widget-jar-level,
+  .widget-jar-wave,
+  .widget-sun-orbit {
+    animation: none;
+  }
+  .confetti {
+    display: none;
+  }
+}
+
 /* Floating popover (settings) and toast. */
 .popover {
   position: absolute;
