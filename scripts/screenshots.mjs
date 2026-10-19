@@ -55,6 +55,8 @@ const UI = {
     goalsTab: 'Savings goals',
     onTrack: 'Am I on track?',
     review: 'Year in review',
+    log: 'Log',
+    report: 'Report',
     plan: 'Plan',
     data: 'Data',
     paycheck: 'Paycheck calculator',
@@ -68,6 +70,8 @@ const UI = {
     goalsTab: '存钱目标',
     onTrack: '我跟上规划了吗',
     review: '年度回顾',
+    log: '记账',
+    report: '报表',
     plan: '规划',
     data: '数据',
     paycheck: '工资到手计算器',
@@ -263,8 +267,15 @@ async function openDemo(p, base, lang, device, theme) {
  */
 const SHOTS = {
   async track(p, s) {
-    // Before: a new month, the "Same as last month" button waiting.
+    // The README picture: Home, the widget board.
     await p.evaluate('window.scrollTo(0, 0)');
+    await p.settle();
+    const file = await p.capture({});
+    // The hero: the Log tab — a new month, the "Same as last month" button
+    // waiting, then tapped.
+    await p.click(s.log);
+    await p.evaluate('window.scrollTo(0, 0)');
+    await p.settle();
     const before = await p.capture({ scale: 0.7, quality: 80 });
     const tap = await p.evaluate(
       `(() => { const r = __btn(${JSON.stringify(s.sameAsLast)}).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`,
@@ -273,7 +284,6 @@ const SHOTS = {
     await p.evaluate('window.scrollTo(0, 0)');
     await p.settle();
     const after = await p.capture({ scale: 0.7, quality: 80 });
-    const file = await p.capture({});
     return { file, frames: { checkinBefore: before, checkin: after }, meta: { tap } };
   },
   async onTrack(p, s) {
@@ -299,6 +309,7 @@ const SHOTS = {
     return { file, frames: { goals: frame } };
   },
   async review(p, s) {
+    await p.click(s.report);
     await p.click(s.review);
     await p.waitFor(`!!document.querySelector('dialog[open]')`);
     await p.settle();
