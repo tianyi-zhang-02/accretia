@@ -19,7 +19,7 @@
 
 <table>
   <tr>
-    <td align="center" width="33%"><img src="docs/media/en/track.webp" width="250" alt="Widgets at the top of Track"><br><b>At a glance</b><br><sub>Widgets for this month, your streak and goals — one tap to log.</sub></td>
+    <td align="center" width="33%"><img src="docs/media/en/track.webp" width="250" alt="Widgets on Home"><br><b>At a glance</b><br><sub>Widgets for this month, your streak and goals — one tap to log.</sub></td>
     <td align="center" width="33%"><img src="docs/media/en/on-track.webp" width="250" alt="Am I on track?"><br><b>Am I on track?</b><br><sub>Net worth against the plan, and what's left to spend.</sub></td>
     <td align="center" width="33%"><img src="docs/media/en/goals.webp" width="250" alt="Budgets and goals"><br><b>Budgets & goals</b><br><sub>Category budgets, yearly bills, savings goals.</sub></td>
   </tr>

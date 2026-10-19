@@ -148,7 +148,7 @@ function SimulatorInner() {
   const [view, setView] = useState<'chart' | 'world' | 'table'>('chart');
   // Top-level sections. Tracking is home: the projection is one part of the
   // app, the yardstick the monthly numbers are held against.
-  const [tab, setTab] = useState<'track' | 'plan' | 'data'>('track');
+  const [tab, setTab] = useState<'home' | 'log' | 'report' | 'plan' | 'data'>('home');
   const [managing, setManaging] = useState(false);
   // The Data section stays mounted (hidden) once opened, so the sync panel
   // keeps its unlocked key and its auth listener while you use other tabs.
@@ -344,7 +344,7 @@ function SimulatorInner() {
     setSelectedId('sample');
     setLedger(sample.ledger);
     setGuiding(false);
-    setTab('track');
+    setTab('home');
     window.scrollTo({ top: 0 });
   }
   function exitDemo() {
@@ -420,12 +420,7 @@ function SimulatorInner() {
         const go = new URLSearchParams(window.location.search).get('go');
         if (go === 'plan') setTab('plan');
         if (go === 'data') openData();
-        if (go === 'log') {
-          window.setTimeout(
-            () => document.getElementById('checkin')?.scrollIntoView({ block: 'start' }),
-            50,
-          );
-        }
+        if (go === 'log') setTab('log');
         if (go) {
           const url = new URL(window.location.href);
           url.searchParams.delete('go');
@@ -763,8 +758,10 @@ function SimulatorInner() {
       <nav aria-label={t.nav.aria} className="tabbar print-hide">
         {(
           [
-            ['track', 'coins'],
-            ['plan', 'chart'],
+            ['home', 'house'],
+            ['log', 'coins'],
+            ['report', 'chart'],
+            ['plan', 'clock'],
             ['data', 'shield'],
           ] as const
         ).map(([id, icon]) => (
@@ -809,7 +806,7 @@ function SimulatorInner() {
         </section>
       ) : null}
 
-      {tab === 'track' && showNudge ? (
+      {tab === 'home' && showNudge ? (
         <div className="card card-tight fade-in flex flex-col gap-3 sm:flex-row sm:items-center">
           <p className="flex min-w-0 flex-1 items-start gap-2.5 text-[13px]">
             <Icon name="shield" size={16} className="text-accent mt-0.5" />
@@ -840,11 +837,16 @@ function SimulatorInner() {
         </div>
       ) : null}
 
-      {tab === 'track' ? (
+      {tab === 'home' || tab === 'log' || tab === 'report' ? (
         <div className="fade-in">
           <LedgerPanel
             // Sample ↔ own data: start every form fresh, never carry state across.
             key={demo ? 'sample' : 'own'}
+            view={tab}
+            onNavigate={(to) => {
+              setTab(to);
+              window.scrollTo({ top: 0 });
+            }}
             showWidgets={!guiding}
             entries={ledger}
             onChange={setLedger}
@@ -941,7 +943,7 @@ function SimulatorInner() {
                 type="button"
                 className="btn btn-primary shrink-0"
                 onClick={() => {
-                  setTab('track');
+                  setTab('log');
                   window.scrollTo({ top: 0 });
                 }}
               >

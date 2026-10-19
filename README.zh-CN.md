@@ -19,7 +19,7 @@
 
 <table>
   <tr>
-    <td align="center" width="33%"><img src="docs/media/zh/track.webp" width="250" alt="记账页顶部的 widget"><br><b>一眼看全</b><br><sub>这个月、连续记账、存钱目标，点一下就记。</sub></td>
+    <td align="center" width="33%"><img src="docs/media/zh/track.webp" width="250" alt="首页的 widget"><br><b>一眼看全</b><br><sub>这个月、连续记账、存钱目标，点一下就记。</sub></td>
     <td align="center" width="33%"><img src="docs/media/zh/on-track.webp" width="250" alt="我跟上规划了吗"><br><b>我跟上规划了吗？</b><br><sub>净资产和规划比，日常还能花多少。</sub></td>
     <td align="center" width="33%"><img src="docs/media/zh/goals.webp" width="250" alt="预算与目标"><br><b>预算与目标</b><br><sub>每类预算、年度开支、存钱目标。</sub></td>
   </tr>

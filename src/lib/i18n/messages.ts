@@ -761,7 +761,9 @@ const en = {
   },
   nav: {
     aria: 'Sections',
-    track: 'Track',
+    home: 'Home',
+    log: 'Log',
+    report: 'Report',
     plan: 'Plan',
     data: 'Data',
   },
@@ -1937,7 +1939,9 @@ const zh: Messages = {
   },
   nav: {
     aria: '栏目',
-    track: '记账',
+    home: '首页',
+    log: '记账',
+    report: '报表',
     plan: '规划',
     data: '数据',
   },

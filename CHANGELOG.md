@@ -6,6 +6,17 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Changed: five tabs instead of one long first page
+
+- The first page was doing too much. Track is now three tabs:
+  **Home** (the widgets, net worth against the plan, this month's findings,
+  budgets & goals), **Log** (just the month's check-in) and **Report** (the
+  year report, year in review, every month and the spreadsheet tools).
+  Plan and Data are unchanged — five tabs in all, at the bottom on phones.
+- The widgets jump to the right tab: *＋ Log Oct* opens Log on that month.
+  A half-typed month survives a look at another tab.
+- The phone shortcut *Log* (from the installed app's icon) opens Log.
+
 ### Fixed: what an edge-case pass found
 
 - **The guided setup accepted only round amounts** — an income of 123,456 or
