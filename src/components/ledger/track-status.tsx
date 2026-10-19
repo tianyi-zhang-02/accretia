@@ -10,7 +10,7 @@ import { SectionLabel } from '../ui/icon';
 import MetalCard, { Chip } from '../ui/metal-card';
 import LedgerFindings from './ledger-findings';
 import { monthAllowance } from '@/lib/ledger/allowance';
-import { goalsSummary, type SavingsGoal } from '@/lib/ledger/goals';
+import { goalStatus, goalsSummary, type SavingsGoal } from '@/lib/ledger/goals';
 import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { Budgets } from '@/lib/ledger/budgets';
 
@@ -104,7 +104,13 @@ export default function TrackStatus({
   const goalsLine = useMemo(() => {
     if (goals.length === 0) return null;
     const g = goalsSummary(goals, entries, today);
-    return { need: g.needPerMonth, room: g.room };
+    const statuses = goals.map((x) => goalStatus(x, today));
+    return {
+      need: g.needPerMonth,
+      room: g.room,
+      allDone: statuses.every((s) => s.done),
+      overdue: statuses.some((s) => s.overdue),
+    };
   }, [goals, entries, today]);
   const allowance = useMemo(
     () => monthAllowance(entries, at, planRows, startingNetWorth, annual),
@@ -296,8 +302,12 @@ export default function TrackStatus({
                     </span>
                   ) : null}
                 </>
-              ) : (
+              ) : goalsLine.allDone ? (
                 <span className="text-positive">{S.goalsDone}</span>
+              ) : goalsLine.overdue ? (
+                <span className="text-negative">{S.goalsOverdue}</span>
+              ) : (
+                <span className="text-muted">{S.goalsSetTarget}</span>
               )}{' '}
               <span aria-hidden className="text-muted">
                 ›

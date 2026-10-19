@@ -162,6 +162,9 @@ type Copied = {
   categories: Categories;
   incomeSources: IncomeSources;
   count: number;
+  /** The modes before the copy, so Undo puts them back too. */
+  wasDetailed: boolean;
+  wasBySource: boolean;
 };
 
 /** "Budget $800 · $150 left" — or, past it, "$120 over" in red. */
@@ -449,10 +452,13 @@ function Form({
     onDirty();
   }
 
+  /** A category whose total was typed by hand (no line items) — fills must leave it alone. */
+  const typedTotal = (cat: CategoryId) =>
+    !blank(cats[cat]) && !subsOf(cat).some((sub) => !blank(subs[sub]));
   // Once-a-year bills due this month that haven't been entered yet.
   const annualPending = (
     Object.entries(dueItems(annual, ym.month)) as Array<[SubId, number]>
-  ).filter(([id]) => blank(subs[id]));
+  ).filter(([id]) => blank(subs[id]) && !typedTotal(id.split('.')[0] as CategoryId));
   function fillAnnual() {
     if (!detailed) switchMode(true);
     setSubs((c) => {
@@ -503,12 +509,15 @@ function Form({
     if (!source) return;
     const got: Copied = {
       from: { year: source.year, month: source.month },
+      wasDetailed: detailed,
+      wasBySource: bySource,
       lineItems: {},
       categories: {},
       incomeSources: {},
       count: 0,
     };
-    if (source.incomeSources) {
+    // Only blanks: a total someone already typed is never replaced by parts.
+    if (source.incomeSources && (bySource || blank(income))) {
       const next = { ...srcs };
       for (const [id, v] of Object.entries(source.incomeSources) as Array<[IncomeSourceId, number]>)
         if (blank(next[id])) {
@@ -528,12 +537,12 @@ function Form({
       got.pretax = source.pretaxSavings;
       got.count += 1;
     }
-    if (source.categories) {
+    if (source.categories && (detailed || blank(spending))) {
       const itemizedLast = (id: CategoryId) =>
         subsOf(id).some((sub) => source.breakdown?.[sub] !== undefined);
       const nextSubs = { ...subs };
       for (const [sub, v] of Object.entries(source.breakdown ?? {}) as Array<[SubId, number]>)
-        if (blank(nextSubs[sub])) {
+        if (blank(nextSubs[sub]) && !typedTotal(sub.split('.')[0] as CategoryId)) {
           nextSubs[sub] = String(v);
           got.lineItems[sub] = v;
           got.count += 1;
@@ -585,6 +594,8 @@ function Form({
         if (same(out[id], v)) out[id] = '';
       return out;
     });
+    setDetailed(copied.wasDetailed);
+    setBySource(copied.wasBySource);
     setCopied(null);
   }
   const canCopy =

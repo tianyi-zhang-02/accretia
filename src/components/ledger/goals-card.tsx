@@ -160,17 +160,19 @@ export default function GoalsCard({
                 <p
                   className={`text-[11px] leading-snug ${s.overdue ? 'text-negative' : s.done ? 'text-positive' : 'text-muted'}`}
                 >
-                  {s.done
-                    ? G.done(fmt.currency0(g.target))
-                    : s.overdue
-                      ? G.overdue(fmt.currency0(s.left))
-                      : G.status(
-                          fmt.pct0(s.pct),
-                          fmt.currency0(g.target),
-                          fmt.currency0(s.left),
-                          s.monthsLeft,
-                          fmt.currency0(s.perMonth),
-                        )}
+                  {g.target <= 0
+                    ? G.noTarget
+                    : s.done
+                      ? G.done(fmt.currency0(g.target))
+                      : s.overdue
+                        ? G.overdue(fmt.currency0(s.left))
+                        : G.status(
+                            fmt.pct0(s.pct),
+                            fmt.currency0(g.target),
+                            fmt.currency0(s.left),
+                            s.monthsLeft,
+                            fmt.currency0(s.perMonth),
+                          )}
                 </p>
 
                 {editing ? (

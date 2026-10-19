@@ -337,6 +337,8 @@ function SimulatorInner() {
       { year: now.getFullYear(), month: now.getMonth() + 1 },
       t.demo.person,
     );
+    // An Undo offered before this must not reach into the sample (or back).
+    setToast(null);
     setDemo({ scenarios, selectedId, ledger, guiding });
     setScenarios([{ id: 'sample', name: t.demo.plan, assumptions: sample.assumptions }]);
     setSelectedId('sample');
@@ -347,11 +349,30 @@ function SimulatorInner() {
   }
   function exitDemo() {
     if (!demo) return;
-    setScenarios(demo.scenarios);
-    setSelectedId(demo.selectedId);
-    setLedger(demo.ledger);
+    // An Undo from the sample must never run against the person's own data.
+    setToast(null);
+    // What storage holds now is the truth — another tab may have logged a
+    // month while this one showed the sample. Fall back to the snapshot only
+    // when nothing is saved (or saving is off).
+    let restored = false;
+    if (saveLocal && hydrated.current) {
+      try {
+        adopting.current = true;
+        restored = adoptSaved(false);
+      } catch {
+        restored = false;
+      }
+      if (!restored) adopting.current = false;
+    }
+    if (!restored) {
+      setScenarios(demo.scenarios);
+      setSelectedId(demo.selectedId);
+      setLedger(demo.ledger);
+      // Putting back exactly what was there needs no write (and a first
+      // visitor mustn't get a blank plan saved). Only when a write would follow.
+      skipPersist.current = saveLocal && hydrated.current;
+    }
     setGuiding(demo.guiding);
-    skipPersist.current = true;
     setDemo(null);
     const url = new URL(window.location.href);
     if (url.searchParams.has('demo')) {
@@ -438,11 +459,12 @@ function SimulatorInner() {
 
   // While enabled, mirror every change to localStorage (device-only).
   useEffect(() => {
-    if (demo || !saveLocal || !hydrated.current) return;
+    if (demo) return;
     if (skipPersist.current) {
       skipPersist.current = false;
       return;
     }
+    if (!saveLocal || !hydrated.current) return;
     if (adopting.current) {
       adopting.current = false; // just read from storage — nothing to write
       return;
@@ -487,6 +509,17 @@ function SimulatorInner() {
 
   function patchCurrent(next: Assumptions) {
     setScenarios((arr) => arr.map((s) => (s.id === current.id ? { ...s, assumptions: next } : s)));
+  }
+
+  /**
+   * Change some fields of the current plan, on top of whatever it is when the
+   * update lands — so an Undo restores just that field, not a whole stale plan.
+   */
+  function patchField(patch: Partial<Assumptions>) {
+    const id = current.id;
+    setScenarios((arr) =>
+      arr.map((s) => (s.id === id ? { ...s, assumptions: { ...s.assumptions, ...patch } } : s)),
+    );
   }
 
   function renameCurrent(nextName: string) {
@@ -810,6 +843,8 @@ function SimulatorInner() {
       {tab === 'track' ? (
         <div className="fade-in">
           <LedgerPanel
+            // Sample ↔ own data: start every form fresh, never carry state across.
+            key={demo ? 'sample' : 'own'}
             entries={ledger}
             onChange={setLedger}
             assumptions={assumptions}
@@ -825,9 +860,9 @@ function SimulatorInner() {
               notify(t.toast.calibrated, () => patchCurrent(before));
             }}
             notify={notify}
-            onBudgets={(monthlyBudgets) => patchCurrent({ ...assumptions, monthlyBudgets })}
-            onAnnual={(annualExpenses) => patchCurrent({ ...assumptions, annualExpenses })}
-            onGoals={(savingsGoals) => patchCurrent({ ...assumptions, savingsGoals })}
+            onBudgets={(monthlyBudgets) => patchField({ monthlyBudgets })}
+            onAnnual={(annualExpenses) => patchField({ annualExpenses })}
+            onGoals={(savingsGoals) => patchField({ savingsGoals })}
           />
         </div>
       ) : null}
