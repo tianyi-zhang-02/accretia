@@ -320,6 +320,47 @@ body {
   }
 }
 
+/* Touch screens: every control a thumb can hit comfortably (44px is the
+   platform guideline), no grey tap flash, and checkboxes you can see. Mouse
+   users keep the compact sizes. */
+@media (pointer: coarse) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn {
+    min-height: 44px;
+  }
+  .btn-sm {
+    min-height: 40px;
+    padding: 0 12px;
+  }
+  /* Segmented switches and tabs. */
+  [aria-pressed],
+  [role='tab'] {
+    min-height: 40px;
+  }
+  /* A card whose heading is the disclosure button. */
+  .card > button[aria-expanded]:first-child {
+    min-height: 44px;
+  }
+  input[type='checkbox']:not(.switch) {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* While typing on a phone the keyboard owns the bottom of the screen: the
+   tab bar steps aside (Android would push it up above the keys) and the
+   check-in's Save row sits right on top of the keyboard. */
+@media (max-width: 639px) {
+  :root[data-typing] .tabbar {
+    display: none;
+  }
+  :root[data-typing] .savebar {
+    bottom: 0;
+  }
+}
+
 /* Inputs: filled, not outlined — an outline next to a card border was the
    worst of the nesting. 16px keeps iOS from zooming on focus. */
 .field {
