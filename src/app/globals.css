@@ -11,6 +11,8 @@
      comes from elevation, not outlines — which is why 83 borders read as
      clutter. --hairline is the only line we draw, and only between rows. */
   --surface: #151517;
+  /* The top of a card catches a little more light than the bottom. */
+  --surface-hi: #1a1a1d;
   --surface-2: #1f1f23;
   --hairline: #26262b;
   /* One accent, used sparingly: progress, the actual-line, the active tab on
@@ -44,6 +46,7 @@
   --muted: #57575f;
   --border: #e4e4e7;
   --surface: #ffffff;
+  --surface-hi: #ffffff;
   --surface-2: #f0f0f2;
   --hairline: #ececef;
   --accent: #15803d;
@@ -69,6 +72,7 @@
     --muted: #57575f;
     --border: #e4e4e7;
     --surface: #ffffff;
+    --surface-hi: #ffffff;
     --surface-2: #f0f0f2;
     --hairline: #ececef;
     --accent: #15803d;
@@ -167,7 +171,7 @@ body {
 
 /* The one card. No border — a lighter surface and real padding. */
 .card {
-  background: var(--surface);
+  background: linear-gradient(180deg, var(--surface-hi), var(--surface) 140px);
   border-radius: 18px;
   padding: 20px;
   box-shadow: var(--card-shadow);
@@ -246,6 +250,32 @@ body {
     inset 0 1px 0 rgb(255 255 255 / 0.25),
     0 1px 2px rgb(0 0 0 / 0.25);
 }
+/* The one accent button — for the fun, shareable things (Year in review). */
+.btn-accent {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+/* A pill of two arrows (previous / next year). */
+.stepper {
+  display: inline-flex;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.stepper > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  font-size: 16px;
+  color: var(--muted);
+}
+.stepper > button:hover:not(:disabled) {
+  color: var(--foreground);
+}
+.stepper > button:disabled {
+  opacity: 0.3;
+}
 .btn-ghost {
   background: transparent;
   color: var(--muted);
@@ -313,6 +343,22 @@ body {
   }
   .tabbar-item[aria-current='page'] {
     background: transparent;
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  /* The icon sits in a pill that fills in on the active tab. */
+  .tabbar-item svg {
+    box-sizing: content-box;
+    width: 20px;
+    height: 20px;
+    padding: 4px 16px;
+    border-radius: 999px;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+  .tabbar-item[aria-current='page'] svg {
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
     color: var(--accent);
   }
   .has-tabbar {
@@ -329,6 +375,10 @@ body {
   }
   .btn {
     min-height: 44px;
+  }
+  .stepper > button {
+    width: 44px;
+    height: 40px;
   }
   .btn-sm {
     min-height: 40px;
@@ -382,6 +432,26 @@ body {
 .field-money {
   padding-left: 28px;
 }
+/* A hint (last month's figure) must never pass for a typed value. */
+.field::placeholder {
+  color: color-mix(in srgb, var(--muted) 55%, transparent);
+}
+/* A read-only total (the sum of its line items): a figure, not a box. */
+.field-sum {
+  background: transparent;
+  font-weight: 600;
+  cursor: default;
+}
+.field-sum:focus {
+  border-color: transparent;
+}
+/* Line items / income sources under their parent: indented on a guide
+   line instead of a box inside the card (boxes in boxes read as clutter). */
+.sub-list {
+  margin-left: 5px;
+  padding: 2px 0 2px 14px;
+  border-left: 1px solid var(--hairline);
+}
 
 /* Section eyebrow — the small uppercase label above a block. */
 .eyebrow {
@@ -391,6 +461,17 @@ body {
   color: var(--muted);
   font-size: 13px;
   font-weight: 500;
+}
+
+/* A section inside a long card (the year report): a full-width hairline
+   and a real heading, so the page has a rhythm instead of one long list. */
+.section-head {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 /* The hero number. Robinhood's whole design is one enormous figure. */

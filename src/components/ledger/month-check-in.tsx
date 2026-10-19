@@ -727,9 +727,9 @@ function Form({
               <span className="text-[13px] font-medium">{C.income}</span>
               <span
                 title={C.sumOfSources}
-                className="field field-money nums text-muted relative flex h-12 items-center text-[17px]"
+                className="field field-money field-sum nums relative flex h-12 items-center text-[17px]"
               >
-                <span className="absolute left-3 text-[15px]">$</span>
+                <span className="text-muted absolute left-3 text-[15px]">$</span>
                 {plain(srcSum)}
               </span>
               <span className="text-muted text-[11px]">{C.sumOfSources}</span>
@@ -744,6 +744,50 @@ function Form({
               onChange={edit(setIncome)}
             />
           )}
+          {bySource ? (
+            <fieldset className="sub-list flex flex-col gap-2">
+              <legend className="sr-only">{C.income}</legend>
+              <p className="text-muted text-[11px]">{C.sourcesHint}</p>
+              <ul className="flex flex-col gap-2">
+                {srcValues.map(({ id, value }) => (
+                  <li key={id}>
+                    <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
+                      <span className="flex min-w-0 items-center gap-1.5 text-[13px] leading-snug">
+                        {t.track.incomeSources[id]}
+                        {isCarried(srcs[id], carried?.incomeSources[id]) ? (
+                          <FixedTag />
+                        ) : isCopied(srcs[id], copied?.incomeSources[id]) ? (
+                          <FixedTag last />
+                        ) : null}
+                      </span>
+                      <span className="relative">
+                        <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
+                          $
+                        </span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          enterKeyHint="next"
+                          autoComplete="off"
+                          value={srcs[id] ?? ''}
+                          placeholder={
+                            prev?.incomeSources?.[id] !== undefined
+                              ? plain(prev.incomeSources[id]!)
+                              : '0'
+                          }
+                          aria-invalid={value === null}
+                          onChange={(e) => editSrc(id, e.target.value)}
+                          className={`field field-money nums h-10 min-h-0 w-full text-right text-[15px] ${
+                            value === null ? 'text-negative' : ''
+                          }`}
+                        />
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </fieldset>
+          ) : null}
           <button
             type="button"
             className="btn btn-ghost btn-sm self-start px-0"
@@ -781,51 +825,6 @@ function Form({
           onChange={edit(setNetWorth)}
         />
       </div>
-
-      {bySource ? (
-        <fieldset className="bg-surface-2/50 flex flex-col gap-2 rounded-[12px] p-3">
-          <legend className="sr-only">{C.income}</legend>
-          <p className="text-muted text-[11px]">{C.sourcesHint}</p>
-          <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-            {srcValues.map(({ id, value }) => (
-              <li key={id}>
-                <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
-                  <span className="flex min-w-0 items-center gap-1.5 text-[13px] leading-snug">
-                    {t.track.incomeSources[id]}
-                    {isCarried(srcs[id], carried?.incomeSources[id]) ? (
-                      <FixedTag />
-                    ) : isCopied(srcs[id], copied?.incomeSources[id]) ? (
-                      <FixedTag last />
-                    ) : null}
-                  </span>
-                  <span className="relative">
-                    <span className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[13px]">
-                      $
-                    </span>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      enterKeyHint="next"
-                      autoComplete="off"
-                      value={srcs[id] ?? ''}
-                      placeholder={
-                        prev?.incomeSources?.[id] !== undefined
-                          ? plain(prev.incomeSources[id]!)
-                          : '0'
-                      }
-                      aria-invalid={value === null}
-                      onChange={(e) => editSrc(id, e.target.value)}
-                      className={`field field-money nums h-10 min-h-0 w-full text-right text-[15px] ${
-                        value === null ? 'text-negative' : ''
-                      }`}
-                    />
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        </fieldset>
-      ) : null}
 
       <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
         <span className="min-w-0">
@@ -934,13 +933,13 @@ function Form({
                           onChange={(e) => editCat(id, e.target.value)}
                           className={`field field-money nums h-10 min-h-0 w-full text-right text-[15px] ${
                             value === null ? 'text-negative' : ''
-                          } ${itemized ? 'opacity-70' : ''}`}
+                          } ${itemized ? 'field-sum' : ''}`}
                         />
                       </span>
                     </div>
 
                     {isOpen ? (
-                      <ul className="bg-surface-2/50 mt-2 grid grid-cols-1 gap-x-4 gap-y-2 rounded-[12px] p-3 sm:grid-cols-2">
+                      <ul className="sub-list mt-2 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
                         {(() => {
                           const shown = items.filter(
                             (item) => itemsInUse.has(item.id) || item.value !== undefined,
