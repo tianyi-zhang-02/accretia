@@ -610,7 +610,7 @@ export default function PixelJourney({
       height={H}
       role="img"
       aria-label={t.pixel.caption}
-      className="border-border w-full rounded border"
+      className="w-full rounded-[12px]"
       style={{ imageRendering: 'pixelated' }}
     />
   );

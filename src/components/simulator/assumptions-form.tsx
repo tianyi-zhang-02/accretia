@@ -162,13 +162,10 @@ function RoleSearchBox({ onPick }: { onPick: (preset: RolePreset) => void }) {
         onFocus={() => setOpen(true)}
         onBlur={() => window.setTimeout(() => setOpen(false), 150)}
         placeholder={t.form.role.searchPlaceholder(ROLE_PRESETS.length)}
-        className="border-border focus:border-foreground placeholder:text-muted/50 w-full rounded border bg-transparent px-3 py-2 text-[13px] outline-none"
+        className="field"
       />
       {open ? (
-        <div
-          className="border-border bg-background absolute top-full right-0 left-0 z-10 mt-1 max-h-80 overflow-auto rounded border shadow-lg"
-          role="listbox"
-        >
+        <div className="popover top-full right-0 left-0 mt-1 max-h-80 overflow-auto" role="listbox">
           {groups.length === 0 ? (
             <p className="text-muted px-3 py-3 text-xs">{t.form.role.noMatch(query)}</p>
           ) : (
@@ -240,7 +237,7 @@ function TextField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
-        className="border-border focus:border-foreground placeholder:text-muted/50 rounded border bg-transparent px-3 py-2 text-base outline-none"
+        className="field"
       />
     </label>
   );
@@ -362,7 +359,7 @@ function TaxEstimator({
               value={income}
               onFocus={(e) => e.currentTarget.select()}
               onChange={(e) => setIncome(e.target.value)}
-              className="border-border focus:border-foreground nums w-full rounded border bg-transparent px-2 py-2 text-sm outline-none"
+              className="field nums"
             />
             <span className="text-muted text-[13px]">$</span>
           </div>
@@ -376,7 +373,7 @@ function TaxEstimator({
           type="button"
           onClick={() => onApply(estimate)}
           disabled={estimate === currentRate}
-          className="bg-foreground text-background rounded px-3 py-1 text-[13px] font-medium disabled:opacity-40"
+          className="btn btn-primary btn-sm"
         >
           {t.form.taxes.apply}
         </button>
@@ -419,7 +416,7 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
       <p className="text-muted text-xs font-medium">{t.form.allocation.heading}</p>
       <div className="flex flex-col gap-2">
         {buckets.map((b, i) => (
-          <div key={i} className="border-border rounded border p-2">
+          <div key={i} className="bg-surface flex flex-col gap-2 rounded-[10px] p-3">
             <TextField
               label={t.form.allocation.asset}
               value={b.label}
@@ -468,7 +465,7 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
             { label: t.form.allocation.asset, weightPct: 0, returnPct: 5, costPct: 0 },
           ])
         }
-        className="border-border hover:bg-foreground/5 self-start rounded border px-3 py-1 text-xs"
+        className="btn btn-sm self-start"
       >
         {t.form.allocation.addBucket}
       </button>
@@ -478,7 +475,7 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
         <button
           type="button"
           onClick={() => onApply(Number(blended.toFixed(1)))}
-          className="bg-foreground text-background rounded px-3 py-1 text-[13px] font-medium"
+          className="btn btn-primary btn-sm"
         >
           {t.form.allocation.apply}
         </button>

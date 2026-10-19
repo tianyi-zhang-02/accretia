@@ -6,6 +6,21 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Changed: a cleaner first run, and the last old-style controls
+
+- **While the guided setup is open, Home shows only the setup** — no more
+  "work optional at 37" from the default plan under the first question.
+- **A new person's Home** no longer repeats the work-optional age on the
+  metal card (the widget says it): the card shows the net worth the plan
+  starts from, and says it will hold real numbers against the plan once a
+  month is logged.
+- **Fields on grey panels are visible again** — in *All details* (a person,
+  a career stage) the inputs had the same grey as their panel.
+- The last outlined inputs and buttons (All details, Compare, the scenario
+  bar's *+ New*, the pixel world frame) now use the same filled fields and
+  buttons as the rest; the Claude / Codex picker uses the shared switch and
+  "Claude Desktop" no longer wraps on phones.
+
 ### Changed: Plan in one card, one kind of switch
 
 - **Plan's projection is one card**: the balance at the end, a full-width

@@ -270,7 +270,10 @@ body {
   display: flex;
 }
 .seg-fill > button {
-  flex: 1;
+  /* Content-sized, then the spare room shared out — a long label
+     ("Claude Desktop") gets the width it needs instead of wrapping. */
+  flex: 1 1 auto;
+  padding: 0 8px;
 }
 .seg > button {
   min-height: 30px;
@@ -480,6 +483,11 @@ body {
 /* Room for a leading currency mark; a utility class can't out-rank .field. */
 .field-money {
   padding-left: 28px;
+}
+/* A field on a grey panel (a person, a career stage, a goal being edited)
+   would vanish into it — there it takes the card's surface instead. */
+.bg-surface-2 .field:not(.field-sum) {
+  background: var(--surface);
 }
 /* A hint (last month's figure) must never pass for a typed value. */
 .field::placeholder {

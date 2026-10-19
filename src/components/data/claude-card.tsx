@@ -52,21 +52,9 @@ export default function ClaudeCard() {
       <SectionLabel icon="spark">{C.heading}</SectionLabel>
       <p className="text-muted mt-2 text-[13px]">{C.body}</p>
 
-      <div
-        role="group"
-        aria-label={C.heading}
-        className="bg-surface-2 mt-3 flex overflow-hidden rounded-[10px]"
-      >
+      <div role="group" aria-label={C.heading} className="seg seg-fill mt-3">
         {(['desktop', 'claudeCode', 'codex'] as const).map((c) => (
-          <button
-            key={c}
-            type="button"
-            aria-pressed={client === c}
-            onClick={() => setClient(c)}
-            className={`min-h-9 flex-1 px-2 text-xs font-medium transition-colors ${
-              client === c ? 'bg-foreground text-background' : 'text-muted hover:text-foreground'
-            }`}
-          >
+          <button key={c} type="button" aria-pressed={client === c} onClick={() => setClient(c)}>
             {C.clients[c]}
           </button>
         ))}
