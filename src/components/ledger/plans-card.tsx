@@ -80,11 +80,7 @@ export default function PlansCard({
 
       {open ? (
         <div className="mt-4 flex flex-col gap-4">
-          <div
-            role="tablist"
-            aria-label={P.heading}
-            className="bg-surface-2 flex overflow-hidden rounded-[10px]"
-          >
+          <div role="tablist" aria-label={P.heading} className="seg seg-fill">
             {(['budgets', 'annual', 'goals'] as const).map((id) => (
               <button
                 key={id}
@@ -92,9 +88,6 @@ export default function PlansCard({
                 role="tab"
                 aria-selected={tab === id}
                 onClick={() => onTab(id)}
-                className={`min-h-9 flex-1 px-2 text-xs font-medium transition-colors ${
-                  tab === id ? 'bg-foreground text-background' : 'text-muted hover:text-foreground'
-                }`}
               >
                 {P.tabs[id]}
               </button>

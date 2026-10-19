@@ -164,18 +164,13 @@ export default function PaycheckCalculator({
 
           <div className="flex flex-col gap-1.5">
             <span className="text-muted text-xs">{P.filing}</span>
-            <div className="bg-surface-2 flex overflow-hidden rounded-[10px]">
+            <div className="seg seg-fill">
               {(['single', 'mfj', 'hoh'] as const).map((f) => (
                 <button
                   key={f}
                   type="button"
                   aria-pressed={filing === f}
                   onClick={() => setFiling(f)}
-                  className={`min-h-9 flex-1 px-2 text-xs font-medium transition-colors ${
-                    filing === f
-                      ? 'bg-foreground text-background'
-                      : 'text-muted hover:text-foreground'
-                  }`}
                 >
                   {P.filings[f]}
                 </button>

@@ -1091,193 +1091,167 @@ function SimulatorInner() {
                   so it outranks the balance — a number nobody can feel. */}
                   <InsightsPanel assumptions={assumptions} onChange={patchCurrent} />
 
-                  {/* The balance behind it: supporting evidence, not the point.
-                  REAL leads. Over a long horizon the nominal figure is
-                  inflated several times over and reads as a fantasy — the
-                  today's-dollar number is the only one a human can judge. */}
-                  <section className="card">
-                    <SectionLabel icon="coins">
-                      {t.projection.finalBalance(assumptions.horizonEndYear)}
-                    </SectionLabel>
-                    <p className="figure mt-2 text-[30px]">{fmt.currency0(lastReal)}</p>
-                    <p className="text-muted nums mt-1 text-[13px]">
-                      {t.projection.nominalNote(fmt.currency0(lastNominal))}
-                    </p>
-                    {impliedSavingsRate !== null ? (
-                      <p className="text-muted nums mt-1 text-xs">
-                        {t.projection.impliedSavings(fmt.pct0(impliedSavingsRate))}
+                  {/* The balance behind it — supporting evidence, not the point —
+                  and the picture of how it gets there, in ONE card: the figure,
+                  a switch between chart / year table / pixel world, then the
+                  view. REAL leads: over a long horizon the nominal figure is
+                  inflated several times over and reads as a fantasy. */}
+                  <section className="card flex flex-col gap-4">
+                    <div>
+                      <SectionLabel icon="coins">
+                        {t.projection.finalBalance(assumptions.horizonEndYear)}
+                      </SectionLabel>
+                      <p className="figure mt-2 text-[30px]">{fmt.currency0(lastReal)}</p>
+                      <p className="text-muted nums mt-1 text-[13px]">
+                        {t.projection.nominalNote(fmt.currency0(lastNominal))}
                       </p>
-                    ) : null}
-                  </section>
+                      {impliedSavingsRate !== null ? (
+                        <p className="text-muted nums mt-1 text-xs">
+                          {t.projection.impliedSavings(fmt.pct0(impliedSavingsRate))}
+                        </p>
+                      ) : null}
+                    </div>
 
-                  {/* View switcher: chart / pixel world / year table. Tabs, not
-                  three stacked panels with their own show/hide buttons. */}
-                  <div className="bg-surface-2 flex w-fit overflow-hidden rounded-[10px] text-xs">
-                    {(['chart', 'table', 'world'] as const).map((v) => (
-                      <button
-                        key={v}
-                        type="button"
-                        aria-pressed={view === v}
-                        onClick={() => setView(v)}
-                        className={`min-h-9 px-3.5 font-medium transition-colors ${
-                          view === v
-                            ? 'bg-foreground text-background'
-                            : 'text-muted hover:text-foreground'
-                        }`}
-                      >
-                        {t.views[v]}
-                      </button>
-                    ))}
-                  </div>
+                    <div className="seg seg-fill">
+                      {(['chart', 'table', 'world'] as const).map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          aria-pressed={view === v}
+                          onClick={() => setView(v)}
+                        >
+                          {t.views[v]}
+                        </button>
+                      ))}
+                    </div>
 
-                  {/* Pixel journey — the projection as a tiny living world. */}
-                  {view === 'world' ? (
-                    <section className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <SectionLabel icon="house">{t.pixel.heading}</SectionLabel>
-                        <div className="flex items-center gap-2">
-                          {
-                            <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
-                              {(['meadow', 'seaside', 'snow'] as const).map((s) => (
+                    {/* Chart — deterministic band or probabilistic (Monte-Carlo) fan.
+                    Its two switches share one row: what to show, and how. */}
+                    {view === 'chart' ? (
+                      <div className="flex flex-col gap-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          {chartEngine === 'deterministic' ? (
+                            <div className="seg">
+                              {(['nominal', 'real', 'both'] as const).map((m) => (
                                 <button
-                                  key={s}
+                                  key={m}
                                   type="button"
-                                  onClick={() => setPixelScene(s)}
-                                  className={`px-2 py-0.5 ${
-                                    pixelScene === s
-                                      ? 'bg-foreground/10 text-foreground'
-                                      : 'text-muted'
-                                  }`}
+                                  aria-pressed={displayMode === m}
+                                  onClick={() => setDisplayMode(m)}
                                 >
-                                  {t.pixel.scenes[s]}
+                                  {t.projection[m]}
                                 </button>
                               ))}
                             </div>
-                          }
-                        </div>
-                      </div>
-                      {result ? (
-                        <>
-                          <PixelJourney
-                            rows={result.rows}
-                            assumptions={assumptions}
-                            theme={theme}
-                            scene={pixelScene}
-                          />
-                          <p className="text-muted text-[11px]">{t.pixel.caption}</p>
-                        </>
-                      ) : null}
-                    </section>
-                  ) : null}
-
-                  {/* Chart — deterministic band or probabilistic (Monte-Carlo) fan. */}
-                  {view === 'chart' ? (
-                    <section className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <SectionLabel icon="chart">
-                          {chartEngine === 'probabilistic'
-                            ? t.projection.mcHeading
-                            : displayMode === 'both'
-                              ? t.projection.bothHeading
-                              : t.projection.bandHeading}
-                        </SectionLabel>
-                        <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
-                          {(['deterministic', 'probabilistic'] as const).map((e) => (
-                            <button
-                              key={e}
-                              type="button"
-                              aria-pressed={chartEngine === e}
-                              onClick={() => setChartEngine(e)}
-                              className={`px-2.5 py-1 ${
-                                chartEngine === e
-                                  ? 'bg-foreground/10 text-foreground'
-                                  : 'text-muted'
-                              }`}
-                            >
-                              {e === 'deterministic' ? t.projection.detMode : t.projection.probMode}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Secondary controls: nominal/real (deterministic) or volatility (probabilistic). */}
-                      <div className="flex items-center justify-between gap-2">
-                        {chartEngine === 'deterministic' ? (
-                          <div className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs">
-                            {(['nominal', 'real', 'both'] as const).map((m) => (
+                          ) : (
+                            <label className="text-muted flex items-center gap-1.5 text-xs">
+                              {t.projection.volatility}
+                              <input
+                                type="number"
+                                value={volatilityPct}
+                                min={0}
+                                max={60}
+                                step={1}
+                                onChange={(e) =>
+                                  setVolatilityPct(
+                                    Math.max(0, Math.min(60, Number(e.target.value) || 0)),
+                                  )
+                                }
+                                className="field nums h-8 min-h-0 w-16 px-2 text-right text-xs"
+                              />
+                              %
+                            </label>
+                          )}
+                          <div className="seg">
+                            {(['deterministic', 'probabilistic'] as const).map((e) => (
                               <button
-                                key={m}
+                                key={e}
                                 type="button"
-                                aria-pressed={displayMode === m}
-                                onClick={() => setDisplayMode(m)}
-                                className={`px-2.5 py-1 ${
-                                  displayMode === m
-                                    ? 'bg-foreground/10 text-foreground'
-                                    : 'text-muted'
-                                }`}
+                                aria-pressed={chartEngine === e}
+                                onClick={() => setChartEngine(e)}
                               >
-                                {t.projection[m]}
+                                {e === 'deterministic'
+                                  ? t.projection.detMode
+                                  : t.projection.probMode}
                               </button>
                             ))}
                           </div>
-                        ) : (
-                          <label className="text-muted flex items-center gap-1.5 text-xs">
-                            {t.projection.volatility}
-                            <input
-                              type="number"
-                              value={volatilityPct}
-                              min={0}
-                              max={60}
-                              step={1}
-                              onChange={(e) =>
-                                setVolatilityPct(
-                                  Math.max(0, Math.min(60, Number(e.target.value) || 0)),
-                                )
-                              }
-                              className="border-border focus:border-foreground nums w-14 rounded border bg-transparent px-2 py-1 text-right outline-none"
-                            />
-                            %
-                          </label>
-                        )}
-                        {chartEngine === 'probabilistic' && mc?.successProbability != null ? (
-                          <span className="text-positive nums text-xs">
-                            {t.projection.successProb(fmt.pct0(mc.successProbability * 100))}
-                          </span>
-                        ) : null}
-                      </div>
+                        </div>
 
-                      {chartEngine === 'probabilistic' ? (
-                        mc ? (
-                          <MonteCarloChart mc={mc} />
+                        {chartEngine === 'probabilistic' && mc?.successProbability != null ? (
+                          <p className="text-positive nums text-[13px]">
+                            {t.projection.successProb(fmt.pct0(mc.successProbability * 100))}
+                          </p>
+                        ) : null}
+
+                        {chartEngine === 'probabilistic' ? (
+                          mc ? (
+                            <MonteCarloChart mc={mc} />
+                          ) : (
+                            <p className="text-negative text-[13px]">{t.projection.computeError}</p>
+                          )
+                        ) : result ? (
+                          <SimulatorChart result={result} mode={displayMode} markers={markers} />
                         ) : (
                           <p className="text-negative text-[13px]">{t.projection.computeError}</p>
-                        )
-                      ) : result ? (
-                        <SimulatorChart result={result} mode={displayMode} markers={markers} />
-                      ) : (
-                        <p className="text-negative text-[13px]">{t.projection.computeError}</p>
-                      )}
+                        )}
 
-                      <p className="text-muted text-[11px]">
-                        {chartEngine === 'probabilistic'
-                          ? mc?.successProbability == null
-                            ? `${t.projection.mcCaption} ${t.projection.mcNeedTarget}`
-                            : t.projection.mcCaption
-                          : displayMode === 'both'
-                            ? t.projection.gapCaption
-                            : t.projection.bandCaption}
-                      </p>
-                    </section>
-                  ) : null}
+                        <p className="text-muted text-[11px] leading-snug">
+                          <span className="text-foreground font-medium">
+                            {chartEngine === 'probabilistic'
+                              ? t.projection.mcHeading
+                              : displayMode === 'both'
+                                ? t.projection.bothHeading
+                                : t.projection.bandHeading}
+                          </span>{' '}
+                          ·{' '}
+                          {chartEngine === 'probabilistic'
+                            ? mc?.successProbability == null
+                              ? `${t.projection.mcCaption} ${t.projection.mcNeedTarget}`
+                              : t.projection.mcCaption
+                            : displayMode === 'both'
+                              ? t.projection.gapCaption
+                              : t.projection.bandCaption}
+                        </p>
+                      </div>
+                    ) : null}
 
-                  {/* Year-by-year table — scrolls sideways inside the column. */}
-                  {view === 'table' && result ? (
-                    <YearTable
-                      rows={result.rows}
-                      people={assumptions.people}
-                      highlightYears={highlightYears}
-                    />
-                  ) : null}
+                    {/* Year-by-year table — scrolls sideways inside the card. */}
+                    {view === 'table' && result ? (
+                      <div className="-mx-5">
+                        <YearTable
+                          rows={result.rows}
+                          people={assumptions.people}
+                          highlightYears={highlightYears}
+                        />
+                      </div>
+                    ) : null}
+
+                    {/* Pixel journey — the projection as a tiny living world. */}
+                    {view === 'world' && result ? (
+                      <div className="flex flex-col gap-3">
+                        <div className="seg self-start">
+                          {(['meadow', 'seaside', 'snow'] as const).map((sc) => (
+                            <button
+                              key={sc}
+                              type="button"
+                              aria-pressed={pixelScene === sc}
+                              onClick={() => setPixelScene(sc)}
+                            >
+                              {t.pixel.scenes[sc]}
+                            </button>
+                          ))}
+                        </div>
+                        <PixelJourney
+                          rows={result.rows}
+                          assumptions={assumptions}
+                          theme={theme}
+                          scene={pixelScene}
+                        />
+                        <p className="text-muted text-[11px]">{t.pixel.caption}</p>
+                      </div>
+                    ) : null}
+                  </section>
 
                   {/* Advanced tools — collapsed by default (progressive disclosure). */}
                   <button

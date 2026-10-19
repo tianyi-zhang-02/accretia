@@ -14,6 +14,8 @@
   /* The top of a card catches a little more light than the bottom. */
   --surface-hi: #1a1a1d;
   --surface-2: #1f1f23;
+  /* The raised pill of a segmented control. */
+  --seg-on: #34343b;
   --hairline: #26262b;
   /* One accent, used sparingly: progress, the actual-line, the active tab on
      phones. Primary buttons are foreground-on-background, not accent. */
@@ -48,6 +50,7 @@
   --surface: #ffffff;
   --surface-hi: #ffffff;
   --surface-2: #f0f0f2;
+  --seg-on: #ffffff;
   --hairline: #ececef;
   --accent: #15803d;
   --positive: #15803d;
@@ -74,6 +77,7 @@
     --surface: #ffffff;
     --surface-hi: #ffffff;
     --surface-2: #f0f0f2;
+    --seg-on: #ffffff;
     --hairline: #ececef;
     --accent: #15803d;
     --positive: #15803d;
@@ -250,6 +254,51 @@ body {
     inset 0 1px 0 rgb(255 255 255 / 0.25),
     0 1px 2px rgb(0 0 0 / 0.25);
 }
+/* Segmented control — the ONE switch style (view, mode, tabs, settings).
+   A track with a raised pill for the chosen option, the way iOS does it;
+   options carry aria-pressed (or aria-selected for tabs). `.seg-fill`
+   stretches it to the full width with equal options. */
+.seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 12px;
+}
+.seg-fill {
+  display: flex;
+}
+.seg-fill > button {
+  flex: 1;
+}
+.seg > button {
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+.seg > button:hover:not(:disabled) {
+  color: var(--foreground);
+}
+.seg > button:disabled {
+  opacity: 0.4;
+}
+.seg > button[aria-pressed='true'],
+.seg > button[aria-selected='true'] {
+  background: var(--seg-on);
+  color: var(--foreground);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
 /* The one accent button — for the fun, shareable things (Year in review). */
 .btn-accent {
   background: color-mix(in srgb, var(--accent) 16%, transparent);
