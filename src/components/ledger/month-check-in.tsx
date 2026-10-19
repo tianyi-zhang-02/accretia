@@ -697,22 +697,13 @@ function Form({
       {/* How much detail: one number, or a line per category. */}
       <div className="flex items-center justify-between gap-3">
         <span className="text-muted text-xs">{C.modeLabel}</span>
-        <div
-          role="group"
-          aria-label={C.modeLabel}
-          className="bg-surface-2 flex overflow-hidden rounded-[10px] text-xs"
-        >
+        <div role="group" aria-label={C.modeLabel} className="seg">
           {([false, true] as const).map((d) => (
             <button
               key={String(d)}
               type="button"
               aria-pressed={detailed === d}
               onClick={() => switchMode(d)}
-              className={`min-h-8 px-3 font-medium transition-colors ${
-                detailed === d
-                  ? 'bg-foreground text-background'
-                  : 'text-muted hover:text-foreground'
-              }`}
             >
               {d ? C.modeDetailed : C.modeSimple}
             </button>

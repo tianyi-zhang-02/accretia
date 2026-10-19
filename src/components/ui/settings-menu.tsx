@@ -48,11 +48,6 @@ export default function SettingsMenu({
   const step = (d: number) =>
     onFontScale(Math.min(1.4, Math.max(0.8, Math.round((fontScale + d) * 10) / 10)));
 
-  const seg = (active: boolean) =>
-    `min-h-8 flex-1 px-2 text-xs font-medium transition-colors ${
-      active ? 'bg-foreground text-background' : 'text-muted hover:text-foreground'
-    }`;
-
   return (
     <div ref={ref} className="relative">
       <button
@@ -68,28 +63,21 @@ export default function SettingsMenu({
       {open ? (
         <div role="dialog" aria-label={S.aria} className="popover fade-in top-10 right-0 w-64 p-3">
           <p className="text-muted mb-1.5 text-xs">{S.appearance}</p>
-          <div className="bg-surface-2 flex overflow-hidden rounded-[10px]">
+          <div className="seg seg-fill">
             {(['system', 'light', 'dark'] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={theme === v}
-                onClick={() => onTheme(v)}
-                className={seg(theme === v)}
-              >
+              <button key={v} type="button" aria-pressed={theme === v} onClick={() => onTheme(v)}>
                 {S[v]}
               </button>
             ))}
           </div>
 
           <p className="text-muted mt-3 mb-1.5 text-xs">{S.textSize}</p>
-          <div className="bg-surface-2 flex items-center overflow-hidden rounded-[10px]">
+          <div className="seg seg-fill items-center">
             <button
               type="button"
               aria-label={t.controls.smaller}
               disabled={fontScale <= 0.8}
               onClick={() => step(-0.1)}
-              className={`${seg(false)} disabled:opacity-40`}
             >
               A−
             </button>
@@ -99,21 +87,20 @@ export default function SettingsMenu({
               aria-label={t.controls.larger}
               disabled={fontScale >= 1.4}
               onClick={() => step(0.1)}
-              className={`${seg(false)} text-sm disabled:opacity-40`}
+              className="text-sm"
             >
               A+
             </button>
           </div>
 
           <p className="text-muted mt-3 mb-1.5 text-xs">{S.language}</p>
-          <div className="bg-surface-2 flex overflow-hidden rounded-[10px]">
+          <div className="seg seg-fill">
             {LOCALES.map((l) => (
               <button
                 key={l}
                 type="button"
                 aria-pressed={locale === l}
                 onClick={() => setLocale(l)}
-                className={seg(locale === l)}
               >
                 {LOCALE_LABEL[l]}
               </button>

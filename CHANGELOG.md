@@ -6,6 +6,17 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Changed: Plan in one card, one kind of switch
+
+- **Plan's projection is one card**: the balance at the end, a full-width
+  Chart · Year by year · Pixel world switch, then the view. The chart's two
+  switches (what to show, steady vs ups and downs) share one row on wide
+  screens, and its heading moved into the caption under it.
+- **One switch style everywhere** — the plan views, the chart, the
+  check-in's detail level, Budgets & goals, the paycheck filing status and
+  Settings all use the same control: a track with a raised pill for the
+  choice, instead of three different looks.
+
 ### Changed: a calmer, more finished look
 
 - **Home says each thing once.** With the widgets on top, *Am I on track?*
