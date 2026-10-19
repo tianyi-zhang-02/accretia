@@ -34,6 +34,7 @@ import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { SavingsGoal } from '@/lib/ledger/goals';
 
 import PlansCard, { type PlansTab } from './plans-card';
+import WidgetBoard from './widget-board';
 import YearReview from './year-review';
 import MonthCheckIn, { TierBar } from './month-check-in';
 import TrackStatus from './track-status';
@@ -194,6 +195,13 @@ export default function LedgerPanel({
           ? 'annual'
           : 'budgets',
   );
+  const openGoals = () => {
+    setPlansTab('goals');
+    setPlansOpen(true);
+    window.requestAnimationFrame(() =>
+      document.getElementById('plans-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    );
+  };
   const yearBudgets = useMemo(() => {
     const y = yearBudget(entries, year, budgets);
     return new Map((y?.lines ?? []).map((l) => [l.id, l]));
@@ -251,8 +259,34 @@ export default function LedgerPanel({
 
   return (
     <section className="flex flex-col gap-4">
+      {/* At a glance — the widget board. Each tile is one tap from its action. */}
+      <WidgetBoard
+        entries={entries}
+        today={today}
+        planRows={planRows}
+        startingNetWorth={assumptions.startingNetWorth}
+        startYear={assumptions.horizonStartYear}
+        annual={annual}
+        goals={goals}
+        fire={fire}
+        monthLabel={(ym) =>
+          new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', { month: 'short' }).format(
+            new Date(ym.year, ym.month - 1, 1),
+          )
+        }
+        onLog={() => {
+          select(checkInTarget(entries, today));
+          window.requestAnimationFrame(() =>
+            document
+              .getElementById('checkin')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+          );
+        }}
+        onGoals={openGoals}
+        onPlan={onOpenPlan}
+      />
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[3fr_2fr]">
-        <div className="flex flex-col gap-4">
+        <div className="flex scroll-mt-4 flex-col gap-4" id="checkin">
           <MonthCheckIn
             budgets={budgets}
             annual={annual}
@@ -301,15 +335,7 @@ export default function LedgerPanel({
             annual={annual}
             goals={goals}
             today={today}
-            onOpenGoals={() => {
-              setPlansTab('goals');
-              setPlansOpen(true);
-              window.requestAnimationFrame(() =>
-                document
-                  .getElementById('plans-card')
-                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-              );
-            }}
+            onOpenGoals={openGoals}
             entries={entries}
             report={report}
             planRows={planRows}

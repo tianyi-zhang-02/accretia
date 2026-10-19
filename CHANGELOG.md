@@ -6,6 +6,24 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Widgets at the top of Track
+
+- **Five widgets you can read at a glance** — and tap to act on:
+  - **This month** — a ring of what you kept against what the plan expects,
+    and a pulsing *＋ Log October* while a month is waiting;
+  - **Streak** — months in a row, with a small flame that never sits still;
+  - **Everyday, left** — what you can still spend this month to stay on plan;
+  - **Savings jar** — fills toward your goals, liquid gently rippling
+    (tap: the goals);
+  - **Work optional** — the age, the years to go, and a sun on its arc
+    (tap: the plan).
+- Numbers count up and shapes fill as the page opens; **saving a month sets
+  off a small burst of confetti**. All of it stops under *Reduce motion*.
+- Phone: a two-column board like home-screen widgets. Desktop: one row.
+- **Long-press the app icon** (Android, desktop) for *Log a month*, *Plan* and
+  *Backup & sync*. (Real home-screen widgets need a native app; web apps
+  can't add them on iOS or Android.)
+
 ### Made for thumbs
 
 - **Every control is comfortable to tap on a phone**: on touch screens,
