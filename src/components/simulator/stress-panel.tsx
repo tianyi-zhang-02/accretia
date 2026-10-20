@@ -95,15 +95,25 @@ export default function StressPanel({
     [assumptions, stress, active],
   );
 
-  const baselineFinal = rows.at(-1)?.netWorth ?? 0;
+  // In today's dollars, like the projection card above it — the nominal
+  // final is several times larger over a long horizon, and showing it here
+  // made the "baseline" disagree with the headline on the same page.
+  const baselineFinal = rows.at(-1)?.netWorthRealTodayDollars ?? 0;
   const impact = useMemo(() => {
     if (!stressed) return null;
-    const finalNw = stressed.at(-1)?.netWorth ?? 0;
+    const finalNw = stressed.at(-1)?.netWorthRealTodayDollars ?? 0;
     let trough = stressed[0]!;
-    for (const r of stressed) if (r.netWorth < trough.netWorth) trough = r;
+    for (const r of stressed)
+      if (r.netWorthRealTodayDollars < trough.netWorthRealTodayDollars) trough = r;
     const delta = finalNw - baselineFinal;
     const pct = baselineFinal > 0 ? (delta / baselineFinal) * 100 : 0;
-    return { finalNw, delta, pct, troughValue: trough.netWorth, troughYear: trough.year };
+    return {
+      finalNw,
+      delta,
+      pct,
+      troughValue: trough.netWorthRealTodayDollars,
+      troughYear: trough.year,
+    };
   }, [stressed, baselineFinal]);
 
   return (

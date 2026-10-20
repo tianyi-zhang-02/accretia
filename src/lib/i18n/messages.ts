@@ -374,7 +374,7 @@ const en = {
     presetJobLoss: 'Lose your job for 1 year',
     presetCrash: '2008-style crash (−37%) next year',
     none: 'Turn on a shock above to see its impact.',
-    baselineFinal: (v: string) => `Baseline final: ${v}`,
+    baselineFinal: (v: string) => `Baseline final, in today's dollars: ${v}`,
     stressedFinal: (v: string, delta: string, pct: string) => `Stressed: ${v} (${delta} · ${pct})`,
     trough: (v: string, year: number) => `Lowest point: ${v} in ${year}`,
     disclaimer:
@@ -858,6 +858,8 @@ const en = {
       mortgage: 'Mortgage left (per your plan)',
       heroStartLabel: 'Net worth today',
       heroStartSub: 'From your plan. Log a month and this card holds it against the plan.',
+      planDraining:
+        'Your plan spends more than it brings in, so it shrinks every year — being ahead of it can still mean going backwards.',
     },
     categories: {
       housing: 'Mortgage / rent',
@@ -1559,7 +1561,7 @@ const zh: Messages = {
     presetJobLoss: '失业 1 年',
     presetCrash: '明年来一次 2008 式股灾（−37%）',
     none: '打开上面任一冲击即可看到影响。',
-    baselineFinal: (v: string) => `原计划期末：${v}`,
+    baselineFinal: (v: string) => `原计划期末（按今天的钱算）：${v}`,
     stressedFinal: (v: string, delta: string, pct: string) => `受冲击后：${v}（${delta} · ${pct}）`,
     trough: (v: string, year: number) => `最低点：${v}（${year} 年）`,
     disclaimer: '这是叠在你计划上的一次确定性「假如」，主推算不受影响。不构成投资建议。',
@@ -2018,6 +2020,7 @@ const zh: Messages = {
       mortgage: '房贷余额（按规划）',
       heroStartLabel: '你现在的净资产',
       heroStartSub: '来自你的规划。记下第一个月后，这张卡会拿真实数字和规划对比。',
+      planDraining: '你的规划里花的比挣的多，每年都在缩水——比规划多，也可能是在倒退。',
     },
     categories: {
       housing: '房贷／房租',

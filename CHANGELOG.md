@@ -6,6 +6,17 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: two places where the numbers told the wrong story
+
+- **"Ahead of plan" is no longer green when the plan itself is shrinking.**
+  If your plan spends more than it brings in, being ahead of it can still
+  mean going backwards: the net-worth card says so in words, and "ahead" /
+  "kept more than plan" lose their green (spending less than plan stays
+  green — that's good whatever the plan).
+- **The stress test speaks in today's dollars**, like the projection card
+  above it. Its "baseline final" was the inflated nominal figure, so the
+  same plan showed two different end balances on one page.
+
 ### Changed: a cleaner first run, and the last old-style controls
 
 - **While the guided setup is open, Home shows only the setup** — no more
