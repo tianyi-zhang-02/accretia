@@ -157,7 +157,11 @@ export default function CompareView({
       {sims.length > 0 ? (
         <>
           <div className="h-[240px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              initialDimension={{ width: 1, height: 1 }}
+            >
               <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: 8 }}>
                 <CartesianGrid stroke="var(--border)" strokeDasharray="2 4" vertical={false} />
                 <XAxis

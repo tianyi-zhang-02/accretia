@@ -180,7 +180,7 @@ export default function TrackStatus({
           </>
         ) : null,
       }
-    : report.monthsRecorded > 0
+    : report.monthsRecorded > 0 || entries.length > 0
       ? {
           label: S.savedThisYear(report.year),
           figure: fmt.currency0(report.saved),

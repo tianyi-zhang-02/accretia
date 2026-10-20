@@ -73,7 +73,7 @@ export default function PlansCard({
           <SectionLabel icon="sliders">{P.heading}</SectionLabel>
         </span>
         <span className="text-muted flex min-w-0 items-center gap-2 text-right text-xs">
-          <span className="truncate">{summary.length ? summary.join(' · ') : P.none}</span>
+          <span className="leading-snug">{summary.length ? summary.join(' · ') : P.none}</span>
           <span aria-hidden>{open ? '−' : '+'}</span>
         </span>
       </button>

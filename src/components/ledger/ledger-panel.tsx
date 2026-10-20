@@ -157,9 +157,14 @@ export default function LedgerPanel({
   // by itself once the saved ledger has loaded or last month gets logged.
   const [picked, setPicked] = useState<YearMonth | null>(null);
   const sel = picked ?? checkInTarget(entries, today);
-  const year = sel.year;
   const select = (ym: YearMonth) => setPicked(isAfter(ym, today) ? today : ym);
-  const setYear = (y: number) => select({ year: y, month: sel.month });
+  // The Report's year is its own: stepping back to look at last year must
+  // not move the Log tab's month (and wipe a half-typed entry) or turn
+  // Home's "this year" figures into last year's. Until the Report is
+  // stepped, it follows the month being logged.
+  const [reportYear, setReportYear] = useState<number | null>(null);
+  const year = reportYear ?? sel.year;
+  const setYear = (y: number) => setReportYear(Math.min(y, today.year));
   const [showAll, setShowAll] = useState(false);
   const [note, setNote] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -178,6 +183,11 @@ export default function LedgerPanel({
       : ms.map(monthName).join(locale === 'zh' ? '、' : ', ');
 
   const report = useMemo(() => yearReport(entries, year, planRows), [entries, year, planRows]);
+  // Home always speaks about the month being logged, whatever the Report shows.
+  const homeReport = useMemo(
+    () => (year === sel.year ? report : yearReport(entries, sel.year, planRows)),
+    [year, sel.year, report, entries, planRows],
+  );
   const breakdown = useMemo(() => categoryBreakdown(entries, year), [entries, year]);
   const sources = useMemo(() => incomeBreakdown(entries, year), [entries, year]);
   const yoy = useMemo(() => yearOverYear(entries, year), [entries, year]);
@@ -309,7 +319,7 @@ export default function LedgerPanel({
                 onOpenGoals={openGoals}
                 compact
                 entries={entries}
-                report={report}
+                report={homeReport}
                 planRows={planRows}
                 startingNetWorth={assumptions.startingNetWorth}
                 at={sel}

@@ -245,9 +245,14 @@ function SimulatorInner() {
     };
     document.addEventListener('focusin', onIn);
     document.addEventListener('focusout', onOut);
+    // A focused field that is REMOVED (an inline edit committing on Enter, a
+    // setup step changing) fires no focusout in some browsers — the tab bar
+    // would stay hidden. Any tap re-checks.
+    document.addEventListener('pointerdown', onOut);
     return () => {
       document.removeEventListener('focusin', onIn);
       document.removeEventListener('focusout', onOut);
+      document.removeEventListener('pointerdown', onOut);
       delete root.dataset.typing;
     };
   }, []);
@@ -1153,7 +1158,7 @@ function SimulatorInner() {
                                     Math.max(0, Math.min(60, Number(e.target.value) || 0)),
                                   )
                                 }
-                                className="field nums h-8 min-h-0 w-16 px-2 text-right text-xs"
+                                className="bg-surface-2 nums h-8 w-16 rounded-[8px] px-2 text-right text-xs outline-none focus:ring-2 focus:ring-[var(--accent)]"
                               />
                               %
                             </label>
