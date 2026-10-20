@@ -6,6 +6,35 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-10-20 · extension 1.1.0
+
+**Live:** https://accretia.vercel.app · **Try it with sample data:** https://accretia.vercel.app/?demo
+
+Work Optional 2.1 makes 2.0 **calmer to look at and honest in every number.**
+
+**Highlights**
+
+- **Five tabs** — Home · Log · Report · Plan · Data. Home is a glance (widgets,
+  net worth against the plan, this month's findings); Log is just the month;
+  a half-typed month survives any tab switch.
+- **A calmer look** — one switch style everywhere, no boxes in boxes, a
+  report with a rhythm, Plan's projection in one card, a cleaner first run.
+- **Every comparison with the plan on one footing** — 401(k) and other
+  pre-tax savings count; a month logged with only a net worth is a snapshot,
+  not "$0 in, $0 out"; monthly figures use the everyday plan (a planned car
+  isn't extra money every month); planned yearly bills never break a budget;
+  a plan made mid-year isn't "behind" by December.
+- **The FIRE number counts the home** — property tax and upkeep for life,
+  plus paying off the mortgage (and the down payment, before a purchase).
+  Homeowners' work-optional age moves later; plans without a home are
+  unchanged.
+- **Extension 1.1** (Claude Desktop, Claude Code, Codex) — `on_track`,
+  `year_report`, `log_month` and goals follow the same rules: pre-tax
+  savings, the plan's starting month, the everyday plan, planned bills off
+  budgets, overdue goals, and no logging of months that haven't happened.
+
+The details of each change follow.
+
 ### Changed: the FIRE number counts the home
 
 - **With a home in the plan, "work optional" now waits until your
