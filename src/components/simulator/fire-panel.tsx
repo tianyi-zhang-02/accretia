@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { useI18n } from '@/lib/i18n/locale';
 import { simulate, type YearRow } from '@/lib/simulator/engine';
-import { computeFire, type FireMilestone } from '@/lib/simulator/fire';
+import { computeFire, type FireMilestone, fireOptionsFor, homeShare } from '@/lib/simulator/fire';
 import { toAge90 } from '@/lib/simulator/insights';
 import type { Assumptions, FireConfig } from '@/lib/validation/scenarios';
 import { SectionLabel } from '../ui/icon';
@@ -101,14 +101,17 @@ export default function FirePanel({
     return ext === assumptions ? rows : simulate(ext).rows;
   }, [assumptions, rows]);
   const fire = computeFire(longRows, {
-    recurringAnnualExpenses: assumptions.recurringAnnualExpenses,
+    ...fireOptionsFor(assumptions),
     safeWithdrawalRatePct: swrPct,
     annualHealthInsurance: health,
     essentialAnnualExpenses: essential,
-    returnPct: assumptions.investment.returnPct,
-    inflationPct: assumptions.inflationPct,
-    primaryBirthYear,
   });
+  // What the home adds to the full target, in the year it's reached (or now):
+  // the panel says it out loud, so the bigger number isn't a mystery.
+  const homeAt = longRows.find((r) => r.year === fire.full.year) ?? longRows[0];
+  const home = homeAt
+    ? homeShare(homeAt, { ...fireOptionsFor(assumptions), safeWithdrawalRatePct: swrPct })
+    : null;
 
   function status(m: FireMilestone): { text: string; ok: boolean } {
     if (!m.reached) return { text: t.fire.notReached, ok: false };
@@ -176,6 +179,11 @@ export default function FirePanel({
               <span className="text-muted text-[11px]">
                 {t.fire.covers(fmt.currency0(fire.fullSpend))}
               </span>
+              {home && (home.carrying > 0 || home.mortgage > 0) ? (
+                <span className="text-muted text-[11px] leading-snug">
+                  {t.fire.withHome(fmt.currency0(home.carrying), fmt.currency0(home.mortgage))}
+                </span>
+              ) : null}
             </div>
             <div className="text-right">
               <span className="nums text-foreground block text-[13px]">

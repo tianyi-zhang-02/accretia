@@ -18,9 +18,25 @@
  * Basis: INVESTABLE real net worth — invested + cash, i.e. netWorthReal minus
  * home equity. You can't withdraw 4% of a house, so home equity never counts
  * toward a FIRE number. It's a planning estimate, not advice.
+ *
+ * WITH A HOME (owner's call, 2026-10: "FIRE 目标要算上房屋支出") — the
+ * engine pays the home outside `expenses`, so a FIRE number of spend ÷ SWR
+ * alone left the house out and read optimistic. From the purchase year, the
+ * target in each year is
+ *
+ *   (spend + property tax + upkeep) ÷ SWR  +  the mortgage still owed
+ *
+ *   - tax + upkeep are for life: next year's, on the home's value, in the
+ *     plan's start-year dollars — so they join the perpetuity;
+ *   - the mortgage is a finite debt: enough to pay it off, in real terms.
+ *
+ * The home's value and the deflator are rebuilt from the row exactly as the
+ * engine built them (value = equity + loan; F = (1+inflation)^(i+1)).
+ * Coast FIRE leaves the mortgage out (you are still earning while coasting).
  */
 
 import type { YearRow } from './engine';
+import type { Assumptions } from '../validation/scenarios';
 
 export type FireMilestone = {
   reached: boolean;
@@ -55,30 +71,83 @@ export type FireOptions = {
   primaryBirthYear: number | null;
   /** Traditional retirement age used for Coast FIRE. Default 65. */
   retirementAge?: number;
+  /** The plan's first year — needed to rebuild the engine's deflator. */
+  horizonStartYear?: number;
+  /** The home, if the plan has one: its running costs join the target. */
+  home?: { purchaseYear: number; propertyTaxPct: number; maintenancePct: number };
 };
+
+/** The FIRE options a plan implies — one place, so every caller agrees. */
+export function fireOptionsFor(a: Assumptions): FireOptions {
+  return {
+    recurringAnnualExpenses: a.recurringAnnualExpenses,
+    safeWithdrawalRatePct: a.fire?.safeWithdrawalRatePct ?? 4,
+    annualHealthInsurance: a.fire?.annualHealthInsurance ?? 0,
+    essentialAnnualExpenses: a.fire?.essentialAnnualExpenses ?? a.recurringAnnualExpenses,
+    returnPct: a.investment.returnPct,
+    inflationPct: a.inflationPct,
+    primaryBirthYear: a.people[0]?.birthYear ?? null,
+    horizonStartYear: a.horizonStartYear,
+    ...(a.mortgage
+      ? {
+          home: {
+            purchaseYear: a.mortgage.purchaseYear,
+            propertyTaxPct: a.mortgage.propertyTaxPct,
+            maintenancePct: a.mortgage.maintenancePct ?? 0,
+          },
+        }
+      : {}),
+  };
+}
+
+/** What the home adds to a year's target, in the plan's start-year dollars. */
+export function homeShare(r: YearRow, opts: FireOptions): { carrying: number; mortgage: number } {
+  const h = opts.home;
+  if (!h || opts.horizonStartYear === undefined || r.year < h.purchaseYear) {
+    return { carrying: 0, mortgage: 0 };
+  }
+  const infl = 1 + opts.inflationPct / 100;
+  const F = Math.pow(infl, r.year - opts.horizonStartYear + 1);
+  const value = r.homeEquityRealTodayDollars * F + r.mortgageBalance;
+  return {
+    // Next year's tax + upkeep on today's value, in start-year dollars.
+    carrying: (value * (h.propertyTaxPct + h.maintenancePct)) / 100 / (F * infl),
+    mortgage: r.mortgageBalance / F,
+  };
+}
 
 /** Investable (ex-home) real net worth — the basis for every FIRE milestone. */
 function investableReal(r: YearRow): number {
   return r.netWorthRealTodayDollars - r.homeEquityRealTodayDollars;
 }
 
-/** First row whose investable real net worth reaches `target`, as a milestone. */
+/**
+ * First row whose investable real net worth reaches its year's target. Not
+ * reached: `number` is the target in the first row (where you are now).
+ */
 function firstReaching(
   rows: YearRow[],
-  target: number,
+  target: (r: YearRow) => number,
   primaryBirthYear: number | null,
+  fallback: number,
 ): FireMilestone {
   for (const r of rows) {
-    if (investableReal(r) >= target) {
+    const t = target(r);
+    if (investableReal(r) >= t) {
       return {
         reached: true,
         year: r.year,
         age: primaryBirthYear === null ? null : r.year - primaryBirthYear,
-        number: target,
+        number: t,
       };
     }
   }
-  return { reached: false, year: null, age: null, number: target };
+  return {
+    reached: false,
+    year: null,
+    age: null,
+    number: rows[0] ? target(rows[0]) : fallback,
+  };
 }
 
 export function computeFire(rows: YearRow[], opts: FireOptions): FireResult {
@@ -94,11 +163,15 @@ export function computeFire(rows: YearRow[], opts: FireOptions): FireResult {
   const fullNumber = fullSpend / safeSwr;
   const leanNumber = leanSpend / safeSwr;
 
-  const full = firstReaching(rows, fullNumber, opts.primaryBirthYear);
-  const lean = firstReaching(rows, leanNumber, opts.primaryBirthYear);
+  const target = (spendNumber: number) => (r: YearRow) => {
+    const h = homeShare(r, opts);
+    return spendNumber + h.carrying / safeSwr + h.mortgage;
+  };
+  const full = firstReaching(rows, target(fullNumber), opts.primaryBirthYear, fullNumber);
+  const lean = firstReaching(rows, target(leanNumber), opts.primaryBirthYear, leanNumber);
 
   // Coast FIRE needs an age (to know the years left to compound).
-  let coast: FireMilestone = { reached: false, year: null, age: null, number: fullNumber };
+  let coast: FireMilestone = { reached: false, year: null, age: null, number: full.number };
   if (opts.primaryBirthYear !== null) {
     const realReturn = (1 + opts.returnPct / 100) / (1 + opts.inflationPct / 100) - 1;
     for (const r of rows) {
@@ -106,8 +179,10 @@ export function computeFire(rows: YearRow[], opts: FireOptions): FireResult {
       const yearsToRetire = retirementAge - ageThatYear;
       // Amount you'd need TODAY so it compounds to the full FIRE number by
       // retirement. Past retirement age, you need the full number outright.
-      const needed =
-        yearsToRetire > 0 ? fullNumber / Math.pow(1 + realReturn, yearsToRetire) : fullNumber;
+      // The home's running costs are for life; the mortgage is left out
+      // (while coasting you still earn, and pay it from that).
+      const goal = fullNumber + homeShare(r, opts).carrying / safeSwr;
+      const needed = yearsToRetire > 0 ? goal / Math.pow(1 + realReturn, yearsToRetire) : goal;
       if (investableReal(r) >= needed) {
         coast = { reached: true, year: r.year, age: ageThatYear, number: needed };
         break;

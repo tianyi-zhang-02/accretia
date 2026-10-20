@@ -4,7 +4,7 @@ import type { YearRow } from './engine';
 import { computeFire, type FireOptions } from './fire';
 
 /** Minimal YearRow where only year + real net worth (+ home equity) matter. */
-function row(year: number, realNetWorth: number, homeEquityReal = 0): YearRow {
+function row(year: number, realNetWorth: number, homeEquityReal = 0, mortgageBalance = 0): YearRow {
   return {
     year,
     ages: {},
@@ -19,7 +19,7 @@ function row(year: number, realNetWorth: number, homeEquityReal = 0): YearRow {
     netWorthRealTodayDollars: realNetWorth,
     homeEquityRealTodayDollars: homeEquityReal,
     housingCosts: 0,
-    mortgageBalance: 0,
+    mortgageBalance,
   };
 }
 
@@ -87,5 +87,43 @@ describe('computeFire', () => {
     expect(r.full.reached).toBe(true);
     expect(r.full.age).toBeNull();
     expect(r.coast.reached).toBe(false);
+  });
+});
+
+describe('computeFire with a home', () => {
+  const home = { purchaseYear: 2026, propertyTaxPct: 1, maintenancePct: 1 };
+
+  it('no inflation: (spend + tax & upkeep) ÷ SWR + the mortgage still owed', () => {
+    // Home worth 300k equity + 400k loan = 700k; 2% of it = 14k a year.
+    // Target = (40k + 14k) / 0.04 + 400k = 1,350,000 + 400,000 = 1,750,000.
+    const opts = { ...base, inflationPct: 0, horizonStartYear: 2026, home };
+    const rows = [row(2026, 2_000_000, 300_000, 400_000)]; // investable 1.7M
+    const r = computeFire(rows, opts);
+    expect(r.full.number).toBeCloseTo(1_750_000, 6);
+    expect(r.full.reached).toBe(false); // 1.7M < 1.75M
+    // Without the home's costs the same 1.7M would have been "FIRE" (1M target).
+    expect(computeFire(rows, { ...base, inflationPct: 0 }).full.reached).toBe(true);
+  });
+
+  it('with inflation, rebuilt exactly as the engine deflates (hand-worked)', () => {
+    // Row 2027 of a plan starting 2026 at 3%: F = 1.03^2 = 1.0609.
+    //   value   = 300,000 × 1.0609 + 400,000          = 718,270
+    //   carrying = 718,270 × 2% / (1.0609 × 1.03)       = 13,146.376
+    //   mortgage = 400,000 / 1.0609                     = 377,038.364
+    //   target   = (40,000 + 13,146.376) / 0.04 + 377,038.364 = 1,705,697.763
+    const opts = { ...base, horizonStartYear: 2026, home };
+    const r = computeFire([row(2027, 0, 300_000, 400_000)], opts);
+    expect(r.full.number).toBeCloseTo(1_705_697.763, 2);
+  });
+
+  it('before the purchase year the home adds nothing', () => {
+    const opts = { ...base, horizonStartYear: 2026, home: { ...home, purchaseYear: 2030 } };
+    expect(computeFire([row(2027, 0, 0, 0)], opts).full.number).toBe(1_000_000);
+  });
+
+  it('a paid-off home still costs tax and upkeep for life', () => {
+    // 500k home, no loan, 2% → 10k/yr → (40k + 10k) / 0.04 = 1,250,000.
+    const opts = { ...base, inflationPct: 0, horizonStartYear: 2026, home };
+    expect(computeFire([row(2026, 0, 500_000, 0)], opts).full.number).toBeCloseTo(1_250_000, 6);
   });
 });

@@ -6,6 +6,16 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Changed: the FIRE number counts the home
+
+- **With a home in the plan, "work optional" now waits until your
+  investments can also carry the house**: property tax and upkeep for life,
+  plus paying off what's left of the mortgage. Before, the FIRE number
+  covered everyday spending only and read optimistic for homeowners. Their
+  work-optional age moves later; plans without a home are unchanged.
+- The FIRE panel shows the home's part of the number (tax & upkeep a year,
+  and the mortgage payoff), and the homeowner note says what's included.
+
 ### Fixed: the rest of the known issues
 
 - **An app left open across a month boundary moves on** — it no longer keeps

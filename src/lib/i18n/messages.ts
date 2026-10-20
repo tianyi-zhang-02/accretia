@@ -348,6 +348,8 @@ const en = {
     leanLabel: 'Lean FIRE',
     coastLabel: 'Coast FIRE',
     covers: (spend: string) => `covers ${spend}/yr`,
+    withHome: (carrying: string, loan: string) =>
+      `+ the home: tax & upkeep ${carrying}/yr, and paying off the mortgage (${loan})`,
     reachedAtAge: (year: number, ageN: number) => `reached ${year} · age ${ageN}`,
     reachedAt: (year: number) => `reached ${year}`,
     notReached: 'not by age 90',
@@ -1200,7 +1202,7 @@ const en = {
     noRetireAge:
       'Nobody in this plan ever retires — career income runs to the end. Set a retire age to see the drawdown years.',
     homeExcluded:
-      'Your home equity is in net worth but not in the FIRE number — you can’t withdraw 4% of a house. And the spending it has to cover is your everyday spending: the mortgage, property tax and upkeep aren’t in it.',
+      'Your home equity is in net worth but doesn’t count toward FIRE — you can’t withdraw 4% of a house. Its costs do: the FIRE number covers property tax and upkeep for life, and paying off the mortgage.',
   },
   footer: {
     disclaimer:
@@ -1540,6 +1542,8 @@ const zh: Messages = {
     leanLabel: '精简 FIRE',
     coastLabel: 'Coast FIRE',
     covers: (spend: string) => `覆盖每年 ${spend} 开支`,
+    withHome: (carrying: string, loan: string) =>
+      `另含房子：每年房产税和维护 ${carrying}，以及还清房贷（${loan}）`,
     reachedAtAge: (year: number, ageN: number) => `${year} 年达成 · ${ageN} 岁`,
     reachedAt: (year: number) => `${year} 年达成`,
     notReached: '到 90 岁也还没达成',
@@ -2357,7 +2361,7 @@ const zh: Messages = {
     noRetireAge:
       '这份方案里没人退休，工资一直挣到最后一年。设个退休年龄，才看得到只花不挣的那几年。',
     homeExcluded:
-      '房子的净值算在净资产里，但不算进 FIRE 数字：你没法每年从房子里取 4% 出来花。另外，它要覆盖的只是日常开支，房贷、房产税和维护费没算在里面。',
+      '房子的净值算在净资产里，但不能拿来实现 FIRE：你没法每年从房子里取 4% 出来花。房子的开销则算进去了：FIRE 数字包含一辈子的房产税和维护费，以及还清房贷。',
   },
   footer: {
     disclaimer:
