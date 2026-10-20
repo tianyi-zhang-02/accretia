@@ -43,7 +43,7 @@ passphrase with.
 ## Claude Desktop
 
 1. Download `work-optional.mcpb` from the
-   [release](https://github.com/tianyi-zhang-02/accretia/releases/tag/mcp-v1.0.0)
+   [release](https://github.com/tianyi-zhang-02/accretia/releases/tag/mcp-v1.1.0)
    and open it. Claude Desktop installs it.
 2. In its settings: your **sync passphrase** (the same as in the web app) and
    the **sync key** (web app → Data → *Use it in Claude or Codex* → Copy).
@@ -62,8 +62,8 @@ web app's Data tab shows these commands with your site's sync key filled in.
 
 ```sh
 mkdir -p ~/.work-optional-mcp && cd ~/.work-optional-mcp
-curl -fsSL -O https://github.com/tianyi-zhang-02/accretia/releases/download/mcp-v1.0.0/work-optional-mcp.mjs \
-           -O https://github.com/tianyi-zhang-02/accretia/releases/download/mcp-v1.0.0/work-optional-mcp.sh
+curl -fsSL -O https://github.com/tianyi-zhang-02/accretia/releases/download/mcp-v1.1.0/work-optional-mcp.mjs \
+           -O https://github.com/tianyi-zhang-02/accretia/releases/download/mcp-v1.1.0/work-optional-mcp.sh
 chmod +x work-optional-mcp.sh
 security add-generic-password -a "$USER" -s work-optional -w   # asks for the passphrase once
 
