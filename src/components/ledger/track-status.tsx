@@ -133,12 +133,24 @@ export default function TrackStatus({
       year: 'numeric',
     }).format(new Date(e.year, e.month - 1, 1));
 
+  // A plan that spends more than it brings in falls every year. Being
+  // "ahead" of it can still mean going backwards, so that is never painted
+  // green — and the metal card says why. (Same test as Plan's
+  // "spending more than you bring home": the plan's first year.)
+  const planDraining = (planRows[0]?.saved ?? 0) < 0;
+
   /** Saving / net worth: more than plan is good. Spending: less is. */
   const vsPlan = (actual: number, plan: number, kind: 'more' | 'spend' = 'more') => {
     const d = actual - plan;
     // Within $50 either way is simply "on plan" — "$0 ahead" reads oddly.
-    if (Math.abs(d) < 50) return <span className="text-positive">{S.onPlan}</span>;
+    if (Math.abs(d) < 50)
+      return (
+        <span className={planDraining && kind === 'more' ? '' : 'text-positive'}>{S.onPlan}</span>
+      );
     const good = kind === 'more' ? d >= 0 : d <= 0;
+    // Spending less than plan is good whatever the plan; only "more than a
+    // shrinking plan" loses its green.
+    if (good && planDraining && kind === 'more') return <span>{S.ahead(fmt.currency0(d))}</span>;
     const text =
       kind === 'more'
         ? d >= 0
@@ -160,6 +172,11 @@ export default function TrackStatus({
           <>
             {vsPlan(latest.netWorth!, planNow.netWorth)}{' '}
             <span className="text-muted">{S.planSaid(fmt.currency0(planNow.netWorth))}</span>
+            {planDraining ? (
+              <span className="text-negative mt-1 block text-[12px] leading-snug">
+                {S.planDraining}
+              </span>
+            ) : null}
           </>
         ) : null,
       }
