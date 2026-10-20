@@ -348,8 +348,10 @@ const en = {
     leanLabel: 'Lean FIRE',
     coastLabel: 'Coast FIRE',
     covers: (spend: string) => `covers ${spend}/yr`,
-    withHome: (carrying: string, loan: string) =>
-      `+ the home: tax & upkeep ${carrying}/yr, and paying off the mortgage (${loan})`,
+    withHome: (carrying: string, loan: string | null) =>
+      loan
+        ? `+ the home: tax & upkeep ${carrying}/yr, and paying off the mortgage (${loan})`
+        : `+ the home: tax & upkeep ${carrying}/yr`,
     reachedAtAge: (year: number, ageN: number) => `reached ${year} · age ${ageN}`,
     reachedAt: (year: number) => `reached ${year}`,
     notReached: 'not by age 90',
@@ -359,7 +361,7 @@ const en = {
     coastNeedsPerson: 'add a person under “People & careers” to compute Coast FIRE',
     needExpenses: 'enter your annual expenses to compute FIRE',
     disclaimer:
-      'FIRE number = annual spend ÷ withdrawal rate (25× at 4%), vs your INVESTABLE real net worth — home equity is excluded, since you can’t withdraw 4% of a house. A planning estimate, not advice.',
+      'FIRE number = annual spend ÷ withdrawal rate (25× at 4%) — with a home, plus its tax and upkeep the same way and what’s left on the mortgage — vs your INVESTABLE real net worth (home equity excluded: you can’t withdraw 4% of a house). A planning estimate, not advice.',
   },
   stress: {
     heading: 'Stress test — what if it goes wrong?',
@@ -1542,8 +1544,10 @@ const zh: Messages = {
     leanLabel: '精简 FIRE',
     coastLabel: 'Coast FIRE',
     covers: (spend: string) => `覆盖每年 ${spend} 开支`,
-    withHome: (carrying: string, loan: string) =>
-      `另含房子：每年房产税和维护 ${carrying}，以及还清房贷（${loan}）`,
+    withHome: (carrying: string, loan: string | null) =>
+      loan
+        ? `另含房子：每年房产税和维护 ${carrying}，以及还清房贷（${loan}）`
+        : `另含房子：每年房产税和维护 ${carrying}`,
     reachedAtAge: (year: number, ageN: number) => `${year} 年达成 · ${ageN} 岁`,
     reachedAt: (year: number) => `${year} 年达成`,
     notReached: '到 90 岁也还没达成',
@@ -1553,7 +1557,7 @@ const zh: Messages = {
     coastNeedsPerson: '请在「成员与职业」中添加一位成员以计算 Coast FIRE',
     needExpenses: '请先填写每年开支以计算 FIRE',
     disclaimer:
-      'FIRE 数字 = 每年开支 ÷ 提取率（4% 即 25×），与「可投资」的实际净资产比较——不含房产净值，因为你没法对房子提取 4%。仅为规划估算，非投资建议。',
+      'FIRE 数字 = 每年开支 ÷ 提取率（4% 即 25×）；有房子的话，再加上同样算法的房产税和维护费，以及剩下的房贷。拿来比较的是「可投资」的实际净资产（不含房产净值：你没法对房子提取 4%）。仅为规划估算，非投资建议。',
   },
   stress: {
     heading: '压力测试 · 万一出事呢？',

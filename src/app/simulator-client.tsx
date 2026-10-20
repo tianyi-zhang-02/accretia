@@ -1286,6 +1286,7 @@ function SimulatorInner() {
                         <FirePanel
                           assumptions={assumptions}
                           rows={result.rows}
+                          realFactor={realFactor}
                           onChange={patchCurrent}
                         />
                       ) : null}

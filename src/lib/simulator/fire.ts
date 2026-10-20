@@ -29,9 +29,10 @@
  *   - tax + upkeep are for life: next year's, on the home's value, in the
  *     plan's start-year dollars — so they join the perpetuity;
  *   - the mortgage is a finite debt: enough to pay it off, in real terms;
- *   - a home bought LATER in the plan counts before it's bought too (at its
- *     purchase-year figures) — otherwise FIRE could be declared in a year
- *     the plan is about to buy a house it can't then carry.
+ *   - a home bought LATER in the plan counts before it's bought too: its
+ *     purchase-year figures PLUS the down payment still to leave the
+ *     investable pool — otherwise FIRE could be declared in a year the plan
+ *     is about to buy a house it can't then carry.
  *
  * The home's value and the deflator are rebuilt from the row exactly as the
  * engine built them (value = equity + loan; F = (1+inflation)^(i+1)).
@@ -79,7 +80,14 @@ export type FireOptions = {
   /** The plan's first year — needed to rebuild the engine's deflator. */
   horizonStartYear?: number;
   /** The home, if the plan has one: its running costs join the target. */
-  home?: { purchaseYear: number; propertyTaxPct: number; maintenancePct: number };
+  home?: {
+    purchaseYear: number;
+    propertyTaxPct: number;
+    maintenancePct: number;
+    /** Purchase price (nominal, paid in the purchase year) and its down payment share. */
+    homePrice?: number;
+    downPaymentPct?: number;
+  };
 };
 
 /** The FIRE options a plan implies — one place, so every caller agrees. */
@@ -99,6 +107,8 @@ export function fireOptionsFor(a: Assumptions): FireOptions {
             purchaseYear: a.mortgage.purchaseYear,
             propertyTaxPct: a.mortgage.propertyTaxPct,
             maintenancePct: a.mortgage.maintenancePct ?? 0,
+            homePrice: a.mortgage.homePrice,
+            downPaymentPct: a.mortgage.downPaymentPct,
           },
         }
       : {}),
@@ -172,9 +182,17 @@ export function computeFire(rows: YearRow[], opts: FireOptions): FireResult {
   const firstOwned = opts.home ? rows.find((r) => r.year >= opts.home!.purchaseYear) : undefined;
   const homeFor = (r: YearRow) =>
     homeShare(firstOwned && r.year < firstOwned.year ? firstOwned : r, opts);
+  // The down payment, in start-year dollars, while it is still to be paid.
+  const downPaymentDue = (r: YearRow) => {
+    const h = opts.home;
+    if (!h || !firstOwned || r.year >= firstOwned.year || opts.horizonStartYear === undefined)
+      return 0;
+    const F = Math.pow(1 + opts.inflationPct / 100, h.purchaseYear - opts.horizonStartYear + 1);
+    return ((h.homePrice ?? 0) * ((h.downPaymentPct ?? 0) / 100)) / F;
+  };
   const target = (spendNumber: number) => (r: YearRow) => {
     const h = homeFor(r);
-    return spendNumber + h.carrying / safeSwr + h.mortgage;
+    return spendNumber + h.carrying / safeSwr + h.mortgage + downPaymentDue(r);
   };
   const full = firstReaching(rows, target(fullNumber), opts.primaryBirthYear, fullNumber);
   const lean = firstReaching(rows, target(leanNumber), opts.primaryBirthYear, leanNumber);

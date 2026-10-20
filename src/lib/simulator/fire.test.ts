@@ -143,4 +143,21 @@ describe('computeFire with a home', () => {
     const opts = { ...base, inflationPct: 0, horizonStartYear: 2026, home };
     expect(computeFire([row(2026, 0, 500_000, 0)], opts).full.number).toBeCloseTo(1_250_000, 6);
   });
+
+  it('before a later purchase, the down payment still to leave counts too', () => {
+    // No inflation. 2026: 2.1M investable. 2027: buy 1M with 50% down
+    // (500k equity + 500k loan; tax+upkeep 2% of 1M = 20k).
+    // 2027 target = (40k + 20k)/0.04 + 500k = 2,000,000;
+    // 2026 target = that + the 500k down payment = 2,500,000 → not FIRE yet.
+    const opts = {
+      ...base,
+      inflationPct: 0,
+      horizonStartYear: 2026,
+      home: { ...home, purchaseYear: 2027, homePrice: 1_000_000, downPaymentPct: 50 },
+    };
+    const rows = [row(2026, 2_100_000), row(2027, 2_000_000, 500_000, 500_000)];
+    const r = computeFire(rows, opts);
+    expect(r.full.reached).toBe(false);
+    expect(r.full.number).toBeCloseTo(2_500_000, 6);
+  });
 });

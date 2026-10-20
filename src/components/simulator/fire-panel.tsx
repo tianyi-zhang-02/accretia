@@ -66,10 +66,13 @@ function NumField({
 export default function FirePanel({
   assumptions,
   rows,
+  realFactor = 1,
   onChange,
 }: {
   assumptions: Assumptions;
   rows: YearRow[];
+  /** Plan start-year dollars → this year's, like the rest of Plan (`todayFactor`). */
+  realFactor?: number;
   onChange: (next: Assumptions) => void;
 }) {
   const { t, fmt } = useI18n();
@@ -108,6 +111,8 @@ export default function FirePanel({
   });
   // What the home adds to the full target (computed with it, so they agree).
   const home = fire.fullHome;
+  // Shown in this year's dollars, like the chart and the final balance.
+  const money = (v: number) => fmt.currency0(v * realFactor);
 
   function status(m: FireMilestone): { text: string; ok: boolean } {
     if (!m.reached) return { text: t.fire.notReached, ok: false };
@@ -172,18 +177,19 @@ export default function FirePanel({
           <div className="row">
             <div className="flex flex-col">
               <span className="text-foreground text-[13px]">{t.fire.fullLabel}</span>
-              <span className="text-muted text-[11px]">
-                {t.fire.covers(fmt.currency0(fire.fullSpend))}
-              </span>
+              <span className="text-muted text-[11px]">{t.fire.covers(money(fire.fullSpend))}</span>
               {home.carrying > 0 || home.mortgage > 0 ? (
                 <span className="text-muted text-[11px] leading-snug">
-                  {t.fire.withHome(fmt.currency0(home.carrying), fmt.currency0(home.mortgage))}
+                  {t.fire.withHome(
+                    money(home.carrying),
+                    home.mortgage >= 1 ? money(home.mortgage) : null,
+                  )}
                 </span>
               ) : null}
             </div>
             <div className="text-right">
               <span className="nums text-foreground block text-[13px]">
-                {fmt.currency0(fire.full.number)}
+                {money(fire.full.number)}
               </span>
               <span className={`text-[11px] ${fullStatus.ok ? 'text-positive' : 'text-muted'}`}>
                 {fullStatus.text}
@@ -197,12 +203,12 @@ export default function FirePanel({
               <div className="flex flex-col">
                 <span className="text-foreground text-[13px]">{t.fire.leanLabel}</span>
                 <span className="text-muted text-[11px]">
-                  {t.fire.covers(fmt.currency0(fire.leanSpend))}
+                  {t.fire.covers(money(fire.leanSpend))}
                 </span>
               </div>
               <div className="text-right">
                 <span className="nums text-foreground block text-[13px]">
-                  {fmt.currency0(fire.lean.number)}
+                  {money(fire.lean.number)}
                 </span>
                 <span className={`text-[11px] ${leanStatus.ok ? 'text-positive' : 'text-muted'}`}>
                   {leanStatus.text}
