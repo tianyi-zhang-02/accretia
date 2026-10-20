@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useI18n } from '@/lib/i18n/locale';
 import {
@@ -107,6 +107,35 @@ function Cell({
   );
 }
 
+const thisMonth = (): YearMonth => {
+  const d = new Date();
+  return { year: d.getFullYear(), month: d.getMonth() + 1 };
+};
+
+/**
+ * The current month, kept current: an installed app can stay open across a
+ * month boundary, and a frozen "today" would keep offering the old month
+ * (and nudge for the wrong one). Re-checked every minute and on returning to
+ * the app; the object only changes when the month does.
+ */
+function useToday(): YearMonth {
+  const [today, setToday] = useState<YearMonth>(thisMonth);
+  useEffect(() => {
+    const tick = () =>
+      setToday((p) => {
+        const n = thisMonth();
+        return n.year === p.year && n.month === p.month ? p : n;
+      });
+    const id = window.setInterval(tick, 60_000);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', tick);
+    };
+  }, []);
+  return today;
+}
+
 export type LedgerView = 'home' | 'log' | 'report';
 
 export default function LedgerPanel({
@@ -149,10 +178,7 @@ export default function LedgerPanel({
 }) {
   const { t, fmt, locale } = useI18n();
   const L = t.ledger;
-  const [today] = useState<YearMonth>(() => {
-    const d = new Date();
-    return { year: d.getFullYear(), month: d.getMonth() + 1 };
-  });
+  const today = useToday();
   // Until the user picks a month, follow the check-in target — it moves on
   // by itself once the saved ledger has loaded or last month gets logged.
   const [picked, setPicked] = useState<YearMonth | null>(null);
@@ -262,19 +288,21 @@ export default function LedgerPanel({
     } catch {
       return setNote({ tone: 'bad', text: L.fatal.unreadable });
     }
-    const res = parseLedgerCsv(text);
+    const res = parseLedgerCsv(text, today);
     if (res.fatal) return setNote({ tone: 'bad', text: L.fatal[res.fatal] });
     let merged = entries;
     for (const e of res.entries) merged = upsert(merged, e);
     onChange(merged.slice(-600));
     const lastImported = res.entries.at(-1);
     if (lastImported) select(lastImported);
-    const skipped = res.errors.map((e) => e.line);
+    const future = res.errors.filter((e) => e.reason === 'future').map((e) => e.line);
+    const skipped = res.errors.filter((e) => e.reason !== 'future').map((e) => e.line);
     setNote({
-      tone: skipped.length ? 'bad' : 'ok',
+      tone: skipped.length || future.length ? 'bad' : 'ok',
       text:
         L.imported(res.entries.length) +
-        (skipped.length ? ' ' + L.skipped(skipped.slice(0, 8).join(', ')) : ''),
+        (skipped.length ? ' ' + L.skipped(skipped.slice(0, 8).join(', ')) : '') +
+        (future.length ? ' ' + L.skippedFuture(future.slice(0, 8).join(', ')) : ''),
     });
   }
 

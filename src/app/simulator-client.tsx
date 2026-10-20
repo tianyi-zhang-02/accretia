@@ -26,6 +26,7 @@ import { sampleData } from '@/lib/demo/sample';
 import { LocaleProvider, useI18n } from '@/lib/i18n/locale';
 import { ledgerSchema, type MonthEntry } from '@/lib/ledger/ledger';
 import { simulate } from '@/lib/simulator/engine';
+import { todayFactor, inTodaysDollars } from '@/lib/simulator/today';
 import { fireHeadline } from '@/lib/simulator/insights';
 import { useAppBadge } from '@/components/pwa/app-badge';
 import InstallCard, { useInstallState } from '@/components/pwa/install-card';
@@ -637,6 +638,13 @@ function SimulatorInner() {
   }, [chartEngine, assumptions, volatilityPct]);
 
   const fire = useMemo(() => fireHeadline(assumptions), [assumptions]);
+  // What the page SHOWS as "today's dollars": the engine's real figures are
+  // in the plan's start-year dollars, scaled up for a plan made years ago.
+  const realFactor = todayFactor(assumptions);
+  const shown = useMemo(
+    () => (result ? inTodaysDollars(result, realFactor) : null),
+    [result, realFactor],
+  );
 
   // Nudge toward a backup file once there's something worth losing: two or
   // more months logged, no backup in BACKUP_STALE_DAYS, and no cloud account
@@ -650,7 +658,7 @@ function SimulatorInner() {
     (backupDays === null || backupDays >= BACKUP_STALE_DAYS);
 
   const lastNominal = result?.rows[result.rows.length - 1]?.netWorth ?? 0;
-  const lastReal = result?.rows[result.rows.length - 1]?.netWorthRealTodayDollars ?? 0;
+  const lastReal = shown?.rows[shown.rows.length - 1]?.netWorthRealTodayDollars ?? 0;
 
   // Savings is derived (after-tax income − spending); surface the implied
   // rate for the first year so the number the old "savings rate" input used
@@ -665,8 +673,8 @@ function SimulatorInner() {
   // Markers identical to the authed simulator: a dot per windfall and
   // per active major-expense year on the base line.
   const markers = useMemo<Marker[]>(() => {
-    if (!result) return [];
-    const byYear = new Map(result.rows.map((r) => [r.year, r]));
+    if (!shown) return [];
+    const byYear = new Map(shown.rows.map((r) => [r.year, r]));
     const out: Marker[] = [];
     for (const w of assumptions.windfalls) {
       const row = byYear.get(w.year);
@@ -693,7 +701,7 @@ function SimulatorInner() {
       }
     }
     return out;
-  }, [result, assumptions.windfalls, assumptions.majorExpenses, displayMode]);
+  }, [shown, assumptions.windfalls, assumptions.majorExpenses, displayMode]);
 
   const highlightYears = useMemo(() => {
     const set = new Set<number>();
@@ -843,38 +851,39 @@ function SimulatorInner() {
         </div>
       ) : null}
 
-      {tab === 'home' || tab === 'log' || tab === 'report' ? (
-        <div className="fade-in">
-          <LedgerPanel
-            // Sample ↔ own data: start every form fresh, never carry state across.
-            key={demo ? 'sample' : 'own'}
-            view={tab}
-            onNavigate={(to) => {
-              setTab(to);
-              window.scrollTo({ top: 0 });
-            }}
-            showWidgets={!guiding}
-            entries={ledger}
-            onChange={setLedger}
-            assumptions={assumptions}
-            planRows={result?.rows ?? []}
-            fire={fire}
-            onOpenPlan={() => {
-              setTab('plan');
-              window.scrollTo({ top: 0 });
-            }}
-            onCalibrate={(patch) => {
-              const before = assumptions;
-              patchCurrent({ ...assumptions, ...patch });
-              notify(t.toast.calibrated, () => patchCurrent(before));
-            }}
-            notify={notify}
-            onBudgets={(monthlyBudgets) => patchField({ monthlyBudgets })}
-            onAnnual={(annualExpenses) => patchField({ annualExpenses })}
-            onGoals={(savingsGoals) => patchField({ savingsGoals })}
-          />
-        </div>
-      ) : null}
+      {/* Mounted on every tab (hidden off Home / Log / Report), so a half-typed
+      month survives a look at Plan or Data too. Hidden, it shows the bare
+      check-in — no report, so printing Plan prints Plan. */}
+      <div className={tab === 'home' || tab === 'log' || tab === 'report' ? 'fade-in' : 'hidden'}>
+        <LedgerPanel
+          // Sample ↔ own data: start every form fresh, never carry state across.
+          key={demo ? 'sample' : 'own'}
+          view={tab === 'home' || tab === 'log' || tab === 'report' ? tab : 'log'}
+          onNavigate={(to) => {
+            setTab(to);
+            window.scrollTo({ top: 0 });
+          }}
+          showWidgets={!guiding}
+          entries={ledger}
+          onChange={setLedger}
+          assumptions={assumptions}
+          planRows={result?.rows ?? []}
+          fire={fire}
+          onOpenPlan={() => {
+            setTab('plan');
+            window.scrollTo({ top: 0 });
+          }}
+          onCalibrate={(patch) => {
+            const before = assumptions;
+            patchCurrent({ ...assumptions, ...patch });
+            notify(t.toast.calibrated, () => patchCurrent(before));
+          }}
+          notify={notify}
+          onBudgets={(monthlyBudgets) => patchField({ monthlyBudgets })}
+          onAnnual={(annualExpenses) => patchField({ annualExpenses })}
+          onGoals={(savingsGoals) => patchField({ savingsGoals })}
+        />
+      </div>
 
       {tab === 'data' && demo ? (
         <section className="card fade-in">
@@ -1193,7 +1202,7 @@ function SimulatorInner() {
                             <p className="text-negative text-[13px]">{t.projection.computeError}</p>
                           )
                         ) : result ? (
-                          <SimulatorChart result={result} mode={displayMode} markers={markers} />
+                          <SimulatorChart result={shown!} mode={displayMode} markers={markers} />
                         ) : (
                           <p className="text-negative text-[13px]">{t.projection.computeError}</p>
                         )}
@@ -1222,7 +1231,7 @@ function SimulatorInner() {
                     {view === 'table' && result ? (
                       <div className="-mx-5">
                         <YearTable
-                          rows={result.rows}
+                          rows={shown!.rows}
                           people={assumptions.people}
                           highlightYears={highlightYears}
                         />
@@ -1286,6 +1295,7 @@ function SimulatorInner() {
                         <StressPanel
                           assumptions={assumptions}
                           rows={result.rows}
+                          realFactor={realFactor}
                           onChange={patchCurrent}
                         />
                       ) : null}

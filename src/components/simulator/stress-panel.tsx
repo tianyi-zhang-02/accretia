@@ -64,11 +64,14 @@ function NumField({
 export default function StressPanel({
   assumptions,
   rows,
+  realFactor = 1,
   onChange,
 }: {
   assumptions: Assumptions;
   /** Baseline (no-stress) projection rows from the parent. */
   rows: YearRow[];
+  /** Plan start-year dollars → this year's (`todayFactor`); 1 by default. */
+  realFactor?: number;
   onChange: (next: Assumptions) => void;
 }) {
   const { t, fmt } = useI18n();
@@ -102,23 +105,28 @@ export default function StressPanel({
   // In today's dollars, like the projection card above it — the nominal
   // final is several times larger over a long horizon, and showing it here
   // made the "baseline" disagree with the headline on the same page.
-  const baselineFinal = rows.at(-1)?.netWorthRealTodayDollars ?? 0;
+  const f = realFactor;
+  const baselineFinal = (rows.at(-1)?.netWorthRealTodayDollars ?? 0) * f;
   const impact = useMemo(() => {
     if (!stressed) return null;
-    const finalNw = stressed.at(-1)?.netWorthRealTodayDollars ?? 0;
-    let trough = stressed[0]!;
-    for (const r of stressed)
-      if (r.netWorthRealTodayDollars < trough.netWorthRealTodayDollars) trough = r;
+    const finalNw = (stressed.at(-1)?.netWorthRealTodayDollars ?? 0) * f;
+    // The hardest-hit year: the biggest gap to the plan, not the lowest
+    // balance (that is nearly always year one — before the shock happens).
+    let hit = { gap: 0, year: stressed[0]!.year };
+    stressed.forEach((r, i) => {
+      const gap = (r.netWorthRealTodayDollars - (rows[i]?.netWorthRealTodayDollars ?? 0)) * f;
+      if (gap < hit.gap) hit = { gap, year: r.year };
+    });
     const delta = finalNw - baselineFinal;
     const pct = baselineFinal > 0 ? (delta / baselineFinal) * 100 : 0;
     return {
       finalNw,
       delta,
       pct,
-      troughValue: trough.netWorthRealTodayDollars,
-      troughYear: trough.year,
+      hitGap: hit.gap,
+      hitYear: hit.year,
     };
-  }, [stressed, baselineFinal]);
+  }, [stressed, baselineFinal, rows, f]);
 
   return (
     <section className="card">
@@ -263,7 +271,9 @@ export default function StressPanel({
               )}
             </p>
             <p className="text-muted nums text-xs">
-              {t.stress.trough(fmt.currency0(impact.troughValue), impact.troughYear)}
+              {impact.hitGap < 0
+                ? t.stress.hardestHit(fmt.currency0(-impact.hitGap), impact.hitYear)
+                : t.stress.noHit}
             </p>
           </>
         ) : (

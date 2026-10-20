@@ -376,7 +376,8 @@ const en = {
     none: 'Turn on a shock above to see its impact.',
     baselineFinal: (v: string) => `Baseline final, in today's dollars: ${v}`,
     stressedFinal: (v: string, delta: string, pct: string) => `Stressed: ${v} (${delta} · ${pct})`,
-    trough: (v: string, year: number) => `Lowest point: ${v} in ${year}`,
+    hardestHit: (gap: string, year: number) => `Hardest hit: ${gap} below the plan in ${year}`,
+    noHit: 'It never falls below the plan.',
     disclaimer:
       'A deterministic what-if layered on top of your plan — the main projection is unchanged. Not advice.',
   },
@@ -566,6 +567,7 @@ const en = {
     exportCsv: 'Export CSV',
     imported: (n: number) => `Imported ${n} ${n === 1 ? 'month' : 'months'}.`,
     skipped: (lines: string) => `Skipped unreadable lines: ${lines}.`,
+    skippedFuture: (lines: string) => `Skipped months that haven't happened yet: line ${lines}.`,
     fatal: {
       tooLarge: 'That file is too large to be a ledger (200 KB max).',
       noHeader:
@@ -616,7 +618,7 @@ const en = {
       `Plan figures are scaled to the ${months} ${months === 1 ? 'month' : 'months'} recorded, so a partial year compares fairly.`,
     calibrate: 'Use these numbers in my plan',
     calibrateHint:
-      'Sets your plan’s spending to this year’s annualized actual, and your starting net worth to the latest one recorded.',
+      'Sets your plan’s everyday spending to this year’s annualized actual (home costs stay in the plan’s home), and starts the plan from the latest net worth recorded.',
     calibrateNeed: 'Record at least three months first — one odd month shouldn’t rewrite a plan.',
     calibrated: 'Plan updated from your actuals.',
   },
@@ -888,6 +890,7 @@ const en = {
       usually: (amount: string) => `lately ${amount}`,
       perMonth: 'a month, to stay on plan',
       noPlan: 'Set up a plan first',
+      planYears: (from: number, to: number) => `Your plan covers ${from}–${to} — adjust its years`,
       jar: 'Savings jar',
       ofGoals: 'of your goals',
       setGoal: 'Set a goal',
@@ -961,6 +964,8 @@ const en = {
         `The date has passed with ${left} to go — move it, or lower the target.`,
       needAll: 'All goals need, a month',
       fits: (kept: string) => `You’ve been keeping about ${kept} a month — that covers it.`,
+      fitsButOverdue: (kept: string, overdue: string) =>
+        `You’ve been keeping about ${kept} a month — enough for these, but ${overdue} is still owed to goals past their date.`,
       short: (kept: string, gap: string) =>
         `You’ve been keeping about ${kept} a month — ${gap} short. Push a date back, or keep more.`,
       edit: 'Edit',
@@ -1195,7 +1200,7 @@ const en = {
     noRetireAge:
       'Nobody in this plan ever retires — career income runs to the end. Set a retire age to see the drawdown years.',
     homeExcluded:
-      'Your home equity is in net worth but not in the FIRE number — you can’t withdraw 4% of a house.',
+      'Your home equity is in net worth but not in the FIRE number — you can’t withdraw 4% of a house. And the spending it has to cover is your everyday spending: the mortgage, property tax and upkeep aren’t in it.',
   },
   footer: {
     disclaimer:
@@ -1563,7 +1568,8 @@ const zh: Messages = {
     none: '打开上面任一冲击即可看到影响。',
     baselineFinal: (v: string) => `原计划期末（按今天的钱算）：${v}`,
     stressedFinal: (v: string, delta: string, pct: string) => `受冲击后：${v}（${delta} · ${pct}）`,
-    trough: (v: string, year: number) => `最低点：${v}（${year} 年）`,
+    hardestHit: (gap: string, year: number) => `冲击最大的一年：${year} 年，比原计划少 ${gap}`,
+    noHit: '始终没有低于原计划。',
     disclaimer: '这是叠在你计划上的一次确定性「假如」，主推算不受影响。不构成投资建议。',
   },
   presets: {
@@ -1741,6 +1747,7 @@ const zh: Messages = {
     exportCsv: '导出 CSV',
     imported: (n: number) => `已导入 ${n} 个月。`,
     skipped: (lines: string) => `有几行读不了，已跳过：第 ${lines} 行。`,
+    skippedFuture: (lines: string) => `还没到的月份已跳过：第 ${lines} 行。`,
     fatal: {
       tooLarge: '文件太大了，不像是记账表（上限 200 KB）。',
       noHeader: '没找到 年 / 月 / 收入 / 支出 这几列。建议从模板开始填。',
@@ -1785,7 +1792,8 @@ const zh: Messages = {
     partialNote: (months: number) =>
       `计划数字已按已记录的 ${months} 个月折算，没填满的年份也能公平比较。`,
     calibrate: '用这些真实数字校准我的计划',
-    calibrateHint: '把计划里的年开支改成今年的实际年化数字，把起始净资产改成最近一次记录的数。',
+    calibrateHint:
+      '把计划里的日常年开支改成今年的实际年化数字（房子的开支仍按计划里的房子算），并从最近一次记录的净资产重新起算。',
     calibrateNeed: '先记满三个月——不能让某个特殊的月份改写整个计划。',
     calibrated: '已用真实数据更新计划。',
   },
@@ -2049,6 +2057,7 @@ const zh: Messages = {
       usually: (amount: string) => `最近 ${amount}`,
       perMonth: '每月，跟上规划',
       noPlan: '先做个规划',
+      planYears: (from: number, to: number) => `规划只覆盖 ${from}–${to} 年，去调一下年份`,
       jar: '存钱罐',
       ofGoals: '目标完成度',
       setGoal: '设个目标',
@@ -2119,6 +2128,8 @@ const zh: Messages = {
       overdue: (left: string) => `已过截止日期，还差 ${left}——把日期往后挪，或者调低目标。`,
       needAll: '所有目标每月共需存',
       fits: (kept: string) => `你最近每月大约攒下 ${kept}，够用。`,
+      fitsButOverdue: (kept: string, overdue: string) =>
+        `你最近每月大约攒下 ${kept}，够这些用；但已过期的目标还差 ${overdue}。`,
       short: (kept: string, gap: string) =>
         `你最近每月大约攒下 ${kept}，还差 ${gap}。可以把某个日期往后挪，或者多存一点。`,
       edit: '编辑',
@@ -2345,7 +2356,8 @@ const zh: Messages = {
       `万一 ${year} 年来一次 2008 那种级别的股灾，会推迟 ${years} 年。这种事早点知道比较好。`,
     noRetireAge:
       '这份方案里没人退休，工资一直挣到最后一年。设个退休年龄，才看得到只花不挣的那几年。',
-    homeExcluded: '房子的净值算在净资产里，但不算进 FIRE 数字：你没法每年从房子里取 4% 出来花。',
+    homeExcluded:
+      '房子的净值算在净资产里，但不算进 FIRE 数字：你没法每年从房子里取 4% 出来花。另外，它要覆盖的只是日常开支，房贷、房产税和维护费没算在里面。',
   },
   footer: {
     disclaimer:

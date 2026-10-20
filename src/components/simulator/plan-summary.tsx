@@ -125,9 +125,15 @@ function applyEdit(a: Assumptions, key: Field, v: number): Assumptions {
     case 'spending':
       return { ...a, recurringAnnualExpenses: Math.max(0, v) };
     case 'netWorth': {
-      const nw = Math.max(0, v);
+      // Net worth can be negative (student loans before the first saving) —
+      // the schema allows it; quietly turning it into $0 hid the debt.
+      const nw = v;
       // startingInvested may not exceed net worth (schema invariant).
-      return { ...a, startingNetWorth: nw, startingInvested: Math.min(a.startingInvested, nw) };
+      return {
+        ...a,
+        startingNetWorth: nw,
+        startingInvested: Math.min(a.startingInvested, Math.max(0, nw)),
+      };
     }
     case 'retireAge': {
       const age = Math.round(v);
