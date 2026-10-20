@@ -833,19 +833,8 @@ const en = {
       monthsLogged: (n: number) => `${n} of 12 logged`,
     },
     status: {
-      allowanceHeading: 'Left for everyday spending, to stay on plan',
-      goalsRow: 'Savings goals',
-      goalsNeed: (need: string) => `${need}/mo needed`,
-      goalsFit: 'fits',
-      goalsShort: (gap: string) => `${gap} short`,
-      goalsDone: 'all reached',
-      goalsOverdue: 'a date has passed',
-      goalsSetTarget: 'set a target',
       allowanceMath: (plan: string, fixed: string, annual: string | null) =>
         `plan ${plan} a month − repeating bills ${fixed}${annual ? ` − ${annual} set aside for yearly bills` : ''}`,
-      allowanceUsual: (amount: string) => `lately about ${amount} a month`,
-      allowanceShort:
-        'Your repeating bills alone are more than the plan allows — its spending may be set too low.',
       heading: 'Am I on track?',
       how: [
         'Once a month, enter three numbers: money in, money out, and your net worth.',
@@ -867,17 +856,10 @@ const en = {
       spentYtd: (year: number) => `Spent in ${year}`,
       savingsRate: 'Share of income kept',
       mortgage: 'Mortgage left (per your plan)',
-      fire: (age: number, year: number) =>
-        `On your plan, work becomes optional at ${age} (${year}).`,
-      fireNever: 'On your current plan, work never becomes optional.',
-      openPlan: 'Open plan',
-      heroFireLabel: 'On your plan, work becomes optional at',
       heroStartLabel: 'Net worth today',
       heroStartSub: 'From your plan. Log a month and this card holds it against the plan.',
       planDraining:
         'Your plan spends more than it brings in, so it shrinks every year — being ahead of it can still mean going backwards.',
-      heroFireAge: (age: number) => `${age}`,
-      heroFireSub: (year: number) => `years old — in ${year}`,
     },
     categories: {
       housing: 'Mortgage / rent',
@@ -2013,18 +1995,8 @@ const zh: Messages = {
       monthsLogged: (n: number) => `已记 ${n}／12 个月`,
     },
     status: {
-      allowanceHeading: '要跟上规划，每月日常还能花',
-      goalsRow: '存钱目标',
-      goalsNeed: (need: string) => `每月共需 ${need}`,
-      goalsFit: '够用',
-      goalsShort: (gap: string) => `还差 ${gap}`,
-      goalsDone: '都达成了',
-      goalsOverdue: '有目标已过期限',
-      goalsSetTarget: '还没设目标金额',
       allowanceMath: (plan: string, fixed: string, annual: string | null) =>
         `规划月开支 ${plan} − 固定账单 ${fixed}${annual ? ` − 年度开支预留 ${annual}` : ''}`,
-      allowanceUsual: (amount: string) => `最近平均每月日常约 ${amount}`,
-      allowanceShort: '光固定账单就超过了规划的月开支——规划里的开支可能定低了。',
       heading: '我跟上规划了吗？',
       how: [
         '每个月填三个数：进账、花销、净资产。',
@@ -2046,16 +2018,9 @@ const zh: Messages = {
       spentYtd: (year: number) => `${year} 年花销`,
       savingsRate: '攒下的比例',
       mortgage: '房贷余额（按规划）',
-      fire: (age: number, year: number) =>
-        `按现在的规划，${age} 岁（${year} 年）就可以不用上班了。`,
-      fireNever: '按现在的规划，还没法不上班。',
-      openPlan: '看规划',
-      heroFireLabel: '按现在的规划，可以不用上班的年龄',
       heroStartLabel: '你现在的净资产',
       heroStartSub: '来自你的规划。记下第一个月后，这张卡会拿真实数字和规划对比。',
       planDraining: '你的规划里花的比挣的多，每年都在缩水——比规划多，也可能是在倒退。',
-      heroFireAge: (age: number) => `${age} 岁`,
-      heroFireSub: (year: number) => `也就是 ${year} 年`,
     },
     categories: {
       housing: '房贷／房租',

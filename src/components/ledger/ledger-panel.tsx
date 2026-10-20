@@ -304,17 +304,11 @@ export default function LedgerPanel({
             <div className="flex flex-col gap-4">
               <TrackStatus
                 annual={annual}
-                goals={goals}
-                today={today}
-                onOpenGoals={openGoals}
-                compact
                 entries={entries}
                 report={report}
                 planRows={planRows}
                 startingNetWorth={assumptions.startingNetWorth}
                 at={sel}
-                fire={fire}
-                onOpenPlan={onOpenPlan}
               />
             </div>
             <div className="flex flex-col gap-4">
