@@ -416,7 +416,7 @@ function AllocationEstimator({ onApply }: { onApply: (blendedReturn: number) => 
       <p className="text-muted text-xs font-medium">{t.form.allocation.heading}</p>
       <div className="flex flex-col gap-2">
         {buckets.map((b, i) => (
-          <div key={i} className="bg-surface flex flex-col gap-2 rounded-[10px] p-3">
+          <div key={i} className="sub-list flex flex-col gap-2">
             <TextField
               label={t.form.allocation.asset}
               value={b.label}

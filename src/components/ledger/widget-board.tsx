@@ -162,7 +162,6 @@ export default function WidgetBoard({
         }
         icon="coins"
         onClick={onLog}
-        ariaLabel={!targetLogged ? W.logCta(monthLabel(target)) : undefined}
       >
         {latest ? (
           <span className="flex flex-1 items-center gap-4">

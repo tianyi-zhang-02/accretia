@@ -6,6 +6,24 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: what a review of the new tabs found
+
+- **Stepping the report back a year no longer moves the Log tab** (and wiped
+  a half-typed month) or turns Home's "this year" figures into last year's —
+  the report keeps its own year.
+- **Small phones (320px):** category and line-item names wrap instead of
+  being cut off ("Mortgage / re…"); the amount column narrows with the
+  screen; the Budgets & goals summary wraps.
+- **Printing from any tab other than Report** prints the page instead of a
+  blank sheet.
+- Switches (`.seg`) get the 40px touch size on phones; the light theme's
+  *＋ Log* button text meets contrast (white on green); the allocation
+  estimator's fields are visible; the volatility box keeps its compact size;
+  a screen reader hears the *this month* widget's figure, not only "Log Sep";
+  a year of entries without net worth no longer shows the "nothing logged
+  yet" card; the phone tab bar can't stay hidden after an inline edit.
+- No more chart-size warnings in the console.
+
 ### Fixed: two places where the numbers told the wrong story
 
 - **"Ahead of plan" is no longer green when the plan itself is shrinking.**

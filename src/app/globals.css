@@ -20,6 +20,9 @@
   /* One accent, used sparingly: progress, the actual-line, the active tab on
      phones. Primary buttons are foreground-on-background, not accent. */
   --accent: #4ade80;
+  /* Text on an accent fill — dark on the bright dark-theme green, white
+     on the deeper light-theme one (4.5:1 either way). */
+  --on-accent: #06210f;
   --positive: #4ade80;
   --negative: #f87171;
   /* Cards: a hairline lit edge on top, the way light catches a raised surface. */
@@ -53,6 +56,7 @@
   --seg-on: #ffffff;
   --hairline: #ececef;
   --accent: #15803d;
+  --on-accent: #ffffff;
   --positive: #15803d;
   --negative: #dc2626;
   --card-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.03);
@@ -80,6 +84,7 @@
     --seg-on: #ffffff;
     --hairline: #ececef;
     --accent: #15803d;
+    --on-accent: #ffffff;
     --positive: #15803d;
     --negative: #dc2626;
     --card-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.03);
@@ -269,12 +274,6 @@ body {
 .seg-fill {
   display: flex;
 }
-.seg-fill > button {
-  /* Content-sized, then the spare room shared out — a long label
-     ("Claude Desktop") gets the width it needs instead of wrapping. */
-  flex: 1 1 auto;
-  padding: 0 8px;
-}
 .seg > button {
   min-height: 30px;
   padding: 0 12px;
@@ -286,6 +285,12 @@ body {
     background-color 150ms ease,
     color 150ms ease,
     box-shadow 150ms ease;
+}
+.seg-fill > button {
+  /* Content-sized, then the spare room shared out — a long label
+     ("Claude Desktop") gets the width it needs instead of wrapping. */
+  flex: 1 1 auto;
+  padding: 0 8px;
 }
 .seg > button:hover:not(:disabled) {
   color: var(--foreground);
@@ -431,6 +436,9 @@ body {
   .stepper > button {
     width: 44px;
     height: 40px;
+  }
+  .seg > button {
+    min-height: 40px;
   }
   .btn-sm {
     min-height: 40px;
@@ -774,7 +782,7 @@ button.widget:active {
   font-size: 12px;
   font-weight: 600;
   background: var(--accent);
-  color: #06210f;
+  color: var(--on-accent);
   animation: widget-pulse 2.4s ease-in-out infinite;
 }
 @keyframes widget-in {
@@ -1036,7 +1044,9 @@ button.widget:active {
    so the area keeps its own layout while everything around it vanishes.
    --------------------------------------------------------------------- */
 @media print {
-  body * {
+  /* On Report, print only the report. Elsewhere there is no print area, and
+     hiding everything would print a blank page — so print the page as is. */
+  body:has(.print-area) * {
     visibility: hidden;
   }
   .print-area,

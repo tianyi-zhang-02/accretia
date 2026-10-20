@@ -742,7 +742,7 @@ function Form({
               <ul className="flex flex-col gap-2">
                 {srcValues.map(({ id, value }) => (
                   <li key={id}>
-                    <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
+                    <label className="grid grid-cols-[1fr_clamp(6.5rem,30vw,8.5rem)] items-center gap-3">
                       <span className="flex min-w-0 items-center gap-1.5 text-[13px] leading-snug">
                         {t.track.incomeSources[id]}
                         {isCarried(srcs[id], carried?.incomeSources[id]) ? (
@@ -817,7 +817,7 @@ function Form({
         />
       </div>
 
-      <label className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
+      <label className="grid grid-cols-[1fr_clamp(6.5rem,30vw,8.5rem)] items-center gap-3">
         <span className="min-w-0">
           <span className="flex items-center gap-1.5 text-[13px] font-medium">
             {C.pretax}
@@ -866,7 +866,7 @@ function Form({
                 const isOpen = open.includes(id);
                 return (
                   <li key={id} className={isOpen ? 'sm:col-span-2' : ''}>
-                    <div className="grid grid-cols-[1fr_8.5rem] items-center gap-3">
+                    <div className="grid grid-cols-[1fr_clamp(6.5rem,30vw,8.5rem)] items-center gap-3">
                       <button
                         type="button"
                         aria-expanded={isOpen}
@@ -880,7 +880,7 @@ function Form({
                           ›
                         </span>
                         <span className="min-w-0">
-                          <span className="flex items-center gap-1.5 truncate text-[13px]">
+                          <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] leading-snug">
                             {t.track.categories[id]}
                             {isCarried(cats[id], carried?.categories[id]) ? (
                               <FixedTag />
@@ -894,11 +894,11 @@ function Form({
                               spent={typeof value === 'number' ? value : 0}
                             />
                           ) : id === 'housing' && plan && plan.monthlyHousing > 0 ? (
-                            <span className="text-muted block truncate text-[11px]">
+                            <span className="text-muted block text-[11px] leading-snug">
                               {C.housingPlan(fmt.currency0(plan.monthlyHousing))}
                             </span>
                           ) : itemized && !isOpen ? (
-                            <span className="text-muted block truncate text-[11px]">
+                            <span className="text-muted block text-[11px] leading-snug">
                               {C.itemCount(items.filter((i) => typeof i.value === 'number').length)}
                             </span>
                           ) : null}
@@ -938,14 +938,16 @@ function Form({
                           return allItems.includes(id) || shown.length === 0 ? items : shown;
                         })().map((item) => (
                           <li key={item.id}>
-                            <label className="grid grid-cols-[1fr_7.5rem] items-center gap-3">
+                            <label className="grid grid-cols-[1fr_clamp(6rem,27vw,7.5rem)] items-center gap-3">
                               <span className="text-muted flex min-w-0 items-center gap-2 text-[13px]">
                                 <span
                                   aria-hidden
                                   title={t.track.tiers[tierOf(item.id)]}
                                   className={`h-1.5 w-1.5 shrink-0 rounded-full ${TIER_DOT[tierOf(item.id)]}`}
                                 />
-                                <span className="truncate">{t.track.subcategories[item.id]}</span>
+                                <span className="min-w-0 leading-snug">
+                                  {t.track.subcategories[item.id]}
+                                </span>
                                 {isCarried(subs[item.id], carried?.lineItems[item.id]) ? (
                                   <FixedTag />
                                 ) : isCopied(subs[item.id], copied?.lineItems[item.id]) ? (
