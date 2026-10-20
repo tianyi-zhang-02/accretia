@@ -31,7 +31,7 @@
 import type { Assumptions } from '@/lib/validation/scenarios';
 
 import { simulate } from './engine';
-import { computeFire } from './fire';
+import { computeFire, fireOptionsFor } from './fire';
 
 /**
  * A measured lever: one change, what it's worth, and the patch that makes
@@ -85,15 +85,7 @@ function fireAgeFor(a: Assumptions): number | null {
   const primary = a.people[0];
   if (!primary) return null;
   const { rows } = simulate(toAge90(a));
-  const fire = computeFire(rows, {
-    recurringAnnualExpenses: a.recurringAnnualExpenses,
-    safeWithdrawalRatePct: a.fire?.safeWithdrawalRatePct ?? 4,
-    annualHealthInsurance: a.fire?.annualHealthInsurance ?? 0,
-    essentialAnnualExpenses: a.fire?.essentialAnnualExpenses ?? a.recurringAnnualExpenses,
-    returnPct: a.investment.returnPct,
-    inflationPct: a.inflationPct,
-    primaryBirthYear: primary.birthYear,
-  });
+  const fire = computeFire(rows, { ...fireOptionsFor(a) });
   return fire.full.reached ? fire.full.age : null;
 }
 
@@ -220,15 +212,7 @@ export function buildInsights(a: Assumptions, thisYear = new Date().getFullYear(
   if (base !== null) {
     const crashYear = Math.max(a.horizonStartYear, thisYear) + 5;
     const stressed = simulate(toAge90(a), { marketShock: { year: crashYear, returnPct: -37 } });
-    const fire = computeFire(stressed.rows, {
-      recurringAnnualExpenses: a.recurringAnnualExpenses,
-      safeWithdrawalRatePct: a.fire?.safeWithdrawalRatePct ?? 4,
-      annualHealthInsurance: a.fire?.annualHealthInsurance ?? 0,
-      essentialAnnualExpenses: a.fire?.essentialAnnualExpenses ?? a.recurringAnnualExpenses,
-      returnPct: a.investment.returnPct,
-      inflationPct: a.inflationPct,
-      primaryBirthYear: primary.birthYear,
-    });
+    const fire = computeFire(stressed.rows, { ...fireOptionsFor(a) });
     const delay = fire.full.reached && fire.full.age !== null ? fire.full.age - base : null;
     if (delay !== null && delay >= 1) {
       out.push({ id: 'crashCost', tone: 'info', rank: 90 + delay * 5, years: delay, crashYear });

@@ -766,14 +766,17 @@ export default function LedgerPanel({
                       <li className="row items-center">
                         <span className="text-[13px]">{L.totalSaved}</span>
                         <span className="nums text-right text-xs">
-                          {fmt.currency0(report.saved)}{' '}
+                          {/* Pre-tax savings count: the plan's saving includes them. */}
+                          {fmt.currency0(report.saved + report.pretax)}{' '}
                           <span className="text-muted">/ {fmt.currency0(report.plan.saved)}</span>{' '}
                           <span
                             className={
-                              report.saved >= report.plan.saved ? 'text-positive' : 'text-negative'
+                              report.saved + report.pretax >= report.plan.saved
+                                ? 'text-positive'
+                                : 'text-negative'
                             }
                           >
-                            ({delta(report.saved, report.plan.saved)})
+                            ({delta(report.saved + report.pretax, report.plan.saved)})
                           </span>
                         </span>
                       </li>

@@ -754,3 +754,17 @@ describe('calibrating a plan that began in an earlier year', () => {
     expect(p.horizonEndYear).toBeUndefined();
   });
 });
+
+it('calibration never moves the start past a home purchase (it would delete the home)', () => {
+  const a = {
+    startingInvested: 80_000,
+    startingNetWorth: 100_000,
+    horizonStartYear: 2025,
+    horizonEndYear: 2060,
+    mortgage: { purchaseYear: 2025 },
+  } as Assumptions;
+  const list = [m(1, 10_000, 6_000), m(2, 10_000, 6_000), m(3, 10_000, 6_000, 1_000_000)];
+  const p = calibrationPatch(yearReport(list, 2026), list, a)!;
+  expect(p.startingNetWorth).toBe(1_000_000);
+  expect(p.horizonStartYear).toBeUndefined();
+});

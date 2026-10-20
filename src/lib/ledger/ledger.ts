@@ -688,7 +688,11 @@ export function calibrationPatch(
   // Logged spending includes the mortgage, tax and upkeep; the engine pays
   // the home SEPARATELY on top of `recurringAnnualExpenses` — leaving it in
   // would count the home twice.
-  const housing = planRows.find((r) => r.year === report.year)?.housingCosts ?? 0;
+  // The report's year — or, for a year before the plan began, its first year.
+  const housingRow =
+    planRows.find((r) => r.year === report.year) ??
+    (planRows[0] && report.year < planRows[0].year ? planRows[0] : undefined);
+  const housing = housingRow?.housingCosts ?? 0;
   const patch: Partial<Assumptions> = {
     recurringAnnualExpenses: Math.max(
       0,
@@ -703,7 +707,12 @@ export function calibrationPatch(
     // The new starting figure is from `latest`'s year: a plan that began in
     // an earlier year would otherwise start that earlier year at today's net
     // worth (and the plan's first year — where it's anchored — is gone).
-    if (latest.year > a.horizonStartYear) {
+    // Not past (or onto) a home purchase, though: the engine buys the home
+    // IN its purchase year, so moving the start beyond it would silently
+    // delete the house from the plan (and onto it would pay a down payment
+    // out of a net worth that already holds the home).
+    const homeBefore = a.mortgage !== undefined && a.mortgage.purchaseYear <= latest.year;
+    if (latest.year > a.horizonStartYear && !homeBefore) {
       patch.horizonStartYear = latest.year;
       if (a.horizonEndYear < latest.year) patch.horizonEndYear = latest.year;
     }

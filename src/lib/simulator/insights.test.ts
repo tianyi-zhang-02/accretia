@@ -106,9 +106,14 @@ describe('insight engine', () => {
 });
 
 it('prices the crash five years from NOW, not from when an old plan started', () => {
-  const list = buildInsights(base({ horizonStartYear: 2019, horizonEndYear: 2066 }), 2026);
-  const crash = list.find((i) => i.id === 'crashCost') as { crashYear: number } | undefined;
-  if (crash) expect(crash.crashYear).toBe(2031);
-  // And never a year that has already passed.
-  if (crash) expect(crash.crashYear).toBeGreaterThan(2026);
+  const old = base({
+    horizonStartYear: 2019,
+    startingNetWorth: 500_000,
+    startingInvested: 500_000,
+  });
+  const crash = buildInsights(old, 2026).find((i) => i.id === 'crashCost') as
+    | { crashYear: number }
+    | undefined;
+  expect(crash).toBeDefined();
+  expect(crash!.crashYear).toBe(2031); // 2026 + 5 — not 2019 + 5 = 2024
 });

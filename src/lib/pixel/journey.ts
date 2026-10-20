@@ -10,7 +10,7 @@
  */
 
 import type { YearRow } from '@/lib/simulator/engine';
-import { computeFire } from '@/lib/simulator/fire';
+import { computeFire, fireOptionsFor } from '@/lib/simulator/fire';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
 export type LandmarkKind =
@@ -83,15 +83,7 @@ export function buildJourney(rows: YearRow[], a: Assumptions): Journey {
   const landmarks: Landmark[] = [];
 
   // FIRE milestones — same inputs the FIRE panel uses.
-  const fire = computeFire(rows, {
-    recurringAnnualExpenses: a.recurringAnnualExpenses,
-    safeWithdrawalRatePct: a.fire?.safeWithdrawalRatePct ?? 4,
-    annualHealthInsurance: a.fire?.annualHealthInsurance ?? 0,
-    essentialAnnualExpenses: a.fire?.essentialAnnualExpenses ?? a.recurringAnnualExpenses,
-    returnPct: a.investment.returnPct,
-    inflationPct: a.inflationPct,
-    primaryBirthYear: a.people[0]?.birthYear ?? null,
-  });
+  const fire = computeFire(rows, { ...fireOptionsFor(a) });
   if (fire.coast.reached && inRange(fire.coast.year!)) {
     landmarks.push({ year: fire.coast.year!, kind: 'coast' });
   }
