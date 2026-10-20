@@ -3,7 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { assumptionsSchema } from '@/lib/validation/scenarios';
 import { defaultAssumptions } from '@/components/simulator/default-assumptions';
 
-import { budgetLines, budgetTotal, monthBudget, suggestBudgets, yearBudget } from './budgets';
+import {
+  budgetedSpend,
+  budgetLines,
+  budgetTotal,
+  monthBudget,
+  suggestBudgets,
+  yearBudget,
+} from './budgets';
 import { upsert, type MonthEntry } from './ledger';
 
 const m = (month: number, categories: MonthEntry['categories']): MonthEntry =>
@@ -60,5 +67,28 @@ describe('budgets', () => {
       lines: [{ id: 'food', budget: 1_600, spent: 1_600, left: 0, usedPct: 100, over: false }],
     });
     expect(yearBudget(entries, 2025, { food: 800 })).toBeNull();
+  });
+});
+
+describe('once-a-year bills and budgets', () => {
+  // August: a registered $2,600 trip on its line item, plus $400 of other fun.
+  const aug = upsert([], {
+    year: 2026,
+    month: 8,
+    income: 0,
+    spending: 0,
+    breakdown: { 'fun.travel': 2_600, 'fun.shopping': 400 },
+  } as MonthEntry)[0]!;
+  const trip = [{ item: 'fun.travel' as const, amount: 2_600, month: 8 }];
+
+  it('a bill due that month is planned, not over budget', () => {
+    expect(budgetedSpend(aug, trip).fun).toBe(400);
+    expect(monthBudget(aug, { fun: 750 }, trip)![0]!.over).toBe(false);
+    // Without the bill registered it IS over.
+    expect(monthBudget(aug, { fun: 750 })![0]!.over).toBe(true);
+  });
+
+  it('the year view leaves it out too', () => {
+    expect(yearBudget([aug], 2026, { fun: 750 }, trip)!.lines[0]!.over).toBe(false);
   });
 });

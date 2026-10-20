@@ -204,8 +204,8 @@ export default function LedgerPanel({
     [assumptions.savingsGoals],
   );
   const review = useMemo(
-    () => yearInReview(entries, year, { planRows, budgets, goals, today }),
-    [entries, year, planRows, budgets, goals, today],
+    () => yearInReview(entries, year, { planRows, budgets, annual, goals, today }),
+    [entries, year, planRows, budgets, annual, goals, today],
   );
   const [reviewOpen, setReviewOpen] = useState(false);
   // Budgets & goals: collapsed by default — Track is about logging the month.
@@ -227,9 +227,9 @@ export default function LedgerPanel({
     );
   };
   const yearBudgets = useMemo(() => {
-    const y = yearBudget(entries, year, budgets);
+    const y = yearBudget(entries, year, budgets, annual);
     return new Map((y?.lines ?? []).map((l) => [l.id, l]));
-  }, [entries, year, budgets]);
+  }, [entries, year, budgets, annual]);
   const kinds = useMemo(() => yearTierTotals(entries, year), [entries, year]);
   const saved = useMemo(() => totalSaved(entries, year), [entries, year]);
   const patch = useMemo(
@@ -290,6 +290,7 @@ export default function LedgerPanel({
         <>
           {/* At a glance — the widget board. Each tile is one tap from its action. */}
           <WidgetBoard
+            majorExpenses={assumptions.majorExpenses}
             entries={entries}
             today={today}
             planRows={planRows}
@@ -313,6 +314,7 @@ export default function LedgerPanel({
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
             <div className="flex flex-col gap-4">
               <TrackStatus
+                majorExpenses={assumptions.majorExpenses}
                 annual={annual}
                 entries={entries}
                 report={homeReport}
@@ -339,7 +341,13 @@ export default function LedgerPanel({
                 entries={entries}
                 today={today}
                 planMonthlySpending={
-                  planAt(planRows, assumptions.startingNetWorth, today)?.monthlySpending ?? null
+                  planAt(
+                    planRows,
+                    assumptions.startingNetWorth,
+                    today,
+                    undefined,
+                    assumptions.majorExpenses,
+                  )?.monthlySpending ?? null
                 }
                 onBudgets={onBudgets}
                 onAnnual={onAnnual}
@@ -355,6 +363,7 @@ export default function LedgerPanel({
       month survives a look at Home or the report. */}
       <div id="checkin" className={view === 'log' ? 'mx-auto w-full max-w-2xl' : 'hidden'}>
         <MonthCheckIn
+          majorExpenses={assumptions.majorExpenses}
           budgets={budgets}
           annual={annual}
           entries={entries}

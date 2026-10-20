@@ -29,6 +29,7 @@ import {
   type YearMonth,
 } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
+import type { Assumptions } from '@/lib/validation/scenarios';
 
 import { dueItems, type AnnualExpense } from '@/lib/ledger/annual';
 import type { Budgets } from '@/lib/ledger/budgets';
@@ -187,6 +188,7 @@ function Form({
   entries,
   planRows,
   startingNetWorth,
+  majorExpenses,
   monthLabel,
   justSaved,
   nextUp,
@@ -202,6 +204,8 @@ function Form({
   entries: MonthEntry[];
   planRows: YearRow[];
   startingNetWorth: number;
+  /** The plan's major expenses — monthly comparisons use the everyday plan. */
+  majorExpenses?: Assumptions['majorExpenses'];
   monthLabel: (ym: YearMonth, style: 'long' | 'short') => string;
   /** Owned by the parent: saving a new month re-keys (remounts) this form. */
   justSaved: boolean;
@@ -331,8 +335,8 @@ function Form({
 
   const usual = useMemo(() => recentAverage(entries, ym), [entries, ym]);
   const plan = useMemo(
-    () => planAt(planRows, startingNetWorth, ym),
-    [planRows, startingNetWorth, ym],
+    () => planAt(planRows, startingNetWorth, ym, undefined, majorExpenses),
+    [planRows, startingNetWorth, ym, majorExpenses],
   );
   const prev = entries.find((e) => {
     const p = shiftMonth(ym, -1);
@@ -892,7 +896,17 @@ function Form({
                           {budgets[id] ? (
                             <BudgetHint
                               budget={budgets[id]!}
-                              spent={typeof value === 'number' ? value : 0}
+                              // A once-a-year bill due now is planned, not over budget.
+                              spent={Math.max(
+                                0,
+                                (typeof value === 'number' ? value : 0) -
+                                  items
+                                    .filter((i) => i.id in dueItems(annual, ym.month))
+                                    .reduce(
+                                      (t, i) => t + (typeof i.value === 'number' ? i.value : 0),
+                                      0,
+                                    ),
+                              )}
                             />
                           ) : id === 'housing' && plan && plan.monthlyHousing > 0 ? (
                             <span className="text-muted block text-[11px] leading-snug">
@@ -1095,6 +1109,7 @@ export default function MonthCheckIn({
   today,
   planRows,
   startingNetWorth,
+  majorExpenses,
   onSelect,
   onSave,
   onClear,
@@ -1106,6 +1121,8 @@ export default function MonthCheckIn({
   today: YearMonth;
   planRows: YearRow[];
   startingNetWorth: number;
+  /** The plan's major expenses — monthly comparisons use the everyday plan. */
+  majorExpenses?: Assumptions['majorExpenses'];
   onSelect: (ym: YearMonth) => void;
   onSave: (e: MonthEntry) => void;
   onClear: (ym: YearMonth) => void;
@@ -1182,6 +1199,7 @@ export default function MonthCheckIn({
         entries={entries}
         planRows={planRows}
         startingNetWorth={startingNetWorth}
+        majorExpenses={majorExpenses}
         monthLabel={monthLabel}
         budgets={budgets}
         annual={annual}

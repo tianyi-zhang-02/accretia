@@ -14,7 +14,7 @@
 
 import { z } from 'zod';
 
-import type { YearRow } from '@/lib/simulator/engine';
+import { amountForYear, type YearRow } from '@/lib/simulator/engine';
 import type { Assumptions } from '@/lib/validation/scenarios';
 
 const MONEY_CAP = 1e12;
@@ -792,6 +792,12 @@ export function planAt(
   startingNetWorth: number,
   ym: YearMonth,
   anchor?: YearMonth,
+  /**
+   * The plan's major expenses. Given, the MONTHLY figures are the everyday
+   * plan: a $60k car in the plan's year isn't $5,000 more to spend (and
+   * $5,000 less to save) every month of it. Year totals keep them.
+   */
+  majorExpenses?: Assumptions['majorExpenses'],
 ): {
   monthlySpending: number;
   monthlySaved: number;
@@ -814,14 +820,15 @@ export function planAt(
   const anchored = anchor && anchor.year === first.year && anchor.month < 12 ? anchor : null;
   const missed = anchored ? (first.netWorth - startingNetWorth) * (anchored.month / 12) : 0;
   const housing = row.housingCosts ?? 0;
+  const major = (majorExpenses ?? []).reduce((t, e) => t + amountForYear(e, row.year), 0);
   const loanEnd = row.mortgageBalance ?? 0;
   // The year a loan starts there is no earlier balance to interpolate from.
   const loanFrom =
     i > 0 && planRows[i - 1]!.mortgageBalance > 0 ? planRows[i - 1]!.mortgageBalance : loanEnd;
   return {
     // The engine pays for the home outside `expenses`; people log it as spending.
-    monthlySpending: (row.expenses + housing) / 12,
-    monthlySaved: (row.saved - housing) / 12,
+    monthlySpending: (row.expenses - major + housing) / 12,
+    monthlySaved: (row.saved + major - housing) / 12,
     monthlyHousing: housing / 12,
     netWorth:
       i === 0 && anchored

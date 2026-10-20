@@ -11,6 +11,7 @@ import {
   type YearReport,
 } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
+import type { Assumptions } from '@/lib/validation/scenarios';
 
 import { SectionLabel } from '../ui/icon';
 import MetalCard, { Chip } from '../ui/metal-card';
@@ -71,6 +72,7 @@ export default function TrackStatus({
   report,
   planRows,
   startingNetWorth,
+  majorExpenses,
   at,
   annual,
 }: {
@@ -78,6 +80,8 @@ export default function TrackStatus({
   report: YearReport;
   planRows: YearRow[];
   startingNetWorth: number;
+  /** The plan's major expenses — monthly comparisons use the everyday plan. */
+  majorExpenses?: Assumptions['majorExpenses'];
   /** The month on screen — where the plan's mortgage balance is read. */
   at: YearMonth;
   annual: AnnualExpense[];
@@ -92,8 +96,8 @@ export default function TrackStatus({
   const latest = withNw.at(-1);
   const loanLeft = planAt(planRows, startingNetWorth, at)?.mortgageBalance ?? 0;
   const allowance = useMemo(
-    () => monthAllowance(entries, at, planRows, startingNetWorth, annual),
-    [entries, at, planRows, startingNetWorth, annual],
+    () => monthAllowance(entries, at, planRows, startingNetWorth, annual, majorExpenses),
+    [entries, at, planRows, startingNetWorth, annual, majorExpenses],
   );
   // The plan's starting net worth is "now" when it was made: in its first
   // year, measure from the first month logged with a net worth.

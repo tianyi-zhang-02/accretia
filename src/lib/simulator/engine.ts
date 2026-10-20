@@ -471,7 +471,7 @@ function personSalaryForYear(person: Person, year: number): number {
  * given year. Handles both shapes: one-time `{year, amount}` and
  * recurring `{startYear, annualAmount, years}`.
  */
-function amountForYear(e: MajorExpense, year: number): number {
+export function amountForYear(e: MajorExpense, year: number): number {
   if ('year' in e) {
     return e.year === year ? e.amount : 0;
   }

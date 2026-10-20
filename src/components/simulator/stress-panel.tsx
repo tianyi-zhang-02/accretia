@@ -74,7 +74,11 @@ export default function StressPanel({
   const { t, fmt } = useI18n();
   const stress = assumptions.stress;
   const active = !!(stress?.jobLoss || stress?.marketShock);
-  const nextYear = assumptions.horizonStartYear + 1;
+  // "Next year" means next year — not the year after an old plan started.
+  const nextYear = Math.min(
+    assumptions.horizonEndYear,
+    Math.max(assumptions.horizonStartYear, new Date().getFullYear()) + 1,
+  );
 
   // Drop the whole `stress` key when neither shock is set (keeps scenarios clean).
   function setStress(next: StressConfig | undefined) {

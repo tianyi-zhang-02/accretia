@@ -16,6 +16,7 @@ import {
   type YearMonth,
 } from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
+import type { Assumptions } from '@/lib/validation/scenarios';
 
 import Icon from '../ui/icon';
 
@@ -98,6 +99,7 @@ export default function WidgetBoard({
   today,
   planRows,
   startingNetWorth,
+  majorExpenses,
   startYear,
   annual,
   goals,
@@ -111,6 +113,8 @@ export default function WidgetBoard({
   today: YearMonth;
   planRows: YearRow[];
   startingNetWorth: number;
+  /** The plan's major expenses — monthly comparisons use the everyday plan. */
+  majorExpenses?: Assumptions['majorExpenses'];
   /** The plan's first year — where the sun starts rising. */
   startYear: number;
   annual: AnnualExpense[];
@@ -133,14 +137,14 @@ export default function WidgetBoard({
   const latest = [...entries].reverse().find(hasFlows);
   const kept = latest ? latest.income - latest.spending + (latest.pretaxSavings ?? 0) : 0;
   const planned = latest
-    ? (planAt(planRows, startingNetWorth, latest)?.monthlySaved ?? null)
+    ? (planAt(planRows, startingNetWorth, latest, undefined, majorExpenses)?.monthlySaved ?? null)
     : null;
   const ringPct =
     planned && planned > 0 ? Math.max(0, Math.min(1, kept / planned)) : kept > 0 ? 1 : 0;
   const runs = streak(entries, today);
   const allowance = useMemo(
-    () => monthAllowance(entries, today, planRows, startingNetWorth, annual),
-    [entries, today, planRows, startingNetWorth, annual],
+    () => monthAllowance(entries, today, planRows, startingNetWorth, annual, majorExpenses),
+    [entries, today, planRows, startingNetWorth, annual, majorExpenses],
   );
   const jarTarget = goals.reduce((t, g) => t + g.target, 0);
   const jarSaved = goals.reduce((t, g) => t + Math.min(g.saved, g.target), 0);
