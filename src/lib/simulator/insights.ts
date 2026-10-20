@@ -109,7 +109,8 @@ function impliedSavingsRatePct(a: Assumptions): number | null {
   const { rows } = simulate(a);
   const first = rows[0];
   if (!first || first.afterTaxIncome <= 0) return null;
-  return (first.saved / first.afterTaxIncome) * 100;
+  // The engine pays for the home outside `saved`.
+  return ((first.saved - first.housingCosts) / first.afterTaxIncome) * 100;
 }
 
 export function buildInsights(a: Assumptions): Insight[] {
@@ -129,13 +130,16 @@ export function buildInsights(a: Assumptions): Insight[] {
       year: primary.birthYear + base,
     });
   } else {
-    // Say why: most often the plan spends more than it brings home.
-    const first = simulate(a).rows[0];
+    // Say why: most often the plan spends more than it brings home. Judge
+    // the EVERYDAY plan — without one-off major expenses (a wedding in year
+    // one isn't overspending) and with the home's costs, which the engine
+    // pays outside `saved`.
+    const first = simulate({ ...a, majorExpenses: [] }).rows[0];
     out.push({
       id: 'fireNever',
       tone: 'warn',
       rank: 1000,
-      overspending: first !== undefined && first.saved < 0,
+      overspending: first !== undefined && first.saved - first.housingCosts < 0,
     });
   }
 

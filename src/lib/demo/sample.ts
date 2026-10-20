@@ -118,8 +118,10 @@ export function sampleData(today: YearMonth, name: string): Sample {
           {
             label: 'Software engineer',
             startAge: 24,
-            // Raises compound from startAge: ≈ $173k a year by now (31).
-            baseSalary: 130_000,
+            // Raises compound from startAge: ≈ $197k base + 8% bonus by now (31).
+            // At the 30% effective rate that is take-home PLUS the 401(k) — the
+            // plan's after-tax income holds both, as a real paycheck's does.
+            baseSalary: 160_000,
             annualRaisePct: 3,
             bonusPct: 8,
             annualEquity: 0,

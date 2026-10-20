@@ -9,7 +9,7 @@
 import type { YearRow } from '@/lib/simulator/engine';
 
 import { annualIn, monthlyReserve, type AnnualExpense } from './annual';
-import { planAt, recurringFor, type MonthEntry, type YearMonth } from './ledger';
+import { hasFlows, planAt, recurringFor, type MonthEntry, type YearMonth } from './ledger';
 
 export type Allowance = {
   /** What the plan expects to be spent a month (home costs included). */
@@ -45,7 +45,7 @@ export function monthAllowance(
     Object.values(r.categories).reduce((t, v) => t + (v ?? 0), 0);
   const annualReserve = monthlyReserve(annual);
   const prior = [...entries]
-    .filter((e) => key(e) < key(ym))
+    .filter((e) => key(e) < key(ym) && hasFlows(e))
     .sort((a, b) => key(a) - key(b))
     .slice(-3);
   const usualFlexible = prior.length

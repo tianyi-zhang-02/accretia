@@ -609,6 +609,7 @@ function Form({
     (blank(income) || (source.categories ? catFilled.length === 0 : blank(spending)));
 
   const kept = typeof inc === 'number' && typeof sp === 'number' ? inc - sp : null;
+  const savedAll = (kept ?? 0) + (typeof pt === 'number' ? pt : 0);
   const rate = kept !== null && typeof inc === 'number' && inc > 0 ? (kept / inc) * 100 : null;
 
   return (
@@ -1043,12 +1044,14 @@ function Form({
             </p>
           ) : null}
           {plan ? (
+            // Pre-tax savings count: the plan's after-tax income still holds
+            // the 401(k), so its saving does too.
             <p className="text-muted mt-0.5 text-[13px]">
               {C.planExpects(fmt.currency0(plan.monthlySaved))}{' '}
-              <span className={kept >= plan.monthlySaved ? 'text-positive' : 'text-negative'}>
-                {kept >= plan.monthlySaved
-                  ? C.ahead(fmt.currency0(kept - plan.monthlySaved))
-                  : C.behind(fmt.currency0(plan.monthlySaved - kept))}
+              <span className={savedAll >= plan.monthlySaved ? 'text-positive' : 'text-negative'}>
+                {savedAll >= plan.monthlySaved
+                  ? C.ahead(fmt.currency0(savedAll - plan.monthlySaved))
+                  : C.behind(fmt.currency0(plan.monthlySaved - savedAll))}
               </span>
             </p>
           ) : null}

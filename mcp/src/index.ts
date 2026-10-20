@@ -9,6 +9,7 @@ import {
   SUB_IDS,
   categoryBreakdown,
   incomeBreakdown,
+  planAnchor,
   planAt,
   recurringFor,
   subsOf,
@@ -580,7 +581,11 @@ server.registerTool(
       const plan = selected(data);
       const rows = simulate(plan.assumptions).rows;
       const latest = [...data.ledger].reverse().find((e) => e.netWorth !== undefined);
-      const expected = latest ? planAt(rows, plan.assumptions.startingNetWorth, latest) : null;
+      const start = plan.assumptions.startingNetWorth;
+      // Same footing as the app: anchored where the starting net worth is from.
+      const expected = latest
+        ? planAt(rows, start, latest, planAnchor(data.ledger, rows, start))
+        : null;
       const thisYear = new Date().getFullYear();
       const r = yearReport(data.ledger, thisYear, rows);
       const fire = fireHeadline(plan.assumptions);
@@ -597,7 +602,9 @@ server.registerTool(
         thisYear: {
           year: thisYear,
           monthsLogged: r.monthsRecorded,
-          kept: r.saved,
+          // Pre-tax savings count: the plan's saving includes them.
+          kept: r.saved + r.pretax,
+          pretaxSavings: r.pretax,
           planExpectedKept: r.plan ? Math.round(r.plan.saved) : null,
           spending: r.spending,
           planExpectedSpending: r.plan ? Math.round(r.plan.spending) : null,

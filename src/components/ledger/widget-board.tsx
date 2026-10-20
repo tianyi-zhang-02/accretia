@@ -8,6 +8,8 @@ import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { SavingsGoal } from '@/lib/ledger/goals';
 import {
   checkInTarget,
+  hasFlows,
+  monthWaiting,
   planAt,
   streak,
   type MonthEntry,
@@ -123,9 +125,13 @@ export default function WidgetBoard({
   const W = t.track.widgets;
 
   const target = checkInTarget(entries, today);
-  const targetLogged = entries.some((e) => e.year === target.year && e.month === target.month);
-  const latest = entries.at(-1);
-  const kept = latest ? latest.income - latest.spending : 0;
+  // Nudge only for a FINISHED month that isn't logged — never for the month
+  // in progress (its numbers aren't final; pulsing all October nags).
+  const waiting = monthWaiting(entries, today);
+  // The ring shows the latest month with money in it (a net-worth-only month
+  // would read "$0 · 0% of plan"), counting pre-tax savings like the plan does.
+  const latest = [...entries].reverse().find(hasFlows);
+  const kept = latest ? latest.income - latest.spending + (latest.pretaxSavings ?? 0) : 0;
   const planned = latest
     ? (planAt(planRows, startingNetWorth, latest)?.monthlySaved ?? null)
     : null;
@@ -194,8 +200,8 @@ export default function WidgetBoard({
               ) : kept < 0 ? (
                 <span className="text-negative text-[12px]">{W.overspent}</span>
               ) : null}
-              {!targetLogged ? (
-                <span className="widget-cta mt-1.5">{W.logCta(monthLabel(target))}</span>
+              {waiting ? (
+                <span className="widget-cta mt-1.5">{W.logCta(monthLabel(waiting))}</span>
               ) : null}
             </span>
           </span>

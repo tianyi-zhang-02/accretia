@@ -123,7 +123,8 @@ export function yearInReview(
           of: budgetMonths.length,
         }
       : null,
-    vsPlan: r.plan ? Math.round(r.saved - r.plan.saved) : null,
+    // Pre-tax savings count: the plan's saving includes them.
+    vsPlan: r.plan ? Math.round(r.saved + r.pretax - r.plan.saved) : null,
     // Goals are reached "now": only the current year's review counts them.
     goalsReached:
       opts.today && year === opts.today.year

@@ -13,7 +13,7 @@ import type { YearRow } from '@/lib/simulator/engine';
 
 import { annualIn, dueIn, type AnnualExpense } from './annual';
 import { budgetLines, type Budgets } from './budgets';
-import { CATEGORY_IDS, tierTotals, type CategoryId, type MonthEntry } from './ledger';
+import { CATEGORY_IDS, tierTotals, type CategoryId, type MonthEntry, hasFlows } from './ledger';
 
 export type LedgerInsight =
   | { id: 'spendingVsUsual'; tone: 'good' | 'warn'; pct: number; amount: number; usual: number }
@@ -53,11 +53,14 @@ export function ledgerInsights(
   budgets: Budgets = {},
   annual: AnnualExpense[] = [],
 ): LedgerInsights {
-  const sorted = [...entries].sort((a, b) => key(a) - key(b));
-  const focus = sorted.at(-1);
+  const all = [...entries].sort((a, b) => key(a) - key(b));
+  // Money findings come from months with money in them: a month logged with
+  // only a net worth would read as "you spent 100% less than usual".
+  const sorted = all.filter(hasFlows);
+  const focus = sorted.at(-1) ?? all.at(-1);
   if (!focus) return { focus: null, insights: [] };
   const out: LedgerInsight[] = [];
-  if (sorted.length === 1) out.push({ id: 'firstMonth', tone: 'info' });
+  if (all.length === 1) out.push({ id: 'firstMonth', tone: 'info' });
 
   const baseline = sorted
     .filter((e) => key(e) < key(focus) && key(focus) - key(e) <= 12)
@@ -139,7 +142,8 @@ export function ledgerInsights(
   const inYear = sorted.filter((e) => e.year === focus.year);
   const row = planRows.find((r) => r.year === focus.year);
   if (inYear.length >= 2 && row) {
-    const kept = inYear.reduce((t, e) => t + e.income - e.spending, 0);
+    // Pre-tax savings count: the plan's saving includes them.
+    const kept = inYear.reduce((t, e) => t + e.income - e.spending + (e.pretaxSavings ?? 0), 0);
     const projected = (kept / inYear.length) * 12;
     // Same footing as the report: the plan's home costs count as spending.
     const plan = row.saved - (row.housingCosts ?? 0);
@@ -153,17 +157,18 @@ export function ledgerInsights(
   }
 
   // ---- net worth since the last time it was logged ----
-  if (focus.netWorth !== undefined) {
-    const prev = [...sorted].reverse().find((e) => key(e) < key(focus) && e.netWorth !== undefined);
-    if (prev) {
-      const change = focus.netWorth - prev.netWorth!;
-      out.push({
-        id: 'netWorthChange',
-        tone: change >= 0 ? 'good' : 'warn',
-        change: round(change),
-        months: key(focus) - key(prev),
-      });
-    }
+  // Net worth from ANY month — a snapshot-only month is exactly this.
+  const nws = all.filter((e) => e.netWorth !== undefined);
+  const nwNow = nws.at(-1);
+  const nwPrev = nws.at(-2);
+  if (nwNow && nwPrev && key(nwNow) >= key(focus)) {
+    const change = nwNow.netWorth! - nwPrev.netWorth!;
+    out.push({
+      id: 'netWorthChange',
+      tone: change >= 0 ? 'good' : 'warn',
+      change: round(change),
+      months: key(nwNow) - key(nwPrev),
+    });
   }
 
   // ---- splurges ----

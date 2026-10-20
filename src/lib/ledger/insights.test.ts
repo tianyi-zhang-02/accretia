@@ -240,3 +240,29 @@ describe('categoryByMonth', () => {
     expect(categoryByMonth(entries, 2026, 'food')).toEqual([500, null, 0, ...Array(9).fill(null)]);
   });
 });
+
+describe('a month logged with only a net worth', () => {
+  const list = [
+    m(6, 9_000, 6_000, { netWorth: 100_000 }),
+    m(7, 9_000, 6_000),
+    m(8, 9_000, 6_000),
+    m(9, 0, 0, { netWorth: 112_000 }),
+  ];
+  it('is not read as "$0 in, $0 out" — money findings come from the last month with money', () => {
+    const r = ledgerInsights(list);
+    expect(r.focus).toEqual({ year: 2026, month: 8 });
+    expect(ids(r)).not.toContain('spendingVsUsual');
+  });
+  it('still reports the net worth it carries', () => {
+    const nw = ledgerInsights(list).insights.find((i) => i.id === 'netWorthChange');
+    expect(nw).toMatchObject({ change: 12_000, months: 3 });
+  });
+});
+
+it('the year pace counts pre-tax savings, as the plan does', () => {
+  const row = { year: 2026, saved: 36_000, housingCosts: 0 } as YearRow;
+  // Take-home kept 1k a month + 2k to the 401(k) = exactly the plan's 3k.
+  const list = [1, 2, 3].map((mo) => ({ ...m(mo, 7_000, 6_000), pretaxSavings: 2_000 }));
+  const pace = ledgerInsights(list, [row]).insights.find((i) => i.id === 'yearPace');
+  expect(pace).toMatchObject({ tone: 'good', projected: 36_000, plan: 36_000 });
+});

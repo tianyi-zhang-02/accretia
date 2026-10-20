@@ -233,8 +233,8 @@ export default function LedgerPanel({
   const kinds = useMemo(() => yearTierTotals(entries, year), [entries, year]);
   const saved = useMemo(() => totalSaved(entries, year), [entries, year]);
   const patch = useMemo(
-    () => calibrationPatch(report, entries, assumptions),
-    [report, entries, assumptions],
+    () => calibrationPatch(report, entries, assumptions, planRows),
+    [report, entries, assumptions, planRows],
   );
 
   function edit(month: number, field: Field, n: number | null) {

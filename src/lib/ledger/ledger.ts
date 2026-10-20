@@ -568,12 +568,27 @@ export function templateCsv(
 
 // ---------- Year report ----------
 
+/**
+ * A month with money in or out — not just a net-worth snapshot. The
+ * check-in lets someone log only their net worth; every FLOW statistic
+ * (totals, averages, "usual", the plan pace) skips such a month, or it
+ * would read as "$0 in, $0 out" — "you spent 100% less than usual".
+ */
+export const hasFlows = (e: MonthEntry): boolean =>
+  e.income !== 0 || e.spending !== 0 || (e.pretaxSavings ?? 0) !== 0;
+
 export type YearReport = {
   year: number;
   monthsRecorded: number;
   income: number;
   spending: number;
   saved: number;
+  /**
+   * Pre-tax savings (401(k), HSA) over the same months. The plan's after-tax
+   * income still contains them (its tax rate is tax ÷ gross), so anything
+   * held against the plan's saving must be `saved + pretax`.
+   */
+  pretax: number;
   /** saved ÷ income, %, or null with no income. */
   savingsRatePct: number | null;
   /** Per calendar month (index 0 = Jan); null where nothing was recorded. */
@@ -594,9 +609,11 @@ export function yearReport(entries: MonthEntry[], year: number, planRows?: YearR
   const monthly: YearReport['monthly'] = Array.from({ length: 12 }, () => null);
   let income = 0;
   let spending = 0;
-  for (const e of inYear) {
+  let pretax = 0;
+  for (const e of inYear.filter(hasFlows)) {
     income += e.income;
     spending += e.spending;
+    pretax += e.pretaxSavings ?? 0;
     monthly[e.month - 1] = {
       month: e.month,
       income: e.income,
@@ -616,6 +633,7 @@ export function yearReport(entries: MonthEntry[], year: number, planRows?: YearR
     income,
     spending,
     saved: income - spending,
+    pretax,
     savingsRatePct: income > 0 ? ((income - spending) / income) * 100 : null,
     monthly,
     best: bySaved[0] ? { month: bySaved[0].month, saved: bySaved[0].saved } : null,
@@ -655,10 +673,18 @@ export function calibrationPatch(
   report: YearReport,
   entries: MonthEntry[],
   a: Assumptions,
+  planRows: YearRow[] = [],
 ): Partial<Assumptions> | null {
   if (report.monthsRecorded < 3) return null;
+  // Logged spending includes the mortgage, tax and upkeep; the engine pays
+  // the home SEPARATELY on top of `recurringAnnualExpenses` — leaving it in
+  // would count the home twice.
+  const housing = planRows.find((r) => r.year === report.year)?.housingCosts ?? 0;
   const patch: Partial<Assumptions> = {
-    recurringAnnualExpenses: Math.round((report.spending / report.monthsRecorded) * 12),
+    recurringAnnualExpenses: Math.max(
+      0,
+      Math.round((report.spending / report.monthsRecorded) * 12 - housing),
+    ),
   };
   const latest = [...entries].reverse().find((e) => e.netWorth !== undefined);
   if (latest?.netWorth !== undefined) {
@@ -728,10 +754,26 @@ export function recentAverage(
   ym: YearMonth,
   n = 3,
 ): { income: number; spending: number } | null {
-  const prior = entries.filter((e) => key(e) < key(ym)).slice(-n);
+  const prior = entries.filter((e) => key(e) < key(ym) && hasFlows(e)).slice(-n);
   if (prior.length === 0) return null;
   const sum = (f: 'income' | 'spending') => prior.reduce((s, e) => s + e[f], 0) / prior.length;
   return { income: Math.round(sum('income')), spending: Math.round(sum('spending')) };
+}
+
+/**
+ * The month the plan's starting net worth is really from, for `planAt`: in
+ * the plan's first year, a logged month whose net worth IS the starting
+ * figure (what "use these numbers in my plan" writes), else the first month
+ * logged with a net worth that year.
+ */
+export function planAnchor(
+  entries: MonthEntry[],
+  planRows: YearRow[],
+  startingNetWorth: number,
+): YearMonth | undefined {
+  const firstYear = entries.filter((e) => e.netWorth !== undefined && e.year === planRows[0]?.year);
+  const hit = [...firstYear].reverse().find((e) => e.netWorth === startingNetWorth) ?? firstYear[0];
+  return hit ? { year: hit.year, month: hit.month } : undefined;
 }
 
 /**
@@ -763,6 +805,14 @@ export function planAt(
   if (i < 0) return null;
   const row = planRows[i]!;
   const from = i === 0 ? startingNetWorth : planRows[i - 1]!.netWorth;
+  // The engine credits the first year with twelve months of saving from the
+  // starting net worth. With an anchor in that year, the months before it
+  // never happened: growth runs at the plan's monthly pace FROM the anchor,
+  // and later years carry the same shortfall (instead of squeezing a year's
+  // growth into the rest of it, which only postponed reading "behind").
+  const first = planRows[0]!;
+  const anchored = anchor && anchor.year === first.year && anchor.month < 12 ? anchor : null;
+  const missed = anchored ? (first.netWorth - startingNetWorth) * (anchored.month / 12) : 0;
   const housing = row.housingCosts ?? 0;
   const loanEnd = row.mortgageBalance ?? 0;
   // The year a loan starts there is no earlier balance to interpolate from.
@@ -774,11 +824,9 @@ export function planAt(
     monthlySaved: (row.saved - housing) / 12,
     monthlyHousing: housing / 12,
     netWorth:
-      i === 0 && anchor && anchor.year === ym.year && anchor.month < 12
-        ? ym.month <= anchor.month
-          ? from
-          : from + (row.netWorth - from) * ((ym.month - anchor.month) / (12 - anchor.month))
-        : from + (row.netWorth - from) * (ym.month / 12),
+      i === 0 && anchored
+        ? from + (row.netWorth - from) * (Math.max(0, ym.month - anchored.month) / 12)
+        : from + (row.netWorth - from) * (ym.month / 12) - missed,
     mortgageBalance: loanFrom + (loanEnd - loanFrom) * (ym.month / 12),
   };
 }
