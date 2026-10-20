@@ -7,6 +7,7 @@
  */
 
 import type { YearRow } from '@/lib/simulator/engine';
+import type { Assumptions } from '@/lib/validation/scenarios';
 
 import { annualIn, monthlyReserve, type AnnualExpense } from './annual';
 import { hasFlows, planAt, recurringFor, type MonthEntry, type YearMonth } from './ledger';
@@ -36,8 +37,10 @@ export function monthAllowance(
   planRows: YearRow[],
   startingNetWorth: number,
   annual: AnnualExpense[] = [],
+  /** The plan's major expenses: a planned car isn't everyday money. */
+  majorExpenses?: Assumptions['majorExpenses'],
 ): Allowance | null {
-  const p = planAt(planRows, startingNetWorth, ym);
+  const p = planAt(planRows, startingNetWorth, ym, undefined, majorExpenses);
   if (!p) return null;
   const r = recurringFor(entries, ym);
   const fixed =

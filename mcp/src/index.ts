@@ -314,7 +314,11 @@ server.registerTool(
       const out = {
         saved: monthRow(now),
         previously: was ? monthRow(was) : null,
-        summary: monthSummary(now, selected(after).assumptions.monthlyBudgets ?? {}),
+        summary: monthSummary(
+          now,
+          selected(after).assumptions.monthlyBudgets ?? {},
+          selected(after).assumptions.annualExpenses ?? [],
+        ),
         syncedWithWebApp: v.mode === 'sync',
       };
       const note = recoveryCodeFile
@@ -531,7 +535,12 @@ server.registerTool(
         byCategory: categoryBreakdown(data.ledger, year),
         budgets: (() => {
           const b = selected(data).assumptions.monthlyBudgets ?? {};
-          const y = yearBudget(data.ledger, year, b);
+          const y = yearBudget(
+            data.ledger,
+            year,
+            b,
+            selected(data).assumptions.annualExpenses ?? [],
+          );
           return y && budgetTotal(b) > 0
             ? {
                 note: 'Each monthly budget × the months logged by category.',
@@ -617,6 +626,7 @@ server.registerTool(
             rows,
             plan.assumptions.startingNetWorth,
             plan.assumptions.annualExpenses ?? [],
+            plan.assumptions.majorExpenses,
           );
           return a
             ? {

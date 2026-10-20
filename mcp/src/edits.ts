@@ -12,7 +12,7 @@ import {
 
 import type { AnnualExpense } from '@/lib/ledger/annual';
 import type { SavingsGoal } from '@/lib/ledger/goals';
-import { budgetLines, type Budgets } from '@/lib/ledger/budgets';
+import { budgetLines, budgetedSpend, type Budgets } from '@/lib/ledger/budgets';
 import { assumptionsSchema } from '@/lib/validation/scenarios';
 
 import type { VaultData } from './vault';
@@ -152,7 +152,7 @@ export function setGoalsChange(goals: SavingsGoal[]) {
 }
 
 /** The answer a person wants after logging: what was kept, and how it splits. */
-export function monthSummary(e: MonthEntry, budgets: Budgets = {}) {
+export function monthSummary(e: MonthEntry, budgets: Budgets = {}, annual: AnnualExpense[] = []) {
   const s = totalSaved([e]);
   const t = tierTotals(e);
   return {
@@ -165,9 +165,9 @@ export function monthSummary(e: MonthEntry, budgets: Budgets = {}) {
     byKind: e.categories
       ? { essentials: t.needs, lifestyle: t.lifestyle, splurges: t.splurge }
       : null,
-    ...(e.categories && budgetLines(e.categories, budgets).length
+    ...(e.categories && budgetLines(budgetedSpend(e, annual), budgets).length
       ? {
-          budgets: budgetLines(e.categories, budgets).map((l) => ({
+          budgets: budgetLines(budgetedSpend(e, annual), budgets).map((l) => ({
             category: l.id,
             budget: l.budget,
             spent: l.spent,

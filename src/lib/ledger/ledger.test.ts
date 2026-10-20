@@ -714,3 +714,16 @@ describe('calibrationPatch with a home in the plan', () => {
     );
   });
 });
+
+describe('planAt with major expenses', () => {
+  it('monthly figures are the everyday plan; the year row keeps the car', () => {
+    const rows = [
+      { year: 2026, netWorth: 0, expenses: 120_000, saved: 0, housingCosts: 0 } as YearRow,
+    ];
+    const car = [{ label: 'Car', year: 2026, amount: 60_000 }];
+    const p = planAt(rows, 0, { year: 2026, month: 6 }, undefined, car)!;
+    expect(p.monthlySpending).toBe(5_000);
+    expect(p.monthlySaved).toBe(5_000);
+    expect(planAt(rows, 0, { year: 2026, month: 6 })!.monthlySpending).toBe(10_000);
+  });
+});

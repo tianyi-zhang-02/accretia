@@ -6,6 +6,23 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: more numbers that told the wrong story
+
+- **A planned big purchase no longer inflates every month.** A $60k car in
+  the plan's year made *Everyday, left* $5,000 higher every month and the
+  check-in say the plan expects you to save −$592. Monthly figures now use
+  the everyday plan; the year's totals still include the car.
+- **Planned once-a-year bills don't break budgets.** A registered trip in
+  August no longer shows "Fun went $2,232 over budget" or costs a month in
+  the year review's "budgets kept" — the bill comes off before budgets are
+  checked (findings, review, report, check-in hints, and the assistant).
+- **Plan's headline and the FIRE panel agree.** The panel looked only to
+  the plan's horizon ("not within your horizon") while the card above named
+  an age; both now look to age 90.
+- **No crash warnings for years that have passed** — the crash insight and
+  the stress test's "next year" count from today, not from when the plan
+  started.
+
 ### Fixed: numbers that told the wrong story
 
 - **A 401(k) no longer reads as "short of plan".** The plan's after-tax

@@ -350,7 +350,7 @@ const en = {
     covers: (spend: string) => `covers ${spend}/yr`,
     reachedAtAge: (year: number, ageN: number) => `reached ${year} · age ${ageN}`,
     reachedAt: (year: number) => `reached ${year}`,
-    notReached: 'not within your horizon',
+    notReached: 'not by age 90',
     coastLine: (year: number, ageN: number, retireAge: number) =>
       `stop saving ${year} (age ${ageN}) → coasts to Full FIRE by ${retireAge}`,
     coastNotReached: 'not yet — keep contributing',
@@ -1537,7 +1537,7 @@ const zh: Messages = {
     covers: (spend: string) => `覆盖每年 ${spend} 开支`,
     reachedAtAge: (year: number, ageN: number) => `${year} 年达成 · ${ageN} 岁`,
     reachedAt: (year: number) => `${year} 年达成`,
-    notReached: '推算区间内尚未达成',
+    notReached: '到 90 岁也还没达成',
     coastLine: (year: number, ageN: number, retireAge: number) =>
       `${year} 年（${ageN} 岁）起即可停止存钱 → 靠复利在 ${retireAge} 岁前到达完全 FIRE`,
     coastNotReached: '尚未达成——继续存钱',

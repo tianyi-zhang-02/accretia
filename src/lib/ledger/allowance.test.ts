@@ -58,3 +58,13 @@ describe('monthAllowance', () => {
     expect(monthAllowance([], { year: 2030, month: 1 }, rows, 0)).toBeNull();
   });
 });
+
+it("a planned car doesn't make every month of its year richer", () => {
+  // The plan's year holds 60k of everyday spending + a 60k car.
+  const withCar = [{ ...rows[0]!, expenses: 120_000, saved: 0 } as YearRow];
+  const car = [{ label: 'Car', year: 2026, amount: 60_000 }];
+  const a = monthAllowance([], { year: 2026, month: 10 }, withCar, 0, [], car)!;
+  expect(a.plan).toBe(5_000);
+  // Without telling it about the car, it would have read 10,000 a month.
+  expect(monthAllowance([], { year: 2026, month: 10 }, withCar, 0)!.plan).toBe(10_000);
+});

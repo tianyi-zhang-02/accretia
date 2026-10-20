@@ -8,7 +8,8 @@
 
 import type { YearRow } from '@/lib/simulator/engine';
 
-import { budgetLines, type Budgets } from './budgets';
+import type { AnnualExpense } from './annual';
+import { budgetLines, type Budgets, budgetedSpend } from './budgets';
 import { yearOverYear } from './compare';
 import { goalStatus, type SavingsGoal } from './goals';
 import {
@@ -49,6 +50,8 @@ export function yearInReview(
   opts: {
     planRows?: YearRow[];
     budgets?: Budgets;
+    /** Once-a-year bills: planned, so not held against a month's budget. */
+    annual?: AnnualExpense[];
     goals?: SavingsGoal[];
     today?: YearMonth;
   } = {},
@@ -118,7 +121,7 @@ export function yearInReview(
     budgets: budgetMonths.length
       ? {
           kept: budgetMonths.filter((e) =>
-            budgetLines(e.categories ?? {}, opts.budgets!).every((l) => !l.over),
+            budgetLines(budgetedSpend(e, opts.annual), opts.budgets!).every((l) => !l.over),
           ).length,
           of: budgetMonths.length,
         }

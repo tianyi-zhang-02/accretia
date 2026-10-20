@@ -73,7 +73,7 @@ export type Insight =
  * value is measurable even when the current horizon ends before FIRE.
  * Never mutates the input.
  */
-function toAge90(a: Assumptions): Assumptions {
+export function toAge90(a: Assumptions): Assumptions {
   const primary = a.people[0];
   if (!primary) return a;
   const end = primary.birthYear + 90;
@@ -113,7 +113,7 @@ function impliedSavingsRatePct(a: Assumptions): number | null {
   return ((first.saved - first.housingCosts) / first.afterTaxIncome) * 100;
 }
 
-export function buildInsights(a: Assumptions): Insight[] {
+export function buildInsights(a: Assumptions, thisYear = new Date().getFullYear()): Insight[] {
   const out: Insight[] = [];
   const primary = a.people[0];
   if (!primary) return out;
@@ -215,9 +215,10 @@ export function buildInsights(a: Assumptions): Insight[] {
     });
   }
 
-  // What a 2008-style year five years out would cost, in years of FIRE.
+  // What a 2008-style year five years out would cost, in years of FIRE —
+  // five years from NOW: a plan started in 2019 must not warn about 2024.
   if (base !== null) {
-    const crashYear = a.horizonStartYear + 5;
+    const crashYear = Math.max(a.horizonStartYear, thisYear) + 5;
     const stressed = simulate(toAge90(a), { marketShock: { year: crashYear, returnPct: -37 } });
     const fire = computeFire(stressed.rows, {
       recurringAnnualExpenses: a.recurringAnnualExpenses,

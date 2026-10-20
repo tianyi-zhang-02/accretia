@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useI18n } from '@/lib/i18n/locale';
-import type { YearRow } from '@/lib/simulator/engine';
+import { simulate, type YearRow } from '@/lib/simulator/engine';
 import { computeFire, type FireMilestone } from '@/lib/simulator/fire';
+import { toAge90 } from '@/lib/simulator/insights';
 import type { Assumptions, FireConfig } from '@/lib/validation/scenarios';
 import { SectionLabel } from '../ui/icon';
 
@@ -92,7 +93,14 @@ export default function FirePanel({
     });
   }
 
-  const fire = computeFire(rows, {
+  // Look as far as the headline does (to age 90): with a horizon that ends
+  // before FIRE, this panel said "not within your horizon" while the card
+  // above named an age.
+  const longRows = useMemo(() => {
+    const ext = toAge90(assumptions);
+    return ext === assumptions ? rows : simulate(ext).rows;
+  }, [assumptions, rows]);
+  const fire = computeFire(longRows, {
     recurringAnnualExpenses: assumptions.recurringAnnualExpenses,
     safeWithdrawalRatePct: swrPct,
     annualHealthInsurance: health,

@@ -12,7 +12,7 @@
 import type { YearRow } from '@/lib/simulator/engine';
 
 import { annualIn, dueIn, type AnnualExpense } from './annual';
-import { budgetLines, type Budgets } from './budgets';
+import { budgetLines, type Budgets, budgetedSpend } from './budgets';
 import { CATEGORY_IDS, tierTotals, type CategoryId, type MonthEntry, hasFlows } from './ledger';
 
 export type LedgerInsight =
@@ -207,7 +207,8 @@ export function ledgerInsights(
 
   // ---- budgets ----
   if (focus.categories) {
-    const lines = budgetLines(focus.categories, budgets);
+    // Planned once-a-year bills don't count against the month's budget.
+    const lines = budgetLines(budgetedSpend(focus, annual), budgets);
     const over = lines.filter((l) => l.over).sort((a, b) => a.left - b.left);
     if (over.length > 0) {
       out.push({

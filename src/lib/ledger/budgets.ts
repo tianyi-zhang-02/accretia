@@ -3,7 +3,14 @@
  * against what was logged. Pure; nothing here changes the projection.
  */
 
-import { CATEGORY_IDS, type CategoryId, type MonthEntry, type YearMonth } from './ledger';
+import { dueItems, type AnnualExpense } from './annual';
+import {
+  CATEGORY_IDS,
+  type CategoryId,
+  type MonthEntry,
+  type SubId,
+  type YearMonth,
+} from './ledger';
 
 export type Budgets = Partial<Record<CategoryId, number>>;
 
@@ -43,10 +50,34 @@ export function budgetLines(
   });
 }
 
+/**
+ * A month's spending by category as a BUDGET sees it: less the once-a-year
+ * bills due that month and logged on their line item. Those are planned
+ * (the plan's yearly spending holds them) — a registered $2,600 trip in
+ * August is not "Fun went $2,232 over budget".
+ */
+export function budgetedSpend(
+  e: MonthEntry,
+  annual: AnnualExpense[] = [],
+): Partial<Record<CategoryId, number>> {
+  const out: Partial<Record<CategoryId, number>> = { ...(e.categories ?? {}) };
+  for (const id of Object.keys(dueItems(annual, e.month)) as SubId[]) {
+    const v = e.breakdown?.[id];
+    if (!v) continue;
+    const c = id.split('.')[0] as CategoryId;
+    out[c] = Math.max(0, (out[c] ?? 0) - v);
+  }
+  return out;
+}
+
 /** One logged month against the budgets. Null when it wasn't logged by category. */
-export function monthBudget(e: MonthEntry | undefined, budgets: Budgets): BudgetLine[] | null {
+export function monthBudget(
+  e: MonthEntry | undefined,
+  budgets: Budgets,
+  annual: AnnualExpense[] = [],
+): BudgetLine[] | null {
   if (!e?.categories) return null;
-  return budgetLines(e.categories, budgets);
+  return budgetLines(budgetedSpend(e, annual), budgets);
 }
 
 /**
@@ -75,12 +106,19 @@ export const budgetTotal = (b: Budgets) =>
  * A year against the budgets: each budget × the months logged BY CATEGORY
  * (a month logged as one total can't be checked), vs what was spent then.
  */
-export function yearBudget(entries: MonthEntry[], year: number, budgets: Budgets) {
+export function yearBudget(
+  entries: MonthEntry[],
+  year: number,
+  budgets: Budgets,
+  annual: AnnualExpense[] = [],
+) {
   const months = entries.filter((e) => e.year === year && e.categories);
   if (months.length === 0) return null;
   const spent: Partial<Record<CategoryId, number>> = {};
-  for (const e of months)
-    for (const id of CATEGORY_IDS) spent[id] = (spent[id] ?? 0) + (e.categories?.[id] ?? 0);
+  for (const e of months) {
+    const b = budgetedSpend(e, annual);
+    for (const id of CATEGORY_IDS) spent[id] = (spent[id] ?? 0) + (b[id] ?? 0);
+  }
   const scaled: Budgets = Object.fromEntries(
     Object.entries(budgets).map(([id, v]) => [id, (v ?? 0) * months.length]),
   );
