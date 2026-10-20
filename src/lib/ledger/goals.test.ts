@@ -59,12 +59,21 @@ describe('goalsSummary', () => {
       [month(8, 12_000, 5_000), month(9, 12_000, 6_000), month(10, 12_000, 4_000)],
       oct,
     );
-    expect(s).toEqual({ needPerMonth: 6_000, keptPerMonth: 7_000, room: 1_000 });
+    expect(s).toEqual({ needPerMonth: 6_000, overdueLeft: 0, keptPerMonth: 7_000, room: 1_000 });
+  });
+
+  it('a goal past its date is not in the monthly need, but its gap is reported', () => {
+    const late = goal({ year: 2026, month: 9 });
+    const s = goalsSummary([late], [], oct);
+    expect(s.needPerMonth).toBe(0);
+    expect(s.overdueLeft).toBe(goalStatus(late, oct).left);
+    expect(s.overdueLeft).toBeGreaterThan(0);
   });
 
   it('nothing logged → the need alone', () => {
     expect(goalsSummary([goal({})], [], oct)).toEqual({
       needPerMonth: 5_000,
+      overdueLeft: 0,
       keptPerMonth: null,
       room: null,
     });

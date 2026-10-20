@@ -291,6 +291,13 @@ server.registerTool(
   },
   async (a) =>
     guarded(async () => {
+      // A month that hasn't started would become "the latest" everywhere.
+      const d = new Date();
+      if (a.year * 12 + a.month > d.getFullYear() * 12 + d.getMonth() + 1) {
+        return fail(
+          `${a.year}-${String(a.month).padStart(2, '0')} hasn't happened yet — only this month or earlier can be logged. Check the date with the user.`,
+        );
+      }
       const edit: MonthEdit = {
         year: a.year,
         month: a.month,
@@ -409,6 +416,8 @@ function goalsReport(goals: SavingsGoal[], ledger: MonthEntry[]) {
     allGoalsNeedPerMonth: s.needPerMonth,
     keptPerMonthLately: s.keptPerMonth,
     roomPerMonth: s.room,
+    // Not in the per-month need — say it, so "room" isn't read as "all fine".
+    overdueStillToSave: s.overdueLeft,
   };
 }
 

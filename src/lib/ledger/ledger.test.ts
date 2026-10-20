@@ -727,3 +727,30 @@ describe('planAt with major expenses', () => {
     expect(planAt(rows, 0, { year: 2026, month: 6 })!.monthlySpending).toBe(10_000);
   });
 });
+
+describe('importing months that have not happened', () => {
+  it('skips them with their line number', () => {
+    const csv = 'year,month,income,spending\n2026,9,100,50\n2026,11,100,50\n';
+    const r = parseLedgerCsv(csv, { year: 2026, month: 10 });
+    expect(r.entries.map((e) => e.month)).toEqual([9]);
+    expect(r.errors).toEqual([{ line: 3, reason: 'future' }]);
+    // Without a "today" nothing is judged (CSV round-trips stay pure).
+    expect(parseLedgerCsv(csv).entries).toHaveLength(2);
+  });
+});
+
+describe('calibrating a plan that began in an earlier year', () => {
+  it('starts the plan in the year the new starting net worth is from', () => {
+    const a = {
+      startingInvested: 80_000,
+      startingNetWorth: 100_000,
+      horizonStartYear: 2025,
+      horizonEndYear: 2060,
+    } as Assumptions;
+    const list = [m(1, 10_000, 6_000), m(2, 10_000, 6_000), m(3, 10_000, 6_000, 140_000)];
+    const p = calibrationPatch(yearReport(list, 2026), list, a)!;
+    expect(p.startingNetWorth).toBe(140_000);
+    expect(p.horizonStartYear).toBe(2026);
+    expect(p.horizonEndYear).toBeUndefined();
+  });
+});

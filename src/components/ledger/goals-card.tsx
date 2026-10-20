@@ -263,11 +263,16 @@ export default function GoalsCard({
           </p>
           {summary.keptPerMonth !== null && summary.room !== null ? (
             <p
-              className={`mt-1 text-[11px] leading-snug ${summary.room >= 0 ? 'text-positive' : 'text-negative'}`}
+              className={`mt-1 text-[11px] leading-snug ${summary.room >= 0 && summary.overdueLeft === 0 ? 'text-positive' : 'text-negative'}`}
             >
-              {summary.room >= 0
-                ? G.fits(fmt.currency0(summary.keptPerMonth))
-                : G.short(fmt.currency0(summary.keptPerMonth), fmt.currency0(-summary.room))}
+              {summary.room < 0
+                ? G.short(fmt.currency0(summary.keptPerMonth), fmt.currency0(-summary.room))
+                : summary.overdueLeft > 0
+                  ? G.fitsButOverdue(
+                      fmt.currency0(summary.keptPerMonth),
+                      fmt.currency0(summary.overdueLeft),
+                    )
+                  : G.fits(fmt.currency0(summary.keptPerMonth))}
             </p>
           ) : null}
         </div>

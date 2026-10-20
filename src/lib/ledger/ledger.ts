@@ -374,12 +374,17 @@ function cellToNumber(cell: string): number | null {
 export type CsvResult = {
   entries: MonthEntry[];
   /** 1-based line numbers that were skipped, with why. */
-  errors: Array<{ line: number; reason: 'columns' | 'number' | 'range' }>;
+  errors: Array<{ line: number; reason: 'columns' | 'number' | 'range' | 'future' }>;
   /** Set when the file as a whole was unusable. */
   fatal?: 'tooLarge' | 'noHeader';
 };
 
-export function parseLedgerCsv(text: string): CsvResult {
+/**
+ * `today`: rows dated after it are skipped (reason `future`) — a month that
+ * hasn't happened would become "the latest" everywhere: the widget, the
+ * findings, the net-worth card.
+ */
+export function parseLedgerCsv(text: string, today?: YearMonth): CsvResult {
   if (text.length > CSV_MAX_BYTES) return { entries: [], errors: [], fatal: 'tooLarge' };
   const lines = text
     .replace(/^﻿/, '') // Excel's BOM
@@ -489,6 +494,10 @@ export function parseLedgerCsv(text: string): CsvResult {
     });
     if (!parsed.success) {
       errors.push({ line: i + 1, reason: 'range' });
+      continue;
+    }
+    if (today && isAfter(parsed.data, today)) {
+      errors.push({ line: i + 1, reason: 'future' });
       continue;
     }
     entries = upsert(entries, parsed.data);
@@ -691,6 +700,13 @@ export function calibrationPatch(
     patch.startingNetWorth = latest.netWorth;
     // Schema invariant: invested ≤ max(0, net worth).
     patch.startingInvested = Math.min(a.startingInvested, Math.max(0, latest.netWorth));
+    // The new starting figure is from `latest`'s year: a plan that began in
+    // an earlier year would otherwise start that earlier year at today's net
+    // worth (and the plan's first year — where it's anchored — is gone).
+    if (latest.year > a.horizonStartYear) {
+      patch.horizonStartYear = latest.year;
+      if (a.horizonEndYear < latest.year) patch.horizonEndYear = latest.year;
+    }
   }
   return patch;
 }

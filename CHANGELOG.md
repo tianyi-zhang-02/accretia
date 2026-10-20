@@ -6,6 +6,30 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: the rest of the known issues
+
+- **An app left open across a month boundary moves on** — it no longer keeps
+  offering (and nudging for) last month's month.
+- **A half-typed month survives a look at Plan or Data**, not only at Home
+  and Report.
+- **Months that haven't happened can't be imported or logged** — a CSV row
+  dated next month is skipped with its line number (it used to become "the
+  latest month" everywhere), and the assistant refuses it too.
+- **"Today's dollars" are this year's** for a plan made years ago (they were
+  the plan's start-year dollars): projection card, chart, year table, stress
+  test.
+- **"Use these numbers in my plan"** on a plan that began in an earlier
+  year now starts the plan in the year of the new starting net worth.
+- **Stress test:** "Lowest point" (nearly always year one, before the shock)
+  is now the **hardest-hit year** — the biggest gap to the plan.
+- **Savings goals:** "that covers it" no longer shows in green while a goal
+  is past its date — it says what is still owed to it.
+- *Everyday, left* says when the plan's years don't include this one (and
+  opens Plan), instead of "set up a plan first".
+- A negative starting net worth (debts first) is kept, not turned into $0.
+- For homeowners, the FIRE note now says the FIRE number covers everyday
+  spending — the mortgage, property tax and upkeep aren't in it.
+
 ### Fixed: more numbers that told the wrong story
 
 - **A planned big purchase no longer inflates every month.** A $60k car in

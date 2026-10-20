@@ -70,6 +70,12 @@ export type GoalsSummary = {
   keptPerMonth: number | null;
   /** keptPerMonth − needPerMonth; null without logged months. */
   room: number | null;
+  /**
+   * Still to save on goals already past their date. They have no "per month"
+   * left, so they aren't in `needPerMonth` — but "that covers it" must not
+   * be said over them.
+   */
+  overdueLeft: number;
 };
 
 export function goalsSummary(
@@ -77,15 +83,17 @@ export function goalsSummary(
   entries: MonthEntry[],
   today: YearMonth,
 ): GoalsSummary {
-  const needPerMonth = goals
-    .map((g) => goalStatus(g, today))
+  const statuses = goals.map((g) => goalStatus(g, today));
+  const needPerMonth = statuses
     .filter((s) => !s.done && !s.overdue)
     .reduce((t, s) => t + s.perMonth, 0);
+  const overdueLeft = statuses.filter((s) => s.overdue).reduce((t, s) => t + s.left, 0);
   // "Lately" includes this month if it's logged.
   const avg = recentAverage(entries, { year: today.year, month: today.month + 1 });
   const keptPerMonth = avg ? round(avg.income - avg.spending) : null;
   return {
     needPerMonth: round(needPerMonth),
+    overdueLeft: round(overdueLeft),
     keptPerMonth,
     room: keptPerMonth === null ? null : round(keptPerMonth - needPerMonth),
   };

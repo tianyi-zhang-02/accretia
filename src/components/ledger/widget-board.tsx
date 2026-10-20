@@ -241,7 +241,13 @@ export default function WidgetBoard({
       </Tile>
 
       {/* What's left for everyday spending. */}
-      <Tile label={W.allowance} icon="flag">
+      {/* With a plan whose years don't include this one there is no monthly
+      figure to give — say that (and go to Plan), not "set up a plan". */}
+      <Tile
+        label={W.allowance}
+        icon="flag"
+        onClick={!allowance && planRows.length > 0 ? onPlan : undefined}
+      >
         {allowance ? (
           <span className="flex flex-1 flex-col items-start justify-end gap-1.5">
             <span className={`widget-figure ${allowance.flexible < 0 ? 'text-negative' : ''}`}>
@@ -266,7 +272,9 @@ export default function WidgetBoard({
             </span>
           </span>
         ) : (
-          <span className="text-muted flex flex-1 items-end text-[13px]">{W.noPlan}</span>
+          <span className="text-muted flex flex-1 items-end text-[13px] leading-snug">
+            {planRows.length > 0 ? W.planYears(planRows[0]!.year, planRows.at(-1)!.year) : W.noPlan}
+          </span>
         )}
       </Tile>
 
