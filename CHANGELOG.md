@@ -6,6 +6,35 @@ The project doesn't ship a versioned package — entries are grouped by mileston
 
 ## [Unreleased]
 
+### Fixed: numbers that told the wrong story
+
+- **A 401(k) no longer reads as "short of plan".** The plan's after-tax
+  income still contains pre-tax savings, so they now count wherever saving
+  is held against the plan — the check-in's live line, the *this month*
+  widget, Home's "saved this year" and its rate, the year's pace, the year
+  review and the assistant's `on_track`. Someone exactly on plan with a
+  $24.5k 401(k) used to see "$2,042 short" every month.
+- **"Use these numbers in my plan" no longer counts the home twice** (the
+  mortgage was in both the new everyday spending and the plan's own home
+  costs), and right after it the net-worth card no longer reads "behind" —
+  it measures from the month the new starting figure came from.
+- **A plan made mid-year isn't "behind" by December.** Its first year grows
+  at the plan's monthly pace from the month you started, and later years
+  leave out the months before it, instead of squeezing a year's growth into
+  the rest of the year.
+- **A month logged with only a net worth** is a snapshot, not "$0 in, $0
+  out": no more "you spent 100% less than usual", no extra month in the
+  report, the averages or the plan target.
+- **"Shrinking plan" warning only when the plan's net worth really falls**
+  year after year — not for a wedding in year one or a retiree whose
+  returns outrun withdrawals. Plan's "saving X% of after-tax income" and
+  its "spending more than you bring home" now count the home's costs.
+- **No nudge to log a month that isn't over** — *＋ Log* appears only for a
+  finished month still waiting.
+- Chinese: the check-in no longer says "这个月" while you log last month.
+- The sample household was rebalanced (take-home plus 401(k) now matches
+  its plan) so it still reads as roughly on plan.
+
 ### Fixed: what a review of the new tabs found
 
 - **Stepping the report back a year no longer moves the Log tab** (and wiped

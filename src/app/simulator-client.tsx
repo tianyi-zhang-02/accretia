@@ -656,9 +656,10 @@ function SimulatorInner() {
   // rate for the first year so the number the old "savings rate" input used
   // to hold is still visible — just as an output now.
   const firstRow = result?.rows[0];
+  // The engine pays for the home outside `saved`, so it comes off here.
   const impliedSavingsRate =
     firstRow && firstRow.afterTaxIncome > 0
-      ? (firstRow.saved / firstRow.afterTaxIncome) * 100
+      ? ((firstRow.saved - firstRow.housingCosts) / firstRow.afterTaxIncome) * 100
       : null;
 
   // Markers identical to the authed simulator: a dot per windfall and

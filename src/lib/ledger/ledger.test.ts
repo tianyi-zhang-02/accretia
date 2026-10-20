@@ -652,8 +652,65 @@ describe("planAt in the plan's first year", () => {
   it('anchored to the first month logged, a plan made in the autumn starts there', () => {
     const anchor = { year: 2026, month: 9 };
     expect(planAt(rows, 100_000, { year: 2026, month: 9 }, anchor)!.netWorth).toBe(100_000);
-    // Oct–Dec close the gap to the year-end figure.
-    expect(planAt(rows, 100_000, { year: 2026, month: 12 }, anchor)!.netWorth).toBe(112_000);
-    expect(planAt(rows, 100_000, { year: 2026, month: 10 }, anchor)!.netWorth).toBe(104_000);
+    // Oct–Dec grow at the plan's monthly pace (12k a year = 1k a month) —
+    // not the whole year's growth squeezed into three months.
+    expect(planAt(rows, 100_000, { year: 2026, month: 10 }, anchor)!.netWorth).toBe(101_000);
+    expect(planAt(rows, 100_000, { year: 2026, month: 12 }, anchor)!.netWorth).toBe(103_000);
+  });
+
+  it('later years carry the months before the anchor that never happened', () => {
+    const two = [
+      ...rows,
+      {
+        year: 2027,
+        netWorth: 124_000,
+        expenses: 60_000,
+        saved: 30_000,
+        housingCosts: 0,
+      } as YearRow,
+    ];
+    const anchor = { year: 2026, month: 9 };
+    // Jan–Sep 2026 (9k of the plan's growth) never happened: June 2027 is
+    // the usual 118k less that 9k — on the same 1k-a-month line as above.
+    expect(planAt(two, 100_000, { year: 2027, month: 6 }, anchor)!.netWorth).toBe(109_000);
+    // Without an anchor nothing is taken off.
+    expect(planAt(two, 100_000, { year: 2027, month: 6 })!.netWorth).toBe(118_000);
+  });
+});
+
+describe('a month logged with only a net worth', () => {
+  const list = [m(1, 10_000, 6_000, 100_000), m(2, 10_000, 6_000), m(3, 0, 0, 108_000)];
+  it('is not "$0 in, $0 out" in the year report — but its net worth counts', () => {
+    const r = yearReport(list, 2026);
+    expect(r.monthsRecorded).toBe(2);
+    expect(r.spending).toBe(12_000);
+    expect(r.monthly[2]).toBeNull();
+    expect(r.netWorth).toEqual({ start: 100_000, end: 108_000, change: 8_000 });
+  });
+  it('is left out of the recent average', () => {
+    expect(recentAverage(list, { year: 2026, month: 4 })).toEqual({
+      income: 10_000,
+      spending: 6_000,
+    });
+  });
+});
+
+describe('pre-tax savings and the plan', () => {
+  it('the year report carries them, so "saved" can be held against the plan', () => {
+    const list = [1, 2].map((mo) => ({ ...m(mo, 7_000, 6_000), pretaxSavings: 2_000 }));
+    const r = yearReport(list, 2026);
+    expect(r.saved).toBe(2_000);
+    expect(r.pretax).toBe(4_000);
+  });
+});
+
+describe('calibrationPatch with a home in the plan', () => {
+  it('takes the home costs out — the engine pays them on top of everyday spending', () => {
+    const a = { startingInvested: 80_000, startingNetWorth: 100_000 } as Assumptions;
+    const list = [m(1, 10_000, 6_000), m(2, 10_000, 6_000), m(3, 10_000, 6_000)];
+    const rows = [{ year: 2026, housingCosts: 24_000 } as YearRow];
+    expect(calibrationPatch(yearReport(list, 2026), list, a, rows)!.recurringAnnualExpenses).toBe(
+      48_000, // 72k logged − 24k of mortgage, tax and upkeep
+    );
   });
 });

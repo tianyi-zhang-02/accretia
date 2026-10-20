@@ -5,7 +5,7 @@
  * category in both. Pure; reads the ledger, changes nothing.
  */
 
-import { CATEGORY_IDS, type CategoryId, type MonthEntry } from './ledger';
+import { CATEGORY_IDS, type CategoryId, type MonthEntry, hasFlows } from './ledger';
 
 export type YearSide = {
   income: number;
@@ -52,8 +52,14 @@ function side(es: MonthEntry[]): YearSide {
 
 export function yearOverYear(entries: MonthEntry[], year: number): YearOverYear | null {
   const at = (y: number, m: number) => entries.find((e) => e.year === y && e.month === m);
+  // Money comparisons only over months with money logged in both years
+  // (a net-worth-only month is not "$0 in, $0 out").
+  const flowAt = (y: number, m: number) => {
+    const e = at(y, m);
+    return e && hasFlows(e) ? e : undefined;
+  };
   const months = Array.from({ length: 12 }, (_, i) => i + 1).filter(
-    (m) => at(year, m) && at(year - 1, m),
+    (m) => flowAt(year, m) && flowAt(year - 1, m),
   );
   if (months.length === 0) return null;
   const now = months.map((m) => at(year, m)!);

@@ -3,7 +3,13 @@
 import { useMemo } from 'react';
 
 import { useI18n } from '@/lib/i18n/locale';
-import { planAt, type MonthEntry, type YearMonth, type YearReport } from '@/lib/ledger/ledger';
+import {
+  planAnchor,
+  planAt,
+  type MonthEntry,
+  type YearMonth,
+  type YearReport,
+} from '@/lib/ledger/ledger';
 import type { YearRow } from '@/lib/simulator/engine';
 
 import { SectionLabel } from '../ui/icon';
@@ -91,11 +97,17 @@ export default function TrackStatus({
   );
   // The plan's starting net worth is "now" when it was made: in its first
   // year, measure from the first month logged with a net worth.
+  // After "use these numbers in my plan" the starting net worth IS a logged
+  // month's figure — anchor there, not on the year's first logged month.
   const anchor = useMemo(
-    () => entries.find((e) => e.netWorth !== undefined && e.year === planRows[0]?.year),
-    [entries, planRows],
+    () => planAnchor(entries, planRows, startingNetWorth),
+    [entries, planRows, startingNetWorth],
   );
   const planNow = latest ? planAt(planRows, startingNetWorth, latest, anchor) : null;
+  // Of everything that came in (take-home + pre-tax), like the year review —
+  // the "saved" row above counts the 401(k), so the rate does too.
+  const cameIn = report.income + report.pretax;
+  const savedRate = cameIn > 0 ? ((report.saved + report.pretax) / cameIn) * 100 : null;
   const planLine = useMemo(
     () => withNw.map((e) => planAt(planRows, startingNetWorth, e, anchor)?.netWorth ?? null),
     [withNw, planRows, startingNetWorth, anchor],
@@ -108,9 +120,21 @@ export default function TrackStatus({
 
   // A plan that spends more than it brings in falls every year. Being
   // "ahead" of it can still mean going backwards, so that is never painted
-  // green — and the metal card says why. (Same test as Plan's
-  // "spending more than you bring home": the plan's first year.)
-  const planDraining = (planRows[0]?.saved ?? 0) < 0;
+  // green — and the metal card says why.
+  // "Shrinking" = the plan's net worth falls in each of its first (up to)
+  // three years. A one-off in year one (a wedding, a car) or a retiree whose
+  // returns outrun withdrawals doesn't qualify; a plan whose home costs eat
+  // more than the surplus does.
+  const planDraining = useMemo(() => {
+    const first = planRows.slice(0, 3);
+    if (first.length === 0) return false;
+    let prev = startingNetWorth;
+    for (const r of first) {
+      if (r.netWorth >= prev) return false;
+      prev = r.netWorth;
+    }
+    return true;
+  }, [planRows, startingNetWorth]);
 
   /** Saving / net worth: more than plan is good. Spending: less is. */
   const vsPlan = (actual: number, plan: number, kind: 'more' | 'spend' = 'more') => {
@@ -157,7 +181,7 @@ export default function TrackStatus({
     : report.monthsRecorded > 0 || entries.length > 0
       ? {
           label: S.savedThisYear(report.year),
-          figure: fmt.currency0(report.saved),
+          figure: fmt.currency0(report.saved + report.pretax),
           sub: <span className="text-muted">{S.addNetWorth}</span>,
         }
       : {
@@ -218,9 +242,15 @@ export default function TrackStatus({
                 <li className="row items-center">
                   <span className="text-[13px]">{S.savedYtd(report.year)}</span>
                   <span className="nums text-right text-[13px]">
-                    <span className="font-medium">{fmt.currency0(report.saved)}</span>
+                    {/* Pre-tax savings count: the plan's saving includes them. */}
+                    <span className="font-medium">
+                      {fmt.currency0(report.saved + report.pretax)}
+                    </span>
                     {report.plan ? (
-                      <span className="text-xs"> · {vsPlan(report.saved, report.plan.saved)}</span>
+                      <span className="text-xs">
+                        {' '}
+                        · {vsPlan(report.saved + report.pretax, report.plan.saved)}
+                      </span>
                     ) : null}
                   </span>
                 </li>
@@ -239,12 +269,10 @@ export default function TrackStatus({
                   </span>
                 </li>
               ) : null}
-              {report.savingsRatePct !== null ? (
+              {savedRate !== null ? (
                 <li className="row items-center">
                   <span className="text-[13px]">{S.savingsRate}</span>
-                  <span className="nums text-[13px] font-medium">
-                    {fmt.pct0(report.savingsRatePct)}
-                  </span>
+                  <span className="nums text-[13px] font-medium">{fmt.pct0(savedRate)}</span>
                 </li>
               ) : null}
               {allowance ? (
