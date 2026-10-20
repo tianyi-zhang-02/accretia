@@ -116,7 +116,24 @@ describe('computeFire with a home', () => {
     expect(r.full.number).toBeCloseTo(1_705_697.763, 2);
   });
 
-  it('before the purchase year the home adds nothing', () => {
+  it('a home bought later counts before it is bought (at its purchase-year figures)', () => {
+    // No inflation; bought in 2027 (300k equity + 400k loan → 14k/yr, 400k owed).
+    const opts = {
+      ...base,
+      inflationPct: 0,
+      horizonStartYear: 2026,
+      home: { ...home, purchaseYear: 2027 },
+    };
+    const rows = [row(2026, 1_100_000), row(2027, 1_800_000, 300_000, 400_000)];
+    const r = computeFire(rows, opts);
+    // 1.1M investable in 2026 beats the 1M everyday number — but not the
+    // 1.75M it takes once the house comes; nor does 2027's 1.5M.
+    expect(r.full.reached).toBe(false);
+    expect(r.full.number).toBeCloseTo(1_750_000, 6);
+    expect(r.fullHome).toEqual({ carrying: 14_000, mortgage: 400_000 });
+  });
+
+  it('a purchase beyond the rows adds nothing', () => {
     const opts = { ...base, horizonStartYear: 2026, home: { ...home, purchaseYear: 2030 } };
     expect(computeFire([row(2027, 0, 0, 0)], opts).full.number).toBe(1_000_000);
   });

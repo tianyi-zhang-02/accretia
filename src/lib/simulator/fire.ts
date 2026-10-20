@@ -28,7 +28,10 @@
  *
  *   - tax + upkeep are for life: next year's, on the home's value, in the
  *     plan's start-year dollars — so they join the perpetuity;
- *   - the mortgage is a finite debt: enough to pay it off, in real terms.
+ *   - the mortgage is a finite debt: enough to pay it off, in real terms;
+ *   - a home bought LATER in the plan counts before it's bought too (at its
+ *     purchase-year figures) — otherwise FIRE could be declared in a year
+ *     the plan is about to buy a house it can't then carry.
  *
  * The home's value and the deflator are rebuilt from the row exactly as the
  * engine built them (value = equity + loan; F = (1+inflation)^(i+1)).
@@ -57,6 +60,8 @@ export type FireResult = {
   full: FireMilestone;
   lean: FireMilestone;
   coast: FireMilestone;
+  /** The home's part of the full target, in the year it's reached (or now). */
+  fullHome: { carrying: number; mortgage: number };
 };
 
 export type FireOptions = {
@@ -163,8 +168,12 @@ export function computeFire(rows: YearRow[], opts: FireOptions): FireResult {
   const fullNumber = fullSpend / safeSwr;
   const leanNumber = leanSpend / safeSwr;
 
+  // Before a purchase later in the plan, the coming home's figures apply.
+  const firstOwned = opts.home ? rows.find((r) => r.year >= opts.home!.purchaseYear) : undefined;
+  const homeFor = (r: YearRow) =>
+    homeShare(firstOwned && r.year < firstOwned.year ? firstOwned : r, opts);
   const target = (spendNumber: number) => (r: YearRow) => {
-    const h = homeShare(r, opts);
+    const h = homeFor(r);
     return spendNumber + h.carrying / safeSwr + h.mortgage;
   };
   const full = firstReaching(rows, target(fullNumber), opts.primaryBirthYear, fullNumber);
@@ -181,7 +190,7 @@ export function computeFire(rows: YearRow[], opts: FireOptions): FireResult {
       // retirement. Past retirement age, you need the full number outright.
       // The home's running costs are for life; the mortgage is left out
       // (while coasting you still earn, and pay it from that).
-      const goal = fullNumber + homeShare(r, opts).carrying / safeSwr;
+      const goal = fullNumber + homeFor(r).carrying / safeSwr;
       const needed = yearsToRetire > 0 ? goal / Math.pow(1 + realReturn, yearsToRetire) : goal;
       if (investableReal(r) >= needed) {
         coast = { reached: true, year: r.year, age: ageThatYear, number: needed };
@@ -198,5 +207,9 @@ export function computeFire(rows: YearRow[], opts: FireOptions): FireResult {
     full,
     lean,
     coast,
+    fullHome: (() => {
+      const at = rows.find((r) => r.year === full.year) ?? rows[0];
+      return at ? homeFor(at) : { carrying: 0, mortgage: 0 };
+    })(),
   };
 }

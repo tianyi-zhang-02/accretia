@@ -13,6 +13,8 @@ The project doesn't ship a versioned package — entries are grouped by mileston
   plus paying off what's left of the mortgage. Before, the FIRE number
   covered everyday spending only and read optimistic for homeowners. Their
   work-optional age moves later; plans without a home are unchanged.
+- A home bought later in the plan counts before it's bought — FIRE can't be
+  declared the year before a purchase the plan then couldn't carry.
 - The FIRE panel shows the home's part of the number (tax & upkeep a year,
   and the mortgage payoff), and the homeowner note says what's included.
 
